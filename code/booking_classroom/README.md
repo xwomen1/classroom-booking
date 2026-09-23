@@ -143,8 +143,20 @@ npx tsc --noEmit
 
 ```text
 booking_classroom/
-├── App.tsx                  # Màn hình đăng nhập và dashboard theo vai trò
-├── src/auth.ts              # Tài khoản demo và logic xác thực cục bộ
+├── App.tsx                  # Ghép luồng màn hình cấp ứng dụng
+├── src/app/                 # App shell và dashboard demo hiện tại
+├── src/core/                # Kiểu dữ liệu, hợp đồng dùng chung
+├── src/shared/              # Thành phần dùng lại giữa nhiều module
+├── src/modules/             # Các module nghiệp vụ độc lập
+│   ├── auth/                # Xác thực; phần đăng nhập demo đã có
+│   ├── account_management/  # Quản lý tài khoản và phân quyền
+│   ├── room_management/     # Phòng, thiết bị, trạng thái, loại khóa
+│   ├── booking/             # Tìm, đặt, duyệt, hủy và đổi phòng
+│   ├── access_control/      # Khóa cơ/thẻ từ và mã số tạm thời
+│   ├── schedule_maintenance/# Lịch sử dụng và lịch bảo trì
+│   ├── profile/             # Thông tin cá nhân
+│   ├── notifications/       # Thông báo nghiệp vụ
+│   └── configuration/       # Tham số và chính sách hệ thống
 ├── __tests__/auth.test.ts   # Kiểm tra hai tài khoản và trường hợp sai
 ├── scripts/build-debug.ps1  # Build khi đường dẫn Windows có ký tự Unicode
 ├── scripts/build-release.ps1 # Build APK độc lập khi đường dẫn có Unicode
@@ -152,6 +164,8 @@ booking_classroom/
 ├── release/                 # APK độc lập đã build và mã SHA-256
 └── android/                 # Dự án Android native do React Native tạo
 ```
+
+Mỗi module có `README.md` ghi chức năng con, business rules, ranh giới và trạng thái. Thành viên chỉ nhận module được phân công; các phần dùng chung đưa vào `core` hoặc `shared`.
 
 ## Phạm vi tiếp theo
 

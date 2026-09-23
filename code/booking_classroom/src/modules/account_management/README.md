@@ -1,0 +1,17 @@
+# Module: Account Management
+
+**Người dùng chính:** Admin là cán bộ quản lý cơ sở vật chất.
+
+## Chức năng con
+
+- Thêm, sửa, xóa tài khoản.
+- Tìm kiếm tài khoản.
+- Phân quyền Admin/User.
+- Theo dõi trạng thái tài khoản.
+
+## Ranh giới
+
+- Đăng nhập và mật khẩu thuộc module `auth`.
+- Thông tin cá nhân của người đang đăng nhập thuộc module `profile`.
+
+**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.

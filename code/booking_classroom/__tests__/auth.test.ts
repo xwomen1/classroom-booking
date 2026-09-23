@@ -1,4 +1,4 @@
-import { authenticate } from '../src/auth';
+import { authenticate } from '../src/modules/auth';
 
 describe('local demo authentication', () => {
   test('routes admin/1 to admin mode', () => {

@@ -8,6 +8,9 @@ Thư mục này chứa tài liệu và source của một Booking App tích hợ
 - `workflow_booking_app.tex/.pdf`: kiến trúc, workflow và vòng đời booking.
 - `hien_trang_trien_khai.tex/.pdf`: ghi nhận ngắn gọn những phần đã triển khai thực tế.
 - `code/booking_classroom`: source React Native của ứng dụng.
+- `code/booking_classroom/src/modules`: các module nghiệp vụ để phân công riêng cho từng thành viên.
+
+Danh sách module, phạm vi và ô người phụ trách được ghi tại [`code/booking_classroom/src/modules/README.md`](code/booking_classroom/src/modules/README.md).
 
 ## Chạy ứng dụng
 

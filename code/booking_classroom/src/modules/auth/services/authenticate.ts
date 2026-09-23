@@ -1,15 +1,5 @@
-export type UserRole = 'admin' | 'user';
-
-type DemoAccount = {
-  username: string;
-  password: string;
-  role: UserRole;
-};
-
-export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
-  { username: 'admin', password: '1', role: 'admin' },
-  { username: 'user', password: '2', role: 'user' },
-];
+import type { UserRole } from '../../../core/types/userRole';
+import { DEMO_ACCOUNTS } from '../model/demoAccounts';
 
 export function authenticate(
   username: string,

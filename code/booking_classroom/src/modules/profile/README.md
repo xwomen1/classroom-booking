@@ -10,4 +10,4 @@
 
 Việc đổi mật khẩu được xử lý bởi module `auth`.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** đã xem, sửa và lưu cục bộ họ tên, email, số điện thoại và đơn vị/khoa.

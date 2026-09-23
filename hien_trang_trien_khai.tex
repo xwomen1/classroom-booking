@@ -24,23 +24,25 @@
 \begin{center}
   {\LARGE\bfseries\color{hustred} HIỆN TRẠNG TRIỂN KHAI BOOKING APP}\par
   \vspace{0.1cm}
-  {\small Cập nhật: 23/09/2026}
+  {\small Cập nhật: 24/09/2026}
 \end{center}
 
 \textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
 
-\textbf{Hiện trạng: ĐÃ CÓ MVP ĐĂNG NHẬP VÀ APK RELEASE ĐỘC LẬP.}
+\textbf{Hiện trạng: ĐÃ CÓ MVP TÀI KHOẢN CỤC BỘ VÀ APK RELEASE ĐỘC LẬP.}
 
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
   \item Đăng nhập cục bộ đã hoạt động theo logic: \texttt{admin/1} vào chế độ quản trị; \texttt{user/2} vào chế độ người dùng; tài khoản sai bị từ chối; có chức năng đăng xuất.
-  \item Hai dashboard hiển thị nội dung khác nhau theo vai trò. Các mục quản lý/đặt phòng hiện mới là mô tả phạm vi, chưa phải chức năng hoàn chỉnh.
-  \item Kiểm tra source đạt: Jest 4/4 ca, ESLint và TypeScript không báo lỗi.
-  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 53.037.413 byte.
-  \item Đã cài bản Release trên Samsung M21 (SM-M215F), xóa \texttt{adb reverse}, tắt hẳn rồi mở lại ứng dụng khi Metro không chạy. Cả hai luồng \texttt{admin/1}, \texttt{user/2} và đăng xuất đều đạt; không có lỗi kết nối Metro.
+  \item Đã triển khai đăng ký tài khoản User, xem và sửa hồ sơ, đổi mật khẩu, danh sách thông báo, bộ đếm chưa đọc và đánh dấu tất cả đã đọc. Dữ liệu tiếp tục tồn tại sau khi tắt và mở lại ứng dụng.
+  \item Dashboard dùng biểu tượng chuông để mở thông báo. Menu avatar chứa thông tin cá nhân, đổi mật khẩu và đăng xuất; không còn liệt kê các chức năng chung thành các khung trên dashboard.
+  \item Dashboard Admin có 5 khung chức năng; dashboard User có 4 khung. Các khung theo vai trò và mục quên mật khẩu vẫn chỉ mở màn hình trống; chưa có nghiệp vụ quản lý hoặc đặt phòng bên trong.
+  \item Kiểm tra source đạt: Jest 5/5 ca, ESLint và TypeScript không báo lỗi.
+  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.831.470 byte; SHA-256: \path{21BEBF389E4B8DE9DF1B9A2F934A4CC58842B6F6CD787F004E660453F7BFE43B}.
+  \item Đã cài bản Release trên Samsung M21 (SM-M215F), không dùng \texttt{adb reverse} và Metro. Đã chạy thật các luồng đăng ký \texttt{teacher24}, đăng nhập, cập nhật hồ sơ, đổi mật khẩu, thông báo và xác nhận dữ liệu còn nguyên sau khi tắt hẳn rồi mở lại ứng dụng.
   \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
 \end{itemize}
 
-\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu, nghiệp vụ đặt phòng hoặc xác thực qua server. Tài khoản cố định chỉ dùng cho bản demo cục bộ.
+\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu máy chủ, nghiệp vụ đặt phòng hoặc xác thực qua server. Mật khẩu hiện được lưu cục bộ để phục vụ bản demo môn học. Mục quên mật khẩu chưa được triển khai.
 
 \end{document}

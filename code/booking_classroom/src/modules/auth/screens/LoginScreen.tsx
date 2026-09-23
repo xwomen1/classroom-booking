@@ -8,33 +8,53 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { UserRole } from '../../../core/types/userRole';
-import { authenticate } from '../services/authenticate';
+import type { AuthenticatedUser } from '../../../core/types/authenticatedUser';
+import { FeaturePlaceholderScreen } from '../../../shared';
+import { authenticate } from '../services/accountRepository';
+import { RegistrationScreen } from './RegistrationScreen';
 
 type LoginScreenProps = {
-  onLogin: (role: UserRole) => void;
+  onLogin: (user: AuthenticatedUser) => void;
 };
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
 
-  const submit = () => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async () => {
     if (!username.trim() || !password) {
       setError('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
       return;
     }
 
-    const role = authenticate(username, password);
-    if (!role) {
+    setSubmitting(true);
+    const user = await authenticate(username, password);
+    setSubmitting(false);
+    if (!user) {
       setError('Sai tài khoản hoặc mật khẩu.');
       return;
     }
 
     setError('');
-    onLogin(role);
+    onLogin(user);
   };
+
+  if (selectedFeature === 'Đăng ký') {
+    return <RegistrationScreen onBack={() => setSelectedFeature(null)} />;
+  }
+
+  if (selectedFeature) {
+    return (
+      <FeaturePlaceholderScreen
+        title={selectedFeature}
+        onBack={() => setSelectedFeature(null)}
+      />
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -79,15 +99,33 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
           <Pressable
             accessibilityRole="button"
+            disabled={submitting}
             onPress={submit}
             style={({ pressed }) => [
               styles.primaryButton,
-              pressed && styles.buttonPressed,
+              (pressed || submitting) && styles.buttonPressed,
             ]}
             testID="login-button"
           >
-            <Text style={styles.primaryButtonText}>Đăng nhập</Text>
+            <Text style={styles.primaryButtonText}>
+              {submitting ? 'Đang kiểm tra...' : 'Đăng nhập'}
+            </Text>
           </Pressable>
+
+          <View style={styles.secondaryActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSelectedFeature('Đăng ký')}
+            >
+              <Text style={styles.secondaryActionText}>Đăng ký</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSelectedFeature('Quên mật khẩu')}
+            >
+              <Text style={styles.secondaryActionText}>Quên mật khẩu?</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.demoBox}>
@@ -165,6 +203,12 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   buttonPressed: { opacity: 0.78 },
+  secondaryActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  secondaryActionText: { color: '#B01432', fontSize: 14, fontWeight: '700' },
   demoBox: {
     alignSelf: 'center',
     backgroundColor: '#FFF5E6',

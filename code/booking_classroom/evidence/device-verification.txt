@@ -1,17 +1,26 @@
 ﻿booking_classroom - device verification
-Date: 2026-09-23
+Date: 2026-09-24
 Device: Samsung SM-M215F (Samsung M21)
 ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
 Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 53037413 bytes
-Release APK SHA256: 7ABA203CD163B13FEB3A6F22218677328AD83D940AF67EF330A1A8C91C4E0251
+Release APK size: 57831470 bytes
+Release APK SHA256: 21BEBF389E4B8DE9DF1B9A2F934A4CC58842B6F6CD787F004E660453F7BFE43B
 Release package debuggable flag: false
 Metro process required: no
 adb reverse rules during verification: none
 Force-stop and cold relaunch without Metro: PASS
 Admin flow: admin / 1 -> ADMIN dashboard: PASS
 User flow: user / 2 -> USER dashboard: PASS
+Admin 5 role frames: PASS
+User 4 role frames: PASS
+Registration: teacher24 account created: PASS
+Registered account login: PASS
+Profile update and persistence after force-stop: PASS
+Password change and login with new password: PASS
+Notification list, unread badge and mark-all-read: PASS
+Avatar menu (profile, password, logout): PASS
+Feature opens empty placeholder and returns: PASS
 Logout flow: PASS
 Fatal or Metro connection errors in checked logcat: 0

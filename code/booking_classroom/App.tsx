@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { RoleDashboardScreen } from './src/app';
-import type { UserRole } from './src/core/types/userRole';
+import type { AuthenticatedUser } from './src/core/types/authenticatedUser';
 import { LoginScreen } from './src/modules/auth';
 
 function App() {
-  const [role, setRole] = useState<UserRole | null>(null);
+  const [session, setSession] = useState<AuthenticatedUser | null>(null);
 
   return (
     <SafeAreaProvider>
@@ -15,10 +15,13 @@ function App() {
         style={styles.safeArea}
         edges={['top', 'right', 'bottom', 'left']}
       >
-        {role ? (
-          <RoleDashboardScreen role={role} onLogout={() => setRole(null)} />
+        {session ? (
+          <RoleDashboardScreen
+            session={session}
+            onLogout={() => setSession(null)}
+          />
         ) : (
-          <LoginScreen onLogin={setRole} />
+          <LoginScreen onLogin={setSession} />
         )}
       </SafeAreaView>
     </SafeAreaProvider>

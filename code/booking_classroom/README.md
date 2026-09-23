@@ -1,19 +1,28 @@
 # booking_classroom
 
-Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp. Bản hiện tại tập trung vào luồng đăng nhập cục bộ và điều hướng giao diện theo vai trò.
+Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp. Bản hiện tại có quản lý tài khoản và hồ sơ cục bộ, thông báo và giao diện phân theo vai trò.
+
+README này dành cho thành viên phát triển: mô tả phần đã có, cách sửa/chạy kiểm tra code, cách xử lý lỗi môi trường và cách chia module. Hướng dẫn cài APK nhanh cho người chỉ cần sử dụng nằm tại [`../../README.md`](../../README.md).
 
 ## Chức năng đã có
 
 - Đăng nhập bằng hai tài khoản demo:
   - Quản trị viên: `admin` / `1`
   - Người dùng: `user` / `2`
+- Đăng ký tài khoản người dùng mới; tài khoản tiếp tục dùng được sau khi đóng rồi mở lại ứng dụng.
+- Xem, sửa và lưu thông tin cá nhân.
+- Đổi mật khẩu và đăng nhập lại bằng mật khẩu mới.
+- Xem thông báo, đếm thông báo chưa đọc và đánh dấu tất cả là đã đọc.
+- Trên dashboard, thông báo nằm ở biểu tượng chuông; thông tin cá nhân, đổi mật khẩu và đăng xuất nằm trong menu avatar.
 - Hiển thị dashboard khác nhau cho chế độ quản trị viên và người dùng.
+- Admin có 5 khung: quản lý user, phòng, mượn phòng, lịch và cấu hình.
+- User có 4 khung: tìm kiếm phòng, đặt phòng, lịch đặt phòng và quản lý đặt phòng.
+- Các khung chức năng theo vai trò và mục quên mật khẩu hiện chỉ mở màn hình trống có nút quay lại để từng module tiếp tục được phát triển độc lập.
 - Báo lỗi khi thiếu hoặc sai thông tin đăng nhập.
-- Đăng xuất để quay về màn hình đăng nhập.
 
 Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
 
-Tài khoản đang được khai báo cục bộ trong `src/auth.ts` để demo trên một điện thoại. Không dùng cách này cho tài khoản thật. Dịch vụ Java, cơ sở dữ liệu và xác thực qua server chưa được triển khai.
+Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản đăng ký, mật khẩu, hồ sơ và thông báo được lưu cục bộ bằng Async Storage. Cách lưu mật khẩu hiện tại chỉ phục vụ bản demo môn học; dịch vụ Java, cơ sở dữ liệu và xác thực qua server chưa được triển khai.
 
 ## Công nghệ và môi trường đã kiểm tra
 
@@ -21,6 +30,7 @@ Tài khoản đang được khai báo cục bộ trong `src/auth.ts` để demo 
 - React `19.2.3`
 - TypeScript `5.8.x`
 - React Native Community CLI `20.1.0`
+- Async Storage `3.1.1`
 - Node.js `22.23.2`
 - Microsoft OpenJDK `17.0.20`
 - Android SDK/Platform Tools và smartphone Android thật
@@ -157,7 +167,7 @@ booking_classroom/
 │   ├── profile/             # Thông tin cá nhân
 │   ├── notifications/       # Thông báo nghiệp vụ
 │   └── configuration/       # Tham số và chính sách hệ thống
-├── __tests__/auth.test.ts   # Kiểm tra hai tài khoản và trường hợp sai
+├── __tests__/auth.test.ts   # Kiểm tra đăng nhập, đăng ký và đổi mật khẩu
 ├── scripts/build-debug.ps1  # Build khi đường dẫn Windows có ký tự Unicode
 ├── scripts/build-release.ps1 # Build APK độc lập khi đường dẫn có Unicode
 ├── evidence/                # Ảnh và kết quả kiểm tra trên Samsung M21
@@ -165,12 +175,4 @@ booking_classroom/
 └── android/                 # Dự án Android native do React Native tạo
 ```
 
-Mỗi module có `README.md` ghi chức năng con, business rules, ranh giới và trạng thái. Thành viên chỉ nhận module được phân công; các phần dùng chung đưa vào `core` hoặc `shared`.
-
-## Phạm vi tiếp theo
-
-- Tạo chức năng quản lý phòng cho quản trị viên.
-- Tạo tra cứu và đặt phòng cho người dùng.
-- Xây dựng dịch vụ Java và cơ sở dữ liệu.
-- Chuyển xác thực và phân quyền từ dữ liệu cục bộ sang server.
-- Bổ sung kiểm thử trên thiết bị và bản Release chạy độc lập.
+Mỗi module có `README.md` ghi chức năng con, business rules, ranh giới và trạng thái. Thành viên chỉ nhận module được phân công; các phần dùng chung đưa vào `core` hoặc `shared`. Bảng phân công và cấu trúc con chuẩn nằm tại [`src/modules/README.md`](src/modules/README.md).

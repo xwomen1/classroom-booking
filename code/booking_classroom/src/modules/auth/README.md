@@ -13,8 +13,9 @@
 ## Hiện trạng
 
 - Đã có đăng nhập demo cục bộ: `admin/1` và `user/2`.
-- Đã có đăng xuất và điều hướng giao diện theo vai trò.
-- Các chức năng còn lại mới nằm trong phạm vi dự kiến.
+- Đã có đăng ký tài khoản User mới, đổi mật khẩu, đăng xuất và điều hướng theo vai trò.
+- Tài khoản và mật khẩu được lưu cục bộ để phục vụ bản demo.
+- Quên mật khẩu chưa được triển khai.
 
 ## Cấu trúc
 

@@ -1,0 +1,228 @@
+\documentclass[12pt,a4paper,landscape]{article}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=../tunghv/01-Tai-lieu/fonts/,
+  UprightFont=times.ttf,
+  BoldFont=timesbd.ttf,
+  ItalicFont=timesi.ttf,
+  BoldItalicFont=timesbi.ttf
+]{Times New Roman}
+\usepackage[landscape,left=1.25cm,right=1.25cm,top=1.1cm,bottom=1.1cm]{geometry}
+\usepackage{xcolor}
+\usepackage{array,tabularx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\definecolor{hustred}{RGB}{170,20,45}
+\definecolor{mobileblue}{RGB}{222,238,251}
+\definecolor{javayellow}{RGB}{255,240,194}
+\definecolor{datagreen}{RGB}{221,241,226}
+\definecolor{physicalorange}{RGB}{255,229,204}
+\definecolor{softgray}{RGB}{242,244,247}
+\definecolor{rejectred}{RGB}{251,220,220}
+\definecolor{linegray}{RGB}{74,85,104}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Booking App -- Sơ đồ kiến trúc và workflow}
+\fancyhead[R]{\small \thepage}
+\setlength{\headheight}{14pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\parindent}{0pt}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=hustred,pdftitle={Workflow Booking App},pdfauthor={Hoàng Văn Tùng}}
+
+\tikzset{
+  block/.style={draw=linegray,rounded corners=3pt,very thick,align=center,minimum height=1.5cm,text width=3.3cm,inner sep=6pt},
+  actor/.style={block,fill=softgray,text width=3.0cm},
+  mobile/.style={block,fill=mobileblue,text width=4.0cm},
+  java/.style={block,fill=javayellow,text width=4.4cm},
+  data/.style={block,fill=datagreen,text width=3.7cm},
+  physical/.style={block,fill=physicalorange,text width=4.4cm},
+  flow/.style={draw=linegray,rounded corners=2pt,very thick,align=center,minimum height=1.15cm,text width=2.55cm,inner sep=4pt,fill=softgray},
+  decision/.style={diamond,draw=linegray,very thick,align=center,aspect=2.0,text width=2.0cm,inner sep=1pt,fill=javayellow},
+  terminal/.style={flow,fill=datagreen,text width=2.3cm},
+  error/.style={flow,fill=rejectred,text width=2.5cm},
+  access/.style={flow,fill=physicalorange,text width=3.0cm},
+  stage/.style={draw=linegray,rounded corners=4pt,very thick,align=center,minimum height=2.35cm,text width=3.0cm,inner sep=5pt,fill=softgray},
+  branch/.style={draw=linegray,rounded corners=3pt,thick,align=center,minimum height=1.45cm,text width=3.2cm,inner sep=4pt},
+  state/.style={draw=linegray,rounded corners=3pt,very thick,align=center,minimum height=1.15cm,text width=2.5cm,inner sep=4pt,fill=softgray},
+  rolewide/.style={draw=linegray,rounded corners=4pt,thick,align=center,minimum height=1.9cm,text width=5.1cm,inner sep=5pt,fill=softgray},
+  arrow/.style={-{Latex[length=2.5mm]},very thick,draw=linegray},
+  dashedarrow/.style={-{Latex[length=2.5mm]},very thick,dashed,draw=hustred}
+}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{hustred} SƠ ĐỒ KHỐI BOOKING APP}\par
+  \vspace{0.05cm}
+  {\large Một sản phẩm tích hợp dùng chung cho hai học phần}\par
+\end{center}
+
+\vspace{0.15cm}
+\begin{tikzpicture}[remember picture,font=\small]
+  \node[actor] (actors) at (1.6,3.3) {\textbf{Người dùng theo vai trò}\\[2pt]
+    Người đặt\\Người phê duyệt\\CSVC/Bảo vệ\\Quản trị viên};
+
+  \node[mobile] (mobile) at (7.0,3.3) {\textbf{Ứng dụng di động TypeScript}\\[3pt]
+    Giao diện theo vai trò\\Tra cứu và đặt phòng\\Phê duyệt, thẻ/pass\\Check-in/out, thông báo};
+
+  \node[java] (java) at (13.7,3.3) {\textbf{Dịch vụ nghiệp vụ Java}\\[3pt]
+    Xác thực và phân quyền\\Kiểm tra lịch/sức chứa/thiết bị\\Phê duyệt và trạng thái booking\\REST/JSON API và audit log};
+
+  \node[data] (db) at (20.3,3.3) {\textbf{Cơ sở dữ liệu}\\[3pt]
+    User, Role, Room, Equipment\\Booking, Approval\\Card, Pass Task\\Check-in/out, Audit Log};
+
+  \node[data,text width=4.7cm] (evidence) at (7.0,-0.3) {\textbf{Một luồng demo chung}\\[3pt]
+    Tìm phòng $\rightarrow$ đặt $\rightarrow$ duyệt $\rightarrow$ tiếp cận\\$\rightarrow$ sử dụng $\rightarrow$ check-out $\rightarrow$ đóng booking};
+
+  \node[physical] (access) at (13.7,-0.3) {\textbf{Tiếp cận phòng ngoài đời thực}\\[3pt]
+    Bàn giao/thu hồi thẻ từ\\hoặc\\nhân viên reset/cấp/đổi pass tại khóa};
+
+  \node[draw=hustred,dashed,rounded corners=3pt,align=center,text=hustred,text width=4.0cm,inner sep=5pt] (offline) at (20.3,-0.3)
+    {\textbf{Giới hạn thực tế}\\Không có kết nối điều khiển khóa từ xa};
+
+  \draw[arrow] (actors) -- node[above,fill=white,inner sep=1pt,font=\scriptsize]{thao tác theo quyền} (mobile);
+  \draw[arrow,<->] (mobile) -- node[above,fill=white,inner sep=1pt,font=\scriptsize]{REST/JSON} (java);
+  \draw[arrow,<->] (java) -- node[above,fill=white,inner sep=1pt,font=\scriptsize]{đọc/ghi} (db);
+  \draw[arrow] (mobile.south) -- (evidence.north);
+  \draw[arrow] (java.south) -- (access.north);
+  \draw[dashedarrow] (access.east) -- (offline.west);
+
+  \node[draw=hustred,rounded corners=3pt,thick,fit=(mobile)(java)(db)(access)(evidence),inner sep=9pt,label={[text=hustred,font=\bfseries]above right:BOOKING APP DUY NHẤT}] {};
+\end{tikzpicture}
+
+\vfill
+\begin{center}
+\begin{minipage}{0.94\textwidth}
+\small
+\textbf{Phân chia minh chứng, không chia sản phẩm:}
+ET4710 tập trung vào ứng dụng di động TypeScript, trải nghiệm người dùng, tích hợp API và chạy trên thiết bị thật. Lập trình nâng cao tập trung vào mã Java, mô hình hướng đối tượng, luật nghiệp vụ, phân quyền, kiểm tra trùng lịch và xử lý dữ liệu. Hai phần tạo thành cùng một hệ thống, dùng cùng tài khoản, dữ liệu và workflow.
+\end{minipage}
+\end{center}
+
+\newpage
+\begin{center}
+  {\LARGE\bfseries\color{hustred} WORKFLOW TỔNG THỂ}\par
+  \vspace{0.05cm}
+  {\large Từ đăng nhập đến khi đóng booking}\par
+\end{center}
+
+\vspace{0.35cm}
+\begin{tikzpicture}[font=\small]
+  % Luồng chính: một hàng, đọc từ trái sang phải
+  \node[stage,fill=mobileblue] (login) at (1.7,3.7)
+    {\textbf{1. Đăng nhập}\\[3pt]Server xác thực\\Trả tài khoản và vai trò\\Mở đúng chế độ};
+  \node[stage] (search) at (5.6,3.7)
+    {\textbf{2. Tra cứu}\\[3pt]Thời gian, cơ sở\\Sức chứa, loại phòng\\Thiết bị cần dùng};
+  \node[stage,fill=mobileblue] (request) at (9.5,3.7)
+    {\textbf{3. Tạo yêu cầu}\\[3pt]Chọn phòng\\Mục đích, số người\\Đơn vị và liên hệ};
+  \node[stage,fill=javayellow] (approval) at (13.4,3.7)
+    {\textbf{4. Phê duyệt}\\[3pt]Tự duyệt hoặc thủ công\\Kiểm tra lại lịch\\Ghi kết quả};
+  \node[stage,fill=physicalorange] (accessplan) at (17.3,3.7)
+    {\textbf{5. Tiếp cận}\\[3pt]Chọn thẻ hoặc pass\\Bàn giao/thao tác khóa\\Thông báo người đặt};
+  \node[stage,fill=mobileblue] (usage) at (21.2,3.7)
+    {\textbf{6. Sử dụng}\\[3pt]Check-in\\Sử dụng phòng\\Ghi nhận sự cố};
+  \node[stage,fill=datagreen] (finish) at (25.1,3.7)
+    {\textbf{7. Kết thúc}\\[3pt]Check-out\\Trả thẻ/xử lý pass\\Đóng booking, audit};
+
+  \draw[arrow] (login)--(search);
+  \draw[arrow] (search)--(request);
+  \draw[arrow] (request)--(approval);
+  \draw[arrow] (approval)--(accessplan);
+  \draw[arrow] (accessplan)--(usage);
+  \draw[arrow] (usage)--(finish);
+
+  % Các nhánh được đặt thẳng dưới giai đoạn phát sinh
+  \node[branch,fill=rejectred] (invalid) at (5.6,0.35)
+    {\textbf{Không phù hợp}\\Giải thích lý do và tra cứu lại};
+  \draw[dashedarrow] (search.south)--(invalid.north);
+
+  \node[branch,fill=rejectred] (reject) at (11.2,0.35)
+    {\textbf{Từ chối}\\Lưu lý do và thông báo};
+  \draw[dashedarrow] (approval.south) |- (reject.north);
+
+  \coordinate (split) at (17.3,1.65);
+  \node[branch,fill=physicalorange] (card) at (15.4,0.35)
+    {\textbf{Nhánh thẻ từ}\\Giữ chỗ, giao/nhận và thu hồi thẻ};
+  \node[branch,fill=physicalorange] (pass) at (19.2,0.35)
+    {\textbf{Nhánh pass}\\Tạo nhiệm vụ; nhân viên thao tác tại khóa};
+  \draw[arrow] (accessplan.south)--(split);
+  \draw[arrow] (split)-|(card.north);
+  \draw[arrow] (split)-|(pass.north);
+
+  \node[branch,fill=rejectred,text width=4.0cm] (exceptions) at (24.3,0.35)
+    {\textbf{Ngoại lệ}\\Hủy/đổi; no-show; sự cố phòng/thiết bị; mất hoặc trả thẻ muộn};
+\end{tikzpicture}
+
+\vfill
+\begin{center}
+\begin{minipage}{0.95\textwidth}
+\small
+\textbf{Quy tắc xuyên suốt:} server kiểm tra quyền, trạng thái phòng, sức chứa, khoảng thời gian, xung đột lịch và thiết bị bắt buộc. Hệ thống kiểm tra lại lịch ngay trước khi duyệt. Nhận thẻ/cấp pass và check-in là hai sự kiện riêng. Với khóa pass hiện tại, phần mềm chỉ quản lý nhiệm vụ và nhật ký; nhân viên thao tác trực tiếp tại khóa.
+\end{minipage}
+\end{center}
+
+\newpage
+\begin{center}
+  {\LARGE\bfseries\color{hustred} VÒNG ĐỜI BOOKING VÀ TRÁCH NHIỆM}\par
+  \vspace{0.05cm}
+  {\large Trạng thái, ngoại lệ và phạm vi thao tác của từng vai trò}\par
+\end{center}
+
+\vspace{0.35cm}
+\begin{tikzpicture}[font=\small]
+  % Vòng đời chính nằm trên một trục ngang
+  \node[state] (draft) at (1.4,4.2) {Nháp};
+  \node[state] (pending) at (5.3,4.2) {Chờ duyệt};
+  \node[state,fill=datagreen] (ok) at (9.2,4.2) {Đã duyệt};
+  \node[state,fill=physicalorange] (handover) at (13.1,4.2) {Chờ bàn giao};
+  \node[state,fill=physicalorange] (accessed) at (17.0,4.2) {Đã nhận thẻ /\\Đã cấp pass};
+  \node[state,fill=mobileblue] (using) at (20.9,4.2) {Đang sử dụng};
+  \node[state,fill=datagreen] (done) at (24.8,4.2) {Hoàn tất};
+
+  \draw[arrow] (draft)--(pending);
+  \draw[arrow] (pending)--(ok);
+  \draw[arrow] (ok)--(handover);
+  \draw[arrow] (handover)--(accessed);
+  \draw[arrow] (accessed)--(using);
+  \draw[arrow] (using)--(done);
+
+  % Ngoại lệ đặt thẳng dưới trạng thái liên quan
+  \node[error] (deny) at (5.3,1.75) {Từ chối};
+  \node[error,text width=3.8cm] (cancel) at (9.2,1.75) {Đã hủy theo chính sách};
+  \node[error] (noshow) at (17.0,1.75) {No-show};
+  \draw[dashedarrow] (pending)--(deny);
+  \draw[dashedarrow] (ok)--(cancel);
+  \draw[dashedarrow] (accessed)--(noshow);
+
+  \node[align=left,font=\scriptsize,text width=5.2cm] at (23.3,1.75)
+    {\textbf{Ghi chú:} hủy có thể phát sinh ở các trạng thái trước khi hoàn tất; nếu đã giao thẻ hoặc cấp pass thì phải tạo nghĩa vụ thu hồi/xử lý tương ứng.};
+\end{tikzpicture}
+
+\vspace{0.2cm}
+{\large\bfseries\color{hustred} Trách nhiệm theo vai trò}
+
+\vspace{0.12cm}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|>{\centering\arraybackslash}X|}
+  \hline
+  \textbf{Người đặt} & \textbf{Người phê duyệt} & \textbf{CSVC/Bảo vệ} & \textbf{Quản trị viên} \\
+  \hline
+  Tra cứu; tạo, đổi hoặc hủy yêu cầu; check-in/out; trả thẻ
+  & Duyệt hoặc từ chối đúng thẩm quyền; ghi lý do
+  & Giao/thu thẻ; thao tác pass tại khóa; xác nhận kết quả; xử lý sự cố
+  & Quản lý tài khoản, phòng, thiết bị, chính sách và báo cáo \\
+  \hline
+  \multicolumn{4}{|c|}{\textbf{Audit log chung:} người thực hiện -- hành động -- đối tượng -- thời điểm -- kết quả -- dữ liệu thay đổi} \\
+  \hline
+\end{tabularx}
+
+\vfill
+{\small\textbf{Nguồn nội dung:} phương án trong \path{final_project/du_an_dat_phong.tex} và \path{Quy_trinh_nghiep_vu_dat_phong_pass_the_tu.docx}. Đây là tài liệu thiết kế của đề tài, không phải rubric của giảng viên.}
+
+\end{document}

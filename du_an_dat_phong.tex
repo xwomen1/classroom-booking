@@ -1,0 +1,184 @@
+\documentclass[12pt,a4paper]{article}
+
+% Bien dich tai thu muc final_project bang Tectonic/XeLaTeX.
+% Font duoc dung chung tu bao cao ET4710 hien co.
+\usepackage{fontspec}
+\setmainfont[
+  Path=../tunghv/01-Tai-lieu/fonts/,
+  UprightFont=times.ttf,
+  BoldFont=timesbd.ttf,
+  ItalicFont=timesi.ttf,
+  BoldItalicFont=timesbi.ttf
+]{Times New Roman}
+\usepackage{geometry}
+\usepackage{array,tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{xurl}
+
+\geometry{left=2.5cm,right=2.5cm,top=1.8cm,bottom=1.8cm}
+\setstretch{1.12}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\definecolor{hustred}{RGB}{170,20,45}
+\definecolor{lightgray}{RGB}{245,245,245}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Đề xuất dự án đặt phòng học và phòng họp}
+\fancyhead[R]{\small \thepage}
+\setlength{\headheight}{14.5pt}
+\renewcommand{\headrulewidth}{0.4pt}
+\titleformat{\section}{\normalfont\large\bfseries\color{hustred}}{\thesection.}{0.6em}{}
+\titlespacing*{\section}{0pt}{8pt}{3pt}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection.}{0.6em}{}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=hustred,
+  pdftitle={Đề xuất dự án đặt phòng học và phòng họp},
+  pdfauthor={Hoàng Văn Tùng}
+}
+
+\begin{document}
+
+\begin{center}
+  {\large\bfseries ĐẠI HỌC BÁCH KHOA HÀ NỘI}\par
+  \vspace{0.35cm}
+  {\LARGE\bfseries\color{hustred} ĐỀ XUẤT DỰ ÁN BÀI TẬP LỚN}\par
+  \vspace{0.12cm}
+  {\large\bfseries Booking App -- Ứng dụng đặt phòng học và phòng họp}\par
+  \vspace{0.15cm}
+  {\normalsize Kế thừa ý tưởng chính của Bước 7 trong báo cáo ET4710}\par
+\end{center}
+
+\section{Yêu cầu học phần đã kiểm chứng}
+
+\subsection{Lập trình ứng dụng di động -- ET4710}
+
+\textbf{Nguồn chính thức đã đối chiếu:} \emph{ET4710.M261-Syllabus.pdf}, mục 1, 3.2, 4, 6.2, 7.1--7.3 và 8.1; \emph{ET4710-M261\_Yeu-cau-tu-chuan-bi-truoc-buoi-1.docx}, mục 4 và 6. Tài liệu chuẩn bị trước buổi 1 quy định môi trường và bài RNEnvironmentTest; các yêu cầu đối với \emph{dự án học phần} dưới đây lấy chủ yếu từ đề cương.
+
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
+  \item \textbf{Đề tài và phạm vi:} bài toán có người dùng/bên liên quan rõ ràng, MVP khả thi, tiêu chí chấp nhận và ít nhất một yêu cầu phi chức năng có thể đo hoặc kiểm chứng (đề cương, mục 7.1, trang 9).
+  \item \textbf{Sản phẩm và minh chứng:} mã nguồn có lịch sử truy vết; bản cài đặt hoặc kênh phân phối thử nghiệm; tài liệu yêu cầu, kiến trúc, dữ liệu/API, kiểm thử, bảo mật, hiệu năng; báo cáo, demo và minh chứng đóng góp cá nhân (mục 7.2, trang 9--10).
+  \item \textbf{Điều kiện hoàn thành:} luồng nghiệp vụ chính chạy trên thiết bị mục tiêu, build/cài đặt tái lập được, không còn lỗi nghiêm trọng đã biết; yêu cầu quan trọng có kiểm chứng và nhóm giải thích được quyết định kỹ thuật (mục 7.3, trang 10).
+  \item \textbf{Tích hợp:} đề cương nêu minh chứng dự án có ít nhất một tích hợp thiết bị hoặc dịch vụ có giá trị với bài toán, kèm thử nghiệm trên thiết bị thật (Chương 4, trang 5).
+  \item \textbf{TypeScript:} chuẩn đầu ra CLO2 ghi thiết kế kiến trúc, mô hình dữ liệu, luồng trạng thái và giao diện cho ứng dụng đa nền tảng \emph{bằng TypeScript} (mục 3.2, trang 3). Vì vậy dự án này dùng TypeScript ở phần ứng dụng di động để thể hiện chuẩn đầu ra.
+\end{itemize}
+
+\textbf{Giới hạn của kết luận về công nghệ:} đề cương gọi React Native, TypeScript và Expo/EAS là \emph{công nghệ tham chiếu} (mục 1, trang 2). Riêng TypeScript còn được nêu trong CLO2 như trên. Mục yêu cầu dự án cuối kỳ không chỉ định React Native, Expo, một framework backend, SQL hay một hệ quản trị cơ sở dữ liệu cụ thể. Golden Toolchain và các phiên bản cố định trong tài liệu trước buổi 1 là chuẩn môi trường của học phần; tài liệu đó không ghi chúng thành một danh sách công nghệ bắt buộc riêng cho sản phẩm bảo vệ cuối kỳ. Đề cương cho phép giảng viên thay thế công nghệ tương đương mà vẫn giữ chuẩn đầu ra (mục 8.1, trang 10).
+
+\subsection{Lập trình nâng cao -- thông tin hiện có và giới hạn xác minh}
+
+Theo thông tin học viên cung cấp, môn \emph{Lập trình nâng cao} yêu cầu lập trình bằng \textbf{Java} và có thể thực hiện trò chơi, website hoặc ứng dụng quản lý. Project hiện \textbf{chưa có đề cương, đề bài hay rubric chính thức} của môn này để kiểm tra phạm vi yêu cầu Java, hình thức sản phẩm, cơ sở dữ liệu hoặc quy định dùng chung dự án với ET4710. Thông tin học viên cung cấp được dùng để chọn hướng thiết kế, chưa được trình bày như trích dẫn tài liệu giảng viên.
+
+\textbf{Phương án thiết kế để đối chiếu khi có đề bài:} xây dựng duy nhất một sản phẩm \emph{Booking App}. Giao diện di động của sản phẩm viết bằng TypeScript; dịch vụ máy chủ của chính sản phẩm đó viết bằng Java để xử lý nghiệp vụ và cung cấp API. Hai phần dùng chung vai trò, phòng, booking, dữ liệu và một kịch bản demo xuyên suốt. Không xây thêm một ứng dụng quản lý Java độc lập. Cơ sở dữ liệu và thư viện Java sẽ chọn sau khi đối chiếu đề bài thực tế.
+
+\subsection{Nguyên tắc một sản phẩm dùng cho hai học phần}
+
+Booking App là \textbf{một hệ thống tích hợp}, không phải hai đề tài ghép lại. Người dùng thao tác trên ứng dụng di động; mọi yêu cầu được gửi đến dịch vụ Java để kiểm tra quyền, lịch phòng, phê duyệt, thẻ/pass và lưu dữ liệu. Khi bảo vệ ET4710, nhóm trình bày trải nghiệm di động, tích hợp API, kiểm thử trên thiết bị và bản cài đặt. Khi bảo vệ Lập trình nâng cao, nhóm trình bày mã Java, mô hình hướng đối tượng, thuật toán kiểm tra trùng lịch, phân quyền, lưu trữ và xử lý ngoại lệ của cùng luồng nghiệp vụ.
+
+\begin{tabularx}{\textwidth}{|p{3.1cm}|Y|Y|}
+  \hline
+  \textbf{Sản phẩm chung} & \textbf{Minh chứng ET4710} & \textbf{Minh chứng Lập trình nâng cao} \\
+  \hline
+  Booking App & Ứng dụng di động TypeScript, giao diện, trạng thái, gọi API, chạy trên thiết bị thật & Dịch vụ Java, mô hình nghiệp vụ, kiểm tra dữ liệu/quyền/trùng lịch và API \\
+  \hline
+  Dữ liệu và demo & \multicolumn{2}{p{10.9cm}|}{Dùng chung tài khoản, phòng, booking, lịch sử và kịch bản từ tìm phòng đến check-out; không tạo hai bộ dữ liệu hoặc hai quy trình riêng} \\
+  \hline
+\end{tabularx}
+
+\section{Ý tưởng và cơ sở nghiệp vụ}
+
+Đề xuất chính kế thừa Bước 7 của \path{lap_trinh_ung_dung_di_dong.tex}. Quy trình nghiệp vụ được đối chiếu với tài liệu ý tưởng do học viên cung cấp: \path{Quy_trinh_nghiep_vu_dat_phong_pass_the_tu.docx}, phiên bản 1.1 ngày 18/09/2026. Tài liệu Word này là \textbf{nguồn cho ý tưởng sản phẩm}, không phải quy định của hai học phần.
+
+\subsection{Vấn đề, người dùng và giá trị}
+
+Giảng viên, cán bộ hoặc người học có quyền cần tìm phòng học/phòng họp phù hợp với thời gian, sức chứa và trang thiết bị. Thông tin lịch trống, tình trạng thiết bị, phê duyệt và cách nhận quyền vào phòng dễ bị phân tán. Quy trình thủ công có thể gây trùng lịch, chậm bàn giao thẻ từ hoặc cấp pass và khó đối soát sau sử dụng.
+
+Người đặt phòng tra cứu, gửi, theo dõi, đổi hoặc hủy yêu cầu và check-in/out. Người phê duyệt xử lý yêu cầu thuộc thẩm quyền. Nhân viên cơ sở vật chất (CSVC) hoặc bảo vệ bàn giao/thu hồi thẻ, reset/cấp/đổi pass trực tiếp tại khóa và ghi nhận kết quả. Quản trị viên quản lý tài khoản, phòng và chính sách. Giá trị chính là minh bạch lịch phòng, giảm trùng lịch và phân biệt rõ các trạng thái \emph{được duyệt}, \emph{đã được cấp quyền tiếp cận} và \emph{đã check-in}.
+
+\subsection{Đăng nhập và chế độ theo vai trò}
+
+Khi mở ứng dụng, người dùng phải đăng nhập. Dịch vụ Java xác thực tài khoản, lấy vai trò được lưu trong hệ thống và trả thông tin phiên đăng nhập cho ứng dụng di động. Ứng dụng tự điều hướng đến chế độ tương ứng; người dùng \textbf{không tự chọn vai trò} trên màn hình đăng nhập.
+
+Tài khoản \textbf{người dùng} vào chế độ đặt phòng, gồm tìm phòng, tạo và theo dõi booking, check-in/out và xem thông báo. Tài khoản \textbf{quản trị viên} vào chế độ quản trị, gồm quản lý tài khoản, phòng, trang thiết bị, chính sách và audit log. Tài khoản người phê duyệt và CSVC/Bảo vệ mở các chức năng nghiệp vụ đúng thẩm quyền. Việc ẩn/hiện màn hình giúp giao diện phù hợp với từng vai trò; dịch vụ Java vẫn phải kiểm tra quyền cho mọi yêu cầu để ngăn truy cập trái phép qua API.
+
+\subsection{Ranh giới nghiệp vụ}
+
+Hệ thống \textbf{không điều khiển khóa từ xa}. Khóa dùng pass trong tài liệu nghiệp vụ không có ứng dụng hoặc kết nối điều khiển; nhân viên phải thao tác trực tiếp tại cửa. Mỗi booking chọn một phương thức tiếp cận được duyệt: \emph{thẻ từ} hoặc \emph{pass}. Phòng có cả hai phương thức không tự động cấp đồng thời cả hai. Việc nhận thẻ/cấp pass không đồng nghĩa với check-in; pass cũng không tự hết hiệu lực chỉ vì thời gian booking đã qua.
+
+\section{MVP đề xuất}
+
+Đây là \textbf{phạm vi sản phẩm do nhóm đề xuất}, không phải danh sách tính năng mà ET4710 bắt buộc mọi đề tài phải có. MVP dùng dữ liệu phòng và tài khoản thử nghiệm; tích hợp tài khoản trường thật chỉ thực hiện khi được cấp quyền và có API phù hợp.
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
+  \item Đăng nhập bằng tài khoản thử nghiệm. Hệ thống xác thực, lấy vai trò từ máy chủ và tự mở chế độ người dùng, quản trị viên, người phê duyệt hoặc CSVC/Bảo vệ tương ứng. Người dùng không được tự nâng hoặc đổi vai trò.
+  \item Ở chế độ người dùng, tìm phòng theo cơ sở, thời gian, sức chứa, loại phòng và thiết bị cần dùng. Chi tiết phòng hiện số lượng và tình trạng của từng thiết bị. Ở chế độ quản trị viên, quản lý tài khoản, phòng, thiết bị, chính sách và xem audit log.
+  \item Gửi yêu cầu với mục đích, số người, đơn vị và liên hệ; xem trạng thái và hủy/đổi theo chính sách. Yêu cầu được tự duyệt hoặc chuyển người có thẩm quyền tùy cấu hình minh họa.
+  \item Kiểm tra quyền, sức chứa, lịch trùng, phòng bảo trì và thiết bị bắt buộc trước khi xác nhận; kiểm tra lại ngay trước khi duyệt.
+  \item Với booking dùng thẻ, ghi nhận người nhận, thời điểm bàn giao, trả và tình trạng thẻ. Với booking dùng pass, tạo nhiệm vụ cho nhân viên thao tác tại khóa, ghi nhận người thực hiện và thời điểm hoàn tất; không lưu pass dạng rõ trong nhật ký.
+  \item Ghi nhận check-in/out, hủy hoặc đổi booking, các nhiệm vụ xử lý thẻ/pass phát sinh và nhật ký thao tác. Hiển thị thông báo trạng thái và báo cáo cơ bản về lịch phòng, thẻ chưa trả, nhiệm vụ pass.
+\end{enumerate}
+
+\section{Thiết kế triển khai dự kiến}
+
+\begin{center}
+  \textbf{Ứng dụng di động TypeScript}
+  $\longleftrightarrow$
+  \textbf{Dịch vụ nghiệp vụ Java + REST/JSON API}
+  $\longleftrightarrow$
+  \textbf{Cơ sở dữ liệu sẽ lựa chọn}
+\end{center}
+
+Ba khối trên tạo thành \textbf{một Booking App duy nhất}. Đây là lựa chọn thiết kế của đề tài, không phải stack bắt buộc đã được xác minh từ tài liệu của cả hai môn. React Native là phương án dự kiến cho giao diện di động vì phù hợp với môi trường thực hành ET4710. Dịch vụ Java là phần máy chủ của Booking App, xử lý phê duyệt, thẻ/pass, nhật ký và cung cấp dữ liệu cho chính ứng dụng di động. Việc phần Java này đáp ứng môn Lập trình nâng cao vẫn cần được đối chiếu đề bài của môn.
+
+Backend quản lý tài khoản, phiên đăng nhập, vai trò, phòng, thiết bị, booking, phê duyệt, thẻ từ, nhiệm vụ pass, check-in/out và nhật ký. Sau khi xác thực thành công, ứng dụng nhận thông tin tài khoản và vai trò để điều hướng giao diện. Mọi API phải kiểm tra lại quyền ở phía Java; việc ứng dụng đã mở màn hình quản trị không thay thế bước kiểm tra này. Hai khoảng thời gian trùng nhau khi thời điểm bắt đầu mới sớm hơn thời điểm kết thúc cũ \emph{và} thời điểm kết thúc mới muộn hơn thời điểm bắt đầu cũ. Bước kiểm tra và ghi booking phải được bảo vệ bằng giao dịch hoặc cơ chế tương đương để tránh hai yêu cầu đồng thời cùng chiếm một phòng.
+
+Luồng chính: \emph{Nháp $\rightarrow$ Chờ duyệt $\rightarrow$ Đã duyệt $\rightarrow$ Chờ bàn giao $\rightarrow$ Đã nhận thẻ/Đã cấp pass $\rightarrow$ Đang sử dụng $\rightarrow$ Hoàn tất}. Các nhánh từ chối, hủy và no-show áp dụng theo chính sách được nhóm mô tả. Sau check-out, thẻ phải được trả; pass phải có nhiệm vụ reset/đổi thủ công tại khóa nếu chính sách yêu cầu. Khi hủy/đổi sau lúc đã bàn giao thẻ hoặc cấp pass, hệ thống tạo việc xử lý tương ứng.
+
+\section{Tiêu chí kiểm chứng do nhóm đề xuất}
+
+Các tiêu chí sau cụ thể hóa MVP và yêu cầu có minh chứng của ET4710; \textbf{không phải con số hoặc rubric do giảng viên ban hành}.
+
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
+  \item Cài ứng dụng trên smartphone Android thật và demo xuyên suốt: đăng nhập $\rightarrow$ vào đúng chế độ theo vai trò $\rightarrow$ tìm phòng $\rightarrow$ gửi yêu cầu $\rightarrow$ phê duyệt $\rightarrow$ chuẩn bị tiếp cận $\rightarrow$ check-in/out $\rightarrow$ kết thúc booking.
+  \item Đăng nhập bằng tài khoản người dùng phải mở chế độ đặt phòng; đăng nhập bằng tài khoản quản trị viên phải mở chế độ quản trị. Tài khoản người dùng gọi API quản trị phải bị từ chối, kể cả khi yêu cầu được tạo ngoài giao diện ứng dụng.
+  \item Phòng bảo trì, quá sức chứa, trùng lịch hoặc thiếu thiết bị bắt buộc đang hoạt động không được xác nhận là phù hợp; ứng dụng giải thích lý do cho người dùng.
+  \item Trong bài kiểm thử 20 yêu cầu đồng thời đặt cùng phòng và khung giờ, tối đa một booking được xác nhận. Đây là chỉ tiêu độ tin cậy có thể đo của nhóm.
+  \item Trong bộ kiểm thử phân quyền, mọi thao tác duyệt bằng tài khoản không có quyền đều bị từ chối và được ghi nhận. Đây là chỉ tiêu bảo mật có thể kiểm chứng của nhóm.
+  \item Booking dùng thẻ có lịch sử giao/trả; booking dùng pass có nhiệm vụ và xác nhận thao tác tại khóa. Việc cấp quyền tiếp cận và check-in là hai sự kiện riêng. Các sự kiện quan trọng có audit log.
+  \item Có mã nguồn, hướng dẫn dựng môi trường và tái lập build, tài liệu API/dữ liệu, báo cáo kiểm thử, bản cài đặt và kịch bản demo để phục vụ bảo vệ.
+\end{itemize}
+
+\section{Kế hoạch và phần việc cần xác nhận}
+
+\begin{tabularx}{\textwidth}{|p{2.3cm}|Y|}
+  \hline
+  \textbf{Giai đoạn} & \textbf{Kết quả cần đạt} \\
+  \hline
+  Phân tích & Chốt vai trò, chính sách duyệt, phương thức tiếp cận, mô hình phòng--thiết bị, tiêu chí chấp nhận và phạm vi MVP. \\
+  \hline
+  Nền tảng & Tạo giao diện di động TypeScript và dịch vụ Java/API trong cùng Booking App; kết nối dữ liệu thử nghiệm, phân quyền, tra cứu phòng và kiểm tra lịch. \\
+  \hline
+  Tích hợp & Hoàn thiện đặt/duyệt, thẻ/pass, check-in/out, thông báo, nhật ký và xử lý ngoại lệ. \\
+  \hline
+  Kiểm chứng & Kiểm thử luồng trên thiết bị thật, trùng lịch đồng thời, quyền, hai nhánh thẻ/pass; đóng gói và chuẩn bị demo. \\
+  \hline
+\end{tabularx}
+
+\textbf{Cần đối chiếu trước khi chốt phương án dùng chung cho hai môn:} đề cương/đề bài môn Lập trình nâng cao, mức độ dùng Java, việc chấp nhận dịch vụ Java như một phần của sản phẩm tích hợp, rubric, quy định sử dụng cùng một dự án và thông báo mới nhất của giảng viên ET4710. Khi có các nguồn này, cập nhật mục 1.2 và cách trình bày minh chứng; sản phẩm mục tiêu vẫn là một Booking App.
+
+\section{Bài trình bày ý tưởng trong 2--3 phút}
+
+\colorbox{lightgray}{%
+  \parbox{0.965\textwidth}{\small
+  Nhóm em đề xuất \textbf{Booking App -- ứng dụng đặt phòng học và phòng họp}. Đây là một sản phẩm tích hợp: giao diện di động TypeScript phục vụ người dùng, còn dịch vụ Java xác thực tài khoản, phân quyền, xử lý lịch, phê duyệt và dữ liệu. Sau khi đăng nhập, ứng dụng tự mở chế độ người dùng hoặc quản trị viên theo vai trò do máy chủ trả về; người dùng không tự chọn vai trò. Người đặt có thể tìm phòng, gửi yêu cầu, theo dõi phê duyệt và check-in/out. Sau khi được duyệt, mỗi booking dùng một phương thức tiếp cận theo chính sách: nhận/trả thẻ từ hoặc nhân viên lên tận khóa reset/cấp pass rồi ghi nhận. Hệ thống không điều khiển khóa từ xa. MVP được kiểm chứng bằng một luồng xuyên suốt trên điện thoại thật, đồng thời dùng cùng luồng để trình bày mã và xử lý nghiệp vụ Java.}}
+
+\end{document}

@@ -1,0 +1,46 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=../tunghv/01-Tai-lieu/fonts/,
+  UprightFont=times.ttf,
+  BoldFont=timesbd.ttf,
+  ItalicFont=timesi.ttf,
+  BoldItalicFont=timesbi.ttf
+]{Times New Roman}
+\usepackage[left=2.5cm,right=2.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{xurl}
+
+\definecolor{hustred}{RGB}{170,20,45}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\hypersetup{colorlinks=true,linkcolor=black,pdftitle={Hiện trạng triển khai Booking App},pdfauthor={Hoàng Văn Tùng}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{hustred} HIỆN TRẠNG TRIỂN KHAI BOOKING APP}\par
+  \vspace{0.1cm}
+  {\small Cập nhật: 23/09/2026}
+\end{center}
+
+\textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
+
+\textbf{Hiện trạng: ĐÃ CÓ MVP ĐĂNG NHẬP VÀ APK RELEASE ĐỘC LẬP.}
+
+\begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
+  \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
+  \item Đăng nhập cục bộ đã hoạt động theo logic: \texttt{admin/1} vào chế độ quản trị; \texttt{user/2} vào chế độ người dùng; tài khoản sai bị từ chối; có chức năng đăng xuất.
+  \item Hai dashboard hiển thị nội dung khác nhau theo vai trò. Các mục quản lý/đặt phòng hiện mới là mô tả phạm vi, chưa phải chức năng hoàn chỉnh.
+  \item Kiểm tra source đạt: Jest 4/4 ca, ESLint và TypeScript không báo lỗi.
+  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 53.037.413 byte.
+  \item Đã cài bản Release trên Samsung M21 (SM-M215F), xóa \texttt{adb reverse}, tắt hẳn rồi mở lại ứng dụng khi Metro không chạy. Cả hai luồng \texttt{admin/1}, \texttt{user/2} và đăng xuất đều đạt; không có lỗi kết nối Metro.
+  \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
+\end{itemize}
+
+\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu, nghiệp vụ đặt phòng hoặc xác thực qua server. Tài khoản cố định chỉ dùng cho bản demo cục bộ.
+
+\end{document}

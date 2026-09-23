@@ -1,0 +1,11 @@
+# LaTeX build intermediates
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/

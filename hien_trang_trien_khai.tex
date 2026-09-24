@@ -29,20 +29,25 @@
 
 \textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
 
-\textbf{Hiện trạng: ĐÃ CÓ MVP TÀI KHOẢN CỤC BỘ VÀ APK RELEASE ĐỘC LẬP.}
+\textbf{Hiện trạng: ĐÃ CÓ MVP BOOKING VÀ MÃ MỞ CỬA CỤC BỘ.}
 
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
   \item Đăng nhập cục bộ đã hoạt động theo logic: \texttt{admin/1} vào chế độ quản trị; \texttt{user/2} vào chế độ người dùng; tài khoản sai bị từ chối; có chức năng đăng xuất.
   \item Đã triển khai đăng ký tài khoản User, xem và sửa hồ sơ, đổi mật khẩu, danh sách thông báo, bộ đếm chưa đọc và đánh dấu tất cả đã đọc. Dữ liệu tiếp tục tồn tại sau khi tắt và mở lại ứng dụng.
   \item Dashboard dùng biểu tượng chuông để mở thông báo. Menu avatar chứa thông tin cá nhân, đổi mật khẩu và đăng xuất; không còn liệt kê các chức năng chung thành các khung trên dashboard.
-  \item Dashboard Admin có 5 khung chức năng; dashboard User có 4 khung. Các khung theo vai trò và mục quên mật khẩu vẫn chỉ mở màn hình trống; chưa có nghiệp vụ quản lý hoặc đặt phòng bên trong.
-  \item Kiểm tra source đạt: Jest 5/5 ca, ESLint và TypeScript không báo lỗi.
-  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.831.470 byte; SHA-256: \path{21BEBF389E4B8DE9DF1B9A2F934A4CC58842B6F6CD787F004E660453F7BFE43B}.
-  \item Đã cài bản Release trên Samsung M21 (SM-M215F), không dùng \texttt{adb reverse} và Metro. Đã chạy thật các luồng đăng ký \texttt{teacher24}, đăng nhập, cập nhật hồ sơ, đổi mật khẩu, thông báo và xác nhận dữ liệu còn nguyên sau khi tắt hẳn rồi mở lại ứng dụng.
+  \item Dashboard Admin có 5 khung chức năng; dashboard User có 4 khung. Chức năng đặt phòng, lịch đặt phòng, quản lý booking và quản lý mượn phòng đã được nối với dữ liệu local.
+  \item Đã có hai phòng mẫu: A101 dùng khóa mã số và B202 dùng khóa cơ/thẻ. User tạo yêu cầu với ngày, giờ, mục đích; hệ thống kiểm tra khoảng đặt trước 1--3 ngày, trùng lịch và giới hạn hai yêu cầu đang hoạt động.
+  \item Admin duyệt hoặc từ chối yêu cầu. Với A101, Admin có thể tự tạo mã mở cửa 6 chữ số hoặc cấp quyền để đúng User sở hữu booking tự tạo. User khác và booking chưa duyệt không được phép tạo mã.
+  \item Mã có hiệu lực 10 phút trước đến 10 phút sau phiên sử dụng và chỉ xuất hiện trong lịch của User đặt phòng.
+  \item User có thể xem/ẩn mã và hủy booking. Khi hủy, mã được đánh dấu thu hồi trong dữ liệu local. Chưa gửi mã tới khóa vật lý.
+  \item Các mục tìm kiếm phòng, CRUD phòng/User, quản lý lịch, cấu hình và quên mật khẩu vẫn là màn hình chờ.
+  \item Kiểm tra source đạt: Jest 8/8 ca, ESLint và TypeScript không báo lỗi.
+  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.860.026 byte; SHA-256: \path{B9E9603BA5452B48B8DD99F3D60F6738A5193F76862574C7E7C8D95AB198F55A}.
+  \item Đã cài bản Release trên Samsung M21 (SM-M215F), không dùng \texttt{adb reverse} và Metro. Đã chạy thật cả hai nhánh: Admin tự tạo mã; và Admin cấp quyền rồi \texttt{user/2} tự tạo, xem mã trong lịch đặt phòng.
   \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
 \end{itemize}
 
-\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu máy chủ, nghiệp vụ đặt phòng hoặc xác thực qua server. Mật khẩu hiện được lưu cục bộ để phục vụ bản demo môn học. Mục quên mật khẩu chưa được triển khai.
+\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu máy chủ, đồng bộ giữa nhiều thiết bị, tích hợp khóa thật hoặc xác thực qua server. Tài khoản và mã mở cửa hiện được lưu cục bộ để phục vụ bản demo môn học.
 
 \end{document}

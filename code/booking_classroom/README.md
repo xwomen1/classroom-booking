@@ -17,12 +17,16 @@ README này dành cho thành viên phát triển: mô tả phần đã có, các
 - Hiển thị dashboard khác nhau cho chế độ quản trị viên và người dùng.
 - Admin có 5 khung: quản lý user, phòng, mượn phòng, lịch và cấu hình.
 - User có 4 khung: tìm kiếm phòng, đặt phòng, lịch đặt phòng và quản lý đặt phòng.
-- Các khung chức năng theo vai trò và mục quên mật khẩu hiện chỉ mở màn hình trống có nút quay lại để từng module tiếp tục được phát triển độc lập.
+- User có thể chọn phòng mẫu, nhập ngày/giờ và mục đích để gửi yêu cầu đặt phòng.
+- Admin có thể duyệt hoặc từ chối yêu cầu trong `Quản lý mượn phòng`.
+- Với phòng khóa mã số A101, Admin có thể tự tạo mã tạm thời 6 chữ số hoặc cấp quyền để đúng User sở hữu booking tự tạo mã. Mã có hiệu lực từ 10 phút trước đến 10 phút sau phiên sử dụng và xuất hiện trong lịch của đúng User đã đặt.
+- User có thể xem/ẩn mã và hủy booking; khi hủy, mã liên quan được thu hồi trong dữ liệu local.
+- `Tìm kiếm phòng`, quản lý phòng, quản lý user, quản lý lịch, cấu hình và quên mật khẩu vẫn là màn hình chờ.
 - Báo lỗi khi thiếu hoặc sai thông tin đăng nhập.
 
 Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
 
-Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản đăng ký, mật khẩu, hồ sơ và thông báo được lưu cục bộ bằng Async Storage. Cách lưu mật khẩu hiện tại chỉ phục vụ bản demo môn học; dịch vụ Java, cơ sở dữ liệu và xác thực qua server chưa được triển khai.
+Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản đăng ký, mật khẩu, hồ sơ, booking, mã mở cửa và thông báo được lưu cục bộ bằng Async Storage. Mã hiện chỉ mô phỏng trong app và chưa được gửi tới khóa thật. Cách lưu dữ liệu hiện tại chỉ phục vụ bản demo môn học; dịch vụ Java, cơ sở dữ liệu và xác thực qua server chưa được triển khai.
 
 ## Công nghệ và môi trường đã kiểm tra
 
@@ -160,14 +164,15 @@ booking_classroom/
 ├── src/modules/             # Các module nghiệp vụ độc lập
 │   ├── auth/                # Xác thực; phần đăng nhập demo đã có
 │   ├── account_management/  # Quản lý tài khoản và phân quyền
-│   ├── room_management/     # Phòng, thiết bị, trạng thái, loại khóa
-│   ├── booking/             # Tìm, đặt, duyệt, hủy và đổi phòng
-│   ├── access_control/      # Khóa cơ/thẻ từ và mã số tạm thời
+│   ├── room_management/     # Dữ liệu phòng mẫu và loại khóa
+│   ├── booking/             # Tạo, duyệt, từ chối, xem và hủy booking
+│   ├── access_control/      # Sinh và tính hiệu lực mã số tạm thời
 │   ├── schedule_maintenance/# Lịch sử dụng và lịch bảo trì
 │   ├── profile/             # Thông tin cá nhân
 │   ├── notifications/       # Thông báo nghiệp vụ
 │   └── configuration/       # Tham số và chính sách hệ thống
 ├── __tests__/auth.test.ts   # Kiểm tra đăng nhập, đăng ký và đổi mật khẩu
+├── __tests__/booking.test.ts # Kiểm tra booking, phê duyệt và tạo mã
 ├── scripts/build-debug.ps1  # Build khi đường dẫn Windows có ký tự Unicode
 ├── scripts/build-release.ps1 # Build APK độc lập khi đường dẫn có Unicode
 ├── evidence/                # Ảnh và kết quả kiểm tra trên Samsung M21

@@ -10,6 +10,11 @@ import {
 import type { AuthenticatedUser } from '../../core/types/authenticatedUser';
 import { ChangePasswordScreen } from '../../modules/auth';
 import {
+  AdminBookingScreen,
+  CreateBookingScreen,
+  MyBookingsScreen,
+} from '../../modules/booking';
+import {
   getUnreadCount,
   NotificationScreen,
 } from '../../modules/notifications';
@@ -101,6 +106,35 @@ export function RoleDashboardScreen({
     return (
       <NotificationScreen
         username={session.username}
+        onBack={closeChildScreen}
+      />
+    );
+  }
+  if (isAdmin && activeScreen === 'Quản lý mượn phòng') {
+    return (
+      <AdminBookingScreen
+        username={session.username}
+        onBack={closeChildScreen}
+      />
+    );
+  }
+  if (!isAdmin && activeScreen === 'Đặt phòng') {
+    return (
+      <CreateBookingScreen
+        username={session.username}
+        onBack={closeChildScreen}
+      />
+    );
+  }
+  if (
+    !isAdmin &&
+    (activeScreen === 'Lịch đặt phòng' ||
+      activeScreen === 'Quản lý đặt phòng')
+  ) {
+    return (
+      <MyBookingsScreen
+        username={session.username}
+        title={activeScreen}
         onBack={closeChildScreen}
       />
     );

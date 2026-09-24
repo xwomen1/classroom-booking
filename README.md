@@ -30,7 +30,7 @@ Tài khoản demo:
 - Quản trị viên: `admin` / `1`
 - Người dùng: `user` / `2`
 
-Ứng dụng cũng cho phép đăng ký tài khoản User mới, cập nhật hồ sơ, đổi mật khẩu và xem thông báo; dữ liệu được giữ lại trên thiết bị sau khi đóng ứng dụng.
+Ứng dụng cũng cho phép đăng ký tài khoản User mới, cập nhật hồ sơ, đổi mật khẩu và xem thông báo. Luồng demo đặt phòng đã hỗ trợ User gửi yêu cầu; sau khi duyệt, Admin có thể tự tạo mật khẩu mở cửa hoặc cấp quyền cho đúng User tự tạo. Dữ liệu được giữ lại trên thiết bị sau khi đóng ứng dụng.
 
 ## Dành cho thành viên phát triển
 

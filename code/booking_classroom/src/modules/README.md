@@ -6,9 +6,9 @@ Mỗi thư mục con là một phạm vi có thể giao cho một thành viên p
 | ---------------------- | ---------------------------------------------------------- | ----------- | -------------------- | --------------- |
 | `auth`                 | Đăng ký, đăng nhập, đăng xuất, quên/đổi mật khẩu           | Chung       | Đã có, trừ quên mật khẩu | Chưa phân công  |
 | `account_management`   | CRUD, tìm kiếm và phân quyền tài khoản                     | Admin       | Khung                | Chưa phân công  |
-| `room_management`      | CRUD, tìm kiếm phòng, thiết bị và trạng thái               | Admin       | Khung                | Chưa phân công  |
-| `booking`              | Tìm phòng, tạo và quản lý yêu cầu, duyệt/từ chối/đổi phòng | Admin, User | Khung                | Chưa phân công  |
-| `access_control`       | Khóa cơ/thẻ từ, lịch lấy khóa, mã số tạm thời              | Admin, User | Khung                | Chưa phân công  |
+| `room_management`      | CRUD, tìm kiếm phòng, thiết bị và trạng thái               | Admin       | Có dữ liệu phòng mẫu | Chưa phân công  |
+| `booking`              | Tìm phòng, tạo và quản lý yêu cầu, duyệt/từ chối/đổi phòng | Admin, User | Đã có MVP local      | Chưa phân công  |
+| `access_control`       | Khóa cơ/thẻ từ, lịch lấy khóa, mã số tạm thời              | Admin, User | Đã có mã local       | Chưa phân công  |
 | `schedule_maintenance` | Lịch sử dụng phòng và lịch bảo trì                         | Admin       | Khung                | Chưa phân công  |
 | `profile`              | Xem và sửa thông tin cá nhân                               | Chung       | Đã triển khai cục bộ | Chưa phân công  |
 | `notifications`        | Thông báo theo sự kiện booking và hệ thống                 | Chung       | Đã có thông báo cục bộ | Chưa phân công  |

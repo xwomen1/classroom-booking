@@ -5,8 +5,8 @@ ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
 Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 57831470 bytes
-Release APK SHA256: 21BEBF389E4B8DE9DF1B9A2F934A4CC58842B6F6CD787F004E660453F7BFE43B
+Release APK size: 57860026 bytes
+Release APK SHA256: B9E9603BA5452B48B8DD99F3D60F6738A5193F76862574C7E7C8D95AB198F55A
 Release package debuggable flag: false
 Metro process required: no
 adb reverse rules during verification: none
@@ -22,5 +22,15 @@ Password change and login with new password: PASS
 Notification list, unread badge and mark-all-read: PASS
 Avatar menu (profile, password, logout): PASS
 Feature opens empty placeholder and returns: PASS
+User user/2 creates A101 booking request: PASS
+Admin admin/1 approves the request: PASS
+Admin generates six-digit temporary PIN: PASS
+PIN validity from 10 minutes before to 10 minutes after booking: PASS
+Requester user/2 sees the same PIN after logging in again: PASS
+Admin grants requester permission to generate PIN: PASS
+Requester user/2 generates its own six-digit PIN: PASS
+User without permission cannot generate PIN in service tests: PASS
+Other user bookings are isolated by username in service tests: PASS
+Local booking/PIN persistence after force-stop, relaunch and login: PASS
 Logout flow: PASS
 Fatal or Metro connection errors in checked logcat: 0

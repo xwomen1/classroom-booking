@@ -16,4 +16,4 @@
 - Lịch bảo trì thuộc module `schedule_maintenance`.
 - Cấp khóa, thẻ hoặc mã số thuộc module `access_control`.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** đã có dữ liệu local mẫu cho A101 dùng khóa mã số và B202 dùng khóa cơ/thẻ để phục vụ luồng demo booking. CRUD phòng cho Admin chưa được triển khai.

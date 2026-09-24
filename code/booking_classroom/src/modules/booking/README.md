@@ -25,4 +25,4 @@
 - Admin chỉ được đổi phòng trước thời điểm bắt đầu ít nhất 30 phút.
 - User được phép hủy phòng theo chính sách cấu hình.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** đã có MVP local gồm tạo yêu cầu, kiểm tra ngày 1--3 ngày, giới hạn hai yêu cầu, chống trùng phòng/User, danh sách booking, Admin duyệt/từ chối và User hủy. Chưa có tìm kiếm nâng cao, đổi phòng, giữ chỗ đồng thời hoặc server.

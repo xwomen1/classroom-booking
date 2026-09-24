@@ -13,9 +13,9 @@
 ## Hiện trạng
 
 - Đã có đăng nhập demo cục bộ: `admin/1` và `user/2`.
-- Đã có đăng ký tài khoản User mới, đổi mật khẩu, đăng xuất và điều hướng theo vai trò.
+- Đã có đăng ký tài khoản User mới, khôi phục bằng mã cục bộ, đổi mật khẩu, đăng xuất và điều hướng theo vai trò.
 - Tài khoản và mật khẩu được lưu cục bộ để phục vụ bản demo.
-- Quên mật khẩu chưa được triển khai.
+- Mã khôi phục demo: `admin/111111`, `user/222222`; tài khoản cũ khác chưa có mã dùng giá trị di trú `000000`.
 
 ## Cấu trúc
 

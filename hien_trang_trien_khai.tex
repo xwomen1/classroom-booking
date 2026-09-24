@@ -29,25 +29,22 @@
 
 \textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
 
-\textbf{Hiện trạng: ĐÃ CÓ MVP BOOKING VÀ MÃ MỞ CỬA CỤC BỘ.}
+\textbf{Hiện trạng: ĐÃ CÓ BẢN NGHIỆP VỤ LOCAL TRÊN MỘT THIẾT BỊ.}
 
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
-  \item Đăng nhập cục bộ đã hoạt động theo logic: \texttt{admin/1} vào chế độ quản trị; \texttt{user/2} vào chế độ người dùng; tài khoản sai bị từ chối; có chức năng đăng xuất.
-  \item Đã triển khai đăng ký tài khoản User, xem và sửa hồ sơ, đổi mật khẩu, danh sách thông báo, bộ đếm chưa đọc và đánh dấu tất cả đã đọc. Dữ liệu tiếp tục tồn tại sau khi tắt và mở lại ứng dụng.
-  \item Dashboard dùng biểu tượng chuông để mở thông báo. Menu avatar chứa thông tin cá nhân, đổi mật khẩu và đăng xuất; không còn liệt kê các chức năng chung thành các khung trên dashboard.
-  \item Dashboard Admin có 5 khung chức năng; dashboard User có 4 khung. Chức năng đặt phòng, lịch đặt phòng, quản lý booking và quản lý mượn phòng đã được nối với dữ liệu local.
-  \item Đã có hai phòng mẫu: A101 dùng khóa mã số và B202 dùng khóa cơ/thẻ. User tạo yêu cầu với ngày, giờ, mục đích; hệ thống kiểm tra khoảng đặt trước 1--3 ngày, trùng lịch và giới hạn hai yêu cầu đang hoạt động.
-  \item Admin duyệt hoặc từ chối yêu cầu. Với A101, Admin có thể tự tạo mã mở cửa 6 chữ số hoặc cấp quyền để đúng User sở hữu booking tự tạo. User khác và booking chưa duyệt không được phép tạo mã.
-  \item Mã có hiệu lực 10 phút trước đến 10 phút sau phiên sử dụng và chỉ xuất hiện trong lịch của User đặt phòng.
-  \item User có thể xem/ẩn mã và hủy booking. Khi hủy, mã được đánh dấu thu hồi trong dữ liệu local. Chưa gửi mã tới khóa vật lý.
-  \item Các mục tìm kiếm phòng, CRUD phòng/User, quản lý lịch, cấu hình và quên mật khẩu vẫn là màn hình chờ.
-  \item Kiểm tra source đạt: Jest 8/8 ca, ESLint và TypeScript không báo lỗi.
-  \item APK Release đã đóng gói JavaScript và build thành công; bản sẵn để cài nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.860.026 byte; SHA-256: \path{B9E9603BA5452B48B8DD99F3D60F6738A5193F76862574C7E7C8D95AB198F55A}.
-  \item Đã cài bản Release trên Samsung M21 (SM-M215F), không dùng \texttt{adb reverse} và Metro. Đã chạy thật cả hai nhánh: Admin tự tạo mã; và Admin cấp quyền rồi \texttt{user/2} tự tạo, xem mã trong lịch đặt phòng.
+  \item Xác thực local đã có đăng ký, đăng nhập/đăng xuất theo vai trò, đổi/khôi phục mật khẩu, hồ sơ và thông báo.
+  \item Admin đã quản lý tài khoản và phòng: tìm kiếm, thêm/sửa/xóa, phân quyền, khóa tài khoản, sức chứa, thiết bị, trạng thái và loại khóa.
+  \item User tìm phòng theo vị trí, ngày giờ, sức chứa, thiết bị, loại khóa; tạo booking với kiểm tra bảo trì, trùng phòng, trùng lịch cá nhân, khoảng đặt trước và giới hạn yêu cầu.
+  \item Admin duyệt/từ chối, đổi phòng trước hạn, xem lịch sử dụng, tạo/hủy bảo trì và chỉnh các tham số nghiệp vụ.
+  \item \textit{Lịch đặt phòng} là màn chỉ đọc, phân nhóm sắp tới/đã dùng/đã đóng; thao tác hủy, mã truy cập và ủy quyền nằm riêng trong \textit{Quản lý đặt phòng}.
+  \item Khóa số hỗ trợ Admin tạo mã hoặc cấp quyền cho User tự tạo; khóa cơ/thẻ hỗ trợ lịch hẹn và người nhận hộ. Hủy/đổi phòng thu hồi quyền cũ.
+  \item Kiểm tra source đạt: Jest 13/13 ca, ESLint và TypeScript không báo lỗi.
+  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.923.842 byte; SHA-256: \path{3C60C0B62C6EFB16BA2BB3B679B0A40E25D50B7350B8B49267C3FA644BB15E57}.
+  \item Đã cài và mở đủ 5 module Admin, 4 module User trên Samsung M21; không dùng \texttt{adb reverse} hoặc Metro.
   \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
 \end{itemize}
 
-\textbf{Chưa hoàn thành:} chưa có dịch vụ Java, cơ sở dữ liệu máy chủ, đồng bộ giữa nhiều thiết bị, tích hợp khóa thật hoặc xác thực qua server. Tài khoản và mã mở cửa hiện được lưu cục bộ để phục vụ bản demo môn học.
+\textbf{Chưa hoàn thành:} dịch vụ Java, cơ sở dữ liệu máy chủ, đồng bộ nhiều thiết bị, khóa đồng thời liên thiết bị, tích hợp khóa thật và xác thực server.
 
 \end{document}

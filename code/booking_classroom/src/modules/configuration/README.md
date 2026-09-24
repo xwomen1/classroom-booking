@@ -17,4 +17,4 @@
 
 Các module khác đọc cấu hình này nhưng không tự thay đổi quy tắc.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** Admin đã chỉnh được khoảng ngày đặt, số booking tối đa, hạn hủy/đổi phòng, khoảng đệm mã số và bật/tắt tạo thông báo.

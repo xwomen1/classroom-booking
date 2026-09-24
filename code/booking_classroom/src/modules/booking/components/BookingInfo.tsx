@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { getRoomById } from '../../room_management';
+import { getRoomById, type Room } from '../../room_management';
 import type { Booking, BookingStatus } from '../model/booking';
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
@@ -11,7 +11,8 @@ const STATUS_LABELS: Record<BookingStatus, string> = {
 };
 
 export function BookingInfo({ booking }: { booking: Booking }) {
-  const room = getRoomById(booking.roomId);
+  const [room, setRoom] = useState<Room | undefined>();
+  useEffect(() => { getRoomById(booking.roomId).then(setRoom); }, [booking.roomId]);
   return (
     <>
       <View style={styles.heading}>
@@ -26,6 +27,12 @@ export function BookingInfo({ booking }: { booking: Booking }) {
       </Text>
       <Text style={styles.purpose}>{booking.purpose}</Text>
       <Text style={styles.requester}>Người đặt: {booking.requesterUsername}</Text>
+      {booking.keyPickupAppointment ? (
+        <Text style={styles.accessLine}>Nhận khóa: {booking.keyPickupAppointment.date} {booking.keyPickupAppointment.time} · {booking.keyPickupAppointment.location}</Text>
+      ) : null}
+      {booking.pickupDelegate ? (
+        <Text style={styles.accessLine}>Người nhận hộ: {booking.pickupDelegate.fullName} · {booking.pickupDelegate.studentId}</Text>
+      ) : null}
     </>
   );
 }
@@ -42,4 +49,5 @@ const styles = StyleSheet.create({
   line: { color: '#566176', fontSize: 14, marginTop: 3 },
   purpose: { color: '#253047', fontSize: 14, fontWeight: '700', marginTop: 9 },
   requester: { color: '#7B8596', fontSize: 12, marginTop: 7 },
+  accessLine: { color: '#5A3788', fontSize: 12, fontWeight: '700', marginTop: 6 },
 });

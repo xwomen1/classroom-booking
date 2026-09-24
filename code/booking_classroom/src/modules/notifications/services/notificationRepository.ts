@@ -1,5 +1,6 @@
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
+import { getConfiguration } from '../../configuration/services/configurationRepository';
 
 const NOTIFICATION_KEY_PREFIX = 'notifications.';
 
@@ -34,6 +35,7 @@ export async function addNotification(
   title: string,
   message: string,
 ): Promise<void> {
+  if (!(await getConfiguration()).notificationsEnabled) return;
   const notifications = await getNotifications(username);
   const item: NotificationItem = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,

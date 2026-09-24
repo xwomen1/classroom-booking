@@ -14,4 +14,4 @@
 - Đăng nhập và mật khẩu thuộc module `auth`.
 - Thông tin cá nhân của người đang đăng nhập thuộc module `profile`.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** đã có CRUD local, tìm kiếm, phân quyền, khóa/mở, đặt lại mật khẩu và chặn xóa tài khoản còn booking hoạt động.

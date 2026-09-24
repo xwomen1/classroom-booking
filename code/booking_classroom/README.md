@@ -1,32 +1,26 @@
 # booking_classroom
 
-Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp. Bản hiện tại có quản lý tài khoản và hồ sơ cục bộ, thông báo và giao diện phân theo vai trò.
+Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp. Bản hiện tại triển khai toàn bộ luồng nghiệp vụ bằng dữ liệu local trên một điện thoại và phân quyền Admin/User.
 
 README này dành cho thành viên phát triển: mô tả phần đã có, cách sửa/chạy kiểm tra code, cách xử lý lỗi môi trường và cách chia module. Hướng dẫn cài APK nhanh cho người chỉ cần sử dụng nằm tại [`../../README.md`](../../README.md).
 
 ## Chức năng đã có
 
-- Đăng nhập bằng hai tài khoản demo:
-  - Quản trị viên: `admin` / `1`
-  - Người dùng: `user` / `2`
-- Đăng ký tài khoản người dùng mới; tài khoản tiếp tục dùng được sau khi đóng rồi mở lại ứng dụng.
-- Xem, sửa và lưu thông tin cá nhân.
-- Đổi mật khẩu và đăng nhập lại bằng mật khẩu mới.
-- Xem thông báo, đếm thông báo chưa đọc và đánh dấu tất cả là đã đọc.
-- Trên dashboard, thông báo nằm ở biểu tượng chuông; thông tin cá nhân, đổi mật khẩu và đăng xuất nằm trong menu avatar.
-- Hiển thị dashboard khác nhau cho chế độ quản trị viên và người dùng.
-- Admin có 5 khung: quản lý user, phòng, mượn phòng, lịch và cấu hình.
-- User có 4 khung: tìm kiếm phòng, đặt phòng, lịch đặt phòng và quản lý đặt phòng.
-- User có thể chọn phòng mẫu, nhập ngày/giờ và mục đích để gửi yêu cầu đặt phòng.
-- Admin có thể duyệt hoặc từ chối yêu cầu trong `Quản lý mượn phòng`.
-- Với phòng khóa mã số A101, Admin có thể tự tạo mã tạm thời 6 chữ số hoặc cấp quyền để đúng User sở hữu booking tự tạo mã. Mã có hiệu lực từ 10 phút trước đến 10 phút sau phiên sử dụng và xuất hiện trong lịch của đúng User đã đặt.
-- User có thể xem/ẩn mã và hủy booking; khi hủy, mã liên quan được thu hồi trong dữ liệu local.
-- `Tìm kiếm phòng`, quản lý phòng, quản lý user, quản lý lịch, cấu hình và quên mật khẩu vẫn là màn hình chờ.
-- Báo lỗi khi thiếu hoặc sai thông tin đăng nhập.
+- Tài khoản demo: Admin `admin/1`, User `user/2`; đăng ký, đăng nhập/đăng xuất, đổi và khôi phục mật khẩu bằng mã cục bộ, hồ sơ cá nhân và thông báo.
+- Admin quản lý tài khoản: tìm kiếm, thêm, phân quyền, khóa/mở, đặt lại mật khẩu và xóa có kiểm tra ràng buộc.
+- Admin quản lý phòng: tìm kiếm, thêm/sửa/xóa, sức chứa, thiết bị, trạng thái và loại khóa.
+- User tìm phòng khả dụng theo tên/vị trí, ngày giờ, sức chứa, thiết bị và loại khóa; kết quả loại phòng trùng booking hoặc bảo trì.
+- User gửi yêu cầu đặt phòng. Tầng dịch vụ kiểm tra ngày/giờ hợp lệ, khoảng đặt trước, phòng bảo trì, trùng phòng, trùng lịch User và giới hạn booking đang hoạt động.
+- Admin duyệt/từ chối, đổi sang phòng khả dụng trước hạn và nhận thông báo thay đổi.
+- `Lịch đặt phòng` chỉ đọc và phân nhóm sắp tới/đã dùng/đã đóng. `Quản lý đặt phòng` mới chứa thao tác rút/hủy, mã truy cập và ủy quyền nhận khóa.
+- Phòng khóa mã số: Admin tự tạo mã hoặc cấp quyền cho đúng User tự tạo; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
+- Phòng khóa cơ/thẻ: Admin tạo lịch hẹn nhận khóa; User khai báo người nhận hộ và mã sinh viên/cán bộ.
+- Admin xem lịch sử dụng, tạo/hủy lịch bảo trì và sửa các tham số đặt trước, giới hạn, hạn hủy, hạn đổi phòng, thời gian mã và thông báo.
+- Toàn bộ dữ liệu trên được lưu bằng Async Storage và tiếp tục tồn tại sau khi tắt/mở ứng dụng.
 
 Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
 
-Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản đăng ký, mật khẩu, hồ sơ, booking, mã mở cửa và thông báo được lưu cục bộ bằng Async Storage. Mã hiện chỉ mô phỏng trong app và chưa được gửi tới khóa thật. Cách lưu dữ liệu hiện tại chỉ phục vụ bản demo môn học; dịch vụ Java, cơ sở dữ liệu và xác thực qua server chưa được triển khai.
+Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản, hồ sơ, phòng, cấu hình, bảo trì, booking, quyền truy cập và thông báo đều được lưu cục bộ bằng Async Storage. Mã hiện chỉ mô phỏng trong app và chưa được gửi tới khóa thật. Dịch vụ Java, cơ sở dữ liệu máy chủ và đồng bộ nhiều thiết bị chưa được triển khai.
 
 ## Công nghệ và môi trường đã kiểm tra
 
@@ -173,6 +167,7 @@ booking_classroom/
 │   └── configuration/       # Tham số và chính sách hệ thống
 ├── __tests__/auth.test.ts   # Kiểm tra đăng nhập, đăng ký và đổi mật khẩu
 ├── __tests__/booking.test.ts # Kiểm tra booking, phê duyệt và tạo mã
+├── __tests__/businessRules.test.ts # Kiểm tra phân quyền và quy tắc liên module
 ├── scripts/build-debug.ps1  # Build khi đường dẫn Windows có ký tự Unicode
 ├── scripts/build-release.ps1 # Build APK độc lập khi đường dẫn có Unicode
 ├── evidence/                # Ảnh và kết quả kiểm tra trên Samsung M21

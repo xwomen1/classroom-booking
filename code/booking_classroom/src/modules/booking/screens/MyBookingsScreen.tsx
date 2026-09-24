@@ -1,153 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
-import {
-  createTemporaryPin,
-  getPinDisplayStatus,
-} from '../../access_control';
-import type { Booking } from '../model/booking';
-import {
-  cancelBooking,
-  getBookingsForUser,
-} from '../services/bookingRepository';
+import { createTemporaryPin, getPinDisplayStatus } from '../../access_control';
+import { getRooms, type Room } from '../../room_management';
 import { BookingInfo } from '../components/BookingInfo';
+import type { Booking } from '../model/booking';
+import { cancelBooking, getBookingsForUser, setPickupDelegate, toLocalDateTime } from '../services/bookingRepository';
 
-type MyBookingsScreenProps = {
-  username: string;
-  title: string;
-  onBack: () => void;
-};
+const PIN_STATUS_LABEL = { PENDING: 'Chưa đến thời gian hiệu lực', ACTIVE: 'Đang có hiệu lực', EXPIRED: 'Đã hết hạn', REVOKED: 'Đã thu hồi' };
+type DelegateDraft = { fullName: string; studentId: string };
 
-const PIN_STATUS_LABEL = {
-  PENDING: 'Chưa đến thời gian hiệu lực',
-  ACTIVE: 'Đang có hiệu lực',
-  EXPIRED: 'Đã hết hạn',
-  REVOKED: 'Đã thu hồi',
-};
-
-export function MyBookingsScreen({
-  username,
-  title,
-  onBack,
-}: MyBookingsScreenProps) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [revealedPinId, setRevealedPinId] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
-
-  const load = () => getBookingsForUser(username).then(setBookings);
-  useEffect(() => {
-    getBookingsForUser(username).then(setBookings);
-  }, [username]);
-
-  const cancel = async (bookingId: string) => {
-    try {
-      await cancelBooking(bookingId, username);
-      setMessage('Đã hủy yêu cầu và thu hồi mã liên quan.');
-      await load();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Không thể hủy yêu cầu.');
-    }
-  };
-
-  const generatePin = async (bookingId: string) => {
-    try {
-      const updated = await createTemporaryPin(bookingId, username, 'user');
-      setMessage(`Đã tạo mật khẩu tạm thời ${updated.temporaryPin?.code}.`);
-      await load();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Không thể tạo mã.');
-    }
-  };
-
-  return (
-    <View style={styles.page}>
-      <ScreenHeader title={title} onBack={onBack} />
-      <ScrollView contentContainerStyle={styles.content}>
-        {message ? <Text style={styles.message}>{message}</Text> : null}
-        {bookings.length === 0 ? (
-          <Text style={styles.empty}>Bạn chưa có yêu cầu đặt phòng.</Text>
-        ) : (
-          bookings.map(booking => {
-            const pinStatus = getPinDisplayStatus(booking);
-            const pin = booking.temporaryPin;
-            const reveal = revealedPinId === booking.id;
-            return (
-              <View key={booking.id} style={styles.card}>
-                <BookingInfo booking={booking} />
-                {pin ? (
-                  <View style={styles.pinBox} testID={`user-pin-${booking.id}`}>
-                    <View style={styles.pinHeading}>
-                      <View style={styles.pinTextArea}>
-                        <Text style={styles.pinLabel}>Mã mở cửa tạm thời</Text>
-                        <Text style={styles.pinStatus}>
-                          {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}
-                        </Text>
-                      </View>
-                      <Text style={styles.pinCode}>
-                        {reveal ? pin.code : '••••••'}
-                      </Text>
-                    </View>
-                    <Text style={styles.pinTime}>
-                      Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} –{' '}
-                      {new Date(pin.validUntil).toLocaleString('vi-VN')}
-                    </Text>
-                    <Pressable
-                      onPress={() => setRevealedPinId(reveal ? null : booking.id)}
-                      style={styles.linkButton}
-                    >
-                      <Text style={styles.linkText}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text>
-                    </Pressable>
-                  </View>
-                ) : booking.status === 'APPROVED' && booking.userCanGeneratePin ? (
-                  <View style={styles.permissionBox}>
-                    <Text style={styles.permissionText}>
-                      Admin đã cho phép bạn tự tạo mã mở cửa.
-                    </Text>
-                    <Pressable
-                      onPress={() => generatePin(booking.id)}
-                      style={styles.generateButton}
-                      testID={`user-generate-pin-${booking.id}`}
-                    >
-                      <Text style={styles.generateText}>Tạo mật khẩu tạm thời</Text>
-                    </Pressable>
-                  </View>
-                ) : booking.status === 'APPROVED' ? (
-                  <Text style={styles.waitingPin}>Đang chờ Admin cấp mã hoặc cấp quyền tự tạo mã.</Text>
-                ) : null}
-                {booking.status === 'PENDING' || booking.status === 'APPROVED' ? (
-                  <Pressable onPress={() => cancel(booking.id)} style={styles.cancelButton}>
-                    <Text style={styles.cancelText}>Hủy yêu cầu</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            );
-          })
-        )}
-      </ScrollView>
-    </View>
-  );
+export function MyBookingsScreen({ username, onBack }: { username: string; onBack: () => void }) {
+  const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [revealedPinId, setRevealedPinId] = useState<string | null>(null); const [message, setMessage] = useState(''); const [delegates, setDelegates] = useState<Record<string, DelegateDraft>>({});
+  const load = useCallback(async () => { const [items, roomItems] = await Promise.all([getBookingsForUser(username), getRooms()]); setBookings(items); setRooms(roomItems); }, [username]);
+  useEffect(() => { load(); }, [load]);
+  const active = bookings.filter(item => ['PENDING', 'APPROVED'].includes(item.status) && toLocalDateTime(item.date, item.endTime) > new Date());
+  const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể thực hiện thao tác.'); } };
+  const updateDelegate = (id: string, field: keyof DelegateDraft, value: string) => setDelegates(current => ({ ...current, [id]: { ...(current[id] ?? { fullName: '', studentId: '' }), [field]: value } }));
+  return <View style={styles.page}><ScreenHeader title="Quản lý đặt phòng" onBack={onBack} /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    {message ? <Text style={styles.message}>{message}</Text> : null}{active.length === 0 ? <Text style={styles.empty}>Không có yêu cầu đang chờ hoặc sắp sử dụng.</Text> : active.map(booking => {
+      const room = rooms.find(item => item.id === booking.roomId); const pin = booking.temporaryPin?.revokedAt ? undefined : booking.temporaryPin; const reveal = revealedPinId === booking.id; const pinStatus = getPinDisplayStatus(booking); const draft = delegates[booking.id] ?? { fullName: '', studentId: '' };
+      return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+        {pin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mã mở cửa · {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}</Text><Text style={styles.pinCode}>{reveal ? pin.code : '••••••'}</Text><Text style={styles.pinTime}>Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} – {new Date(pin.validUntil).toLocaleString('vi-VN')}</Text><Pressable onPress={() => setRevealedPinId(reveal ? null : booking.id)}><Text style={styles.link}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text></Pressable></View> : null}
+        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && booking.userCanGeneratePin ? <View style={styles.permission}><Text style={styles.permissionText}>Admin đã cấp quyền cho bạn tự tạo mã.</Text><Pressable style={styles.purpleButton} onPress={() => action(() => createTemporaryPin(booking.id, username, 'user'), 'Đã tạo mật khẩu tạm thời.')}><Text style={styles.whiteText}>Tạo mật khẩu tạm thời</Text></Pressable></View> : null}
+        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !booking.userCanGeneratePin ? <Text style={styles.waiting}>Đang chờ Admin tạo mã hoặc cấp quyền tự tạo.</Text> : null}
+        {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.delegateBox}><Text style={styles.boxTitle}>Ủy quyền người nhận khóa/thẻ hộ</Text><TextInput placeholder="Họ tên người nhận hộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.fullName} onChangeText={value => updateDelegate(booking.id, 'fullName', value)} /><TextInput placeholder="Mã sinh viên / cán bộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.studentId} onChangeText={value => updateDelegate(booking.id, 'studentId', value)} /><Pressable style={styles.outlineButton} onPress={() => action(() => setPickupDelegate(booking.id, username, draft.fullName, draft.studentId), 'Đã lưu người nhận khóa hộ.')}><Text style={styles.outlineText}>Lưu ủy quyền</Text></Pressable></View> : null}
+        <Pressable style={styles.cancelButton} onPress={() => action(() => cancelBooking(booking.id, username), 'Đã hủy booking và thu hồi quyền truy cập liên quan.')}><Text style={styles.cancelText}>{booking.status === 'PENDING' ? 'Rút yêu cầu' : 'Hủy booking'}</Text></Pressable>
+      </View>;
+    })}
+  </ScrollView></View>;
 }
-
-const styles = StyleSheet.create({
-  page: { backgroundColor: '#F4F7FB', flex: 1 },
-  content: { padding: 18, paddingBottom: 34 },
-  message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 },
-  empty: { color: '#657084', marginTop: 40, textAlign: 'center' },
-  card: { backgroundColor: '#FFFFFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 13, padding: 16 },
-  pinBox: { backgroundColor: '#F4F0FF', borderColor: '#D8CBF5', borderRadius: 10, borderWidth: 1, marginTop: 14, padding: 13 },
-  pinHeading: { alignItems: 'center', flexDirection: 'row' },
-  pinTextArea: { flex: 1 },
-  pinLabel: { color: '#45316D', fontSize: 13, fontWeight: '800' },
-  pinStatus: { color: '#725E99', fontSize: 11, marginTop: 3 },
-  pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 3 },
-  pinTime: { color: '#62547B', fontSize: 11, lineHeight: 17, marginTop: 9 },
-  linkButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 4 },
-  linkText: { color: '#6A42A1', fontSize: 13, fontWeight: '800' },
-  waitingPin: { backgroundColor: '#FFF7E7', borderRadius: 8, color: '#765014', marginTop: 13, padding: 10 },
-  permissionBox: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 13, padding: 12 },
-  permissionText: { color: '#5C4778', fontSize: 13, marginBottom: 9 },
-  generateButton: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 8, paddingVertical: 11 },
-  generateText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
-  cancelButton: { alignSelf: 'flex-start', marginTop: 13, paddingVertical: 5 },
-  cancelText: { color: '#B01432', fontSize: 13, fontWeight: '800' },
-});
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: '#F4F7FB' }, content: { padding: 18, paddingBottom: 40 }, message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 }, empty: { color: '#657084', marginTop: 40, textAlign: 'center' }, card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 13, padding: 16 }, pinBox: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 13, padding: 12 }, pinLabel: { color: '#5C4778', fontSize: 12, fontWeight: '800' }, pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 6 }, pinTime: { color: '#62547B', fontSize: 11, marginTop: 6 }, link: { color: '#6A42A1', fontWeight: '800', marginTop: 8 }, permission: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 12, padding: 11 }, permissionText: { color: '#5C4778', marginBottom: 8 }, purpleButton: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 8, paddingVertical: 10 }, whiteText: { color: '#FFF', fontWeight: '800' }, waiting: { backgroundColor: '#FFF7E7', borderRadius: 8, color: '#765014', marginTop: 12, padding: 10 }, delegateBox: { backgroundColor: '#F7F9FC', borderRadius: 9, marginTop: 12, padding: 11 }, boxTitle: { color: '#344057', fontWeight: '800', marginBottom: 8 }, input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', marginBottom: 8, paddingHorizontal: 10, paddingVertical: 9 }, outlineButton: { alignItems: 'center', borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, paddingVertical: 9 }, outlineText: { color: '#315A86', fontWeight: '800' }, cancelButton: { alignSelf: 'flex-start', marginTop: 13, paddingVertical: 5 }, cancelText: { color: '#B01432', fontSize: 13, fontWeight: '800' } });

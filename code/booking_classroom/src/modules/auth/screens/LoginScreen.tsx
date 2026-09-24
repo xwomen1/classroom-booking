@@ -9,8 +9,8 @@ import {
   View,
 } from 'react-native';
 import type { AuthenticatedUser } from '../../../core/types/authenticatedUser';
-import { FeaturePlaceholderScreen } from '../../../shared';
 import { authenticate } from '../services/accountRepository';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen';
 import { RegistrationScreen } from './RegistrationScreen';
 
 type LoginScreenProps = {
@@ -47,13 +47,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     return <RegistrationScreen onBack={() => setSelectedFeature(null)} />;
   }
 
-  if (selectedFeature) {
-    return (
-      <FeaturePlaceholderScreen
-        title={selectedFeature}
-        onBack={() => setSelectedFeature(null)}
-      />
-    );
+  if (selectedFeature === 'Quên mật khẩu') {
+    return <ForgotPasswordScreen onBack={() => setSelectedFeature(null)} />;
   }
 
   return (

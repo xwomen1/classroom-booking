@@ -14,4 +14,4 @@ Module xử lý cách User nhận quyền vào phòng sau khi booking được d
 - User có thể ủy quyền người khác nhận hộ.
 - Người nhận hộ phải xuất trình thẻ sinh viên theo quy định.
 
-**Hiện trạng:** đã có MVP local sinh mã 6 chữ số cho booking đã duyệt ở phòng khóa số. Admin có thể tạo mã hoặc cấp quyền để đúng User đặt phòng tự tạo. Mã có hiệu lực trước/sau 10 phút, hiển thị cho Admin và đúng User, đồng thời bị thu hồi khi User hủy. Chưa tích hợp khóa thật hoặc dịch vụ online.
+**Hiện trạng:** đã có mã 6 chữ số, phân quyền Admin/User, thời gian đệm theo cấu hình, thu hồi khi hủy/đổi phòng; đã có lịch hẹn nhận khóa và ủy quyền người nhận hộ. Chưa tích hợp khóa thật hoặc dịch vụ online.

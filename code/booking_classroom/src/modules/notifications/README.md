@@ -11,4 +11,4 @@
 
 Kênh gửi và thời điểm gửi sẽ tuân theo module `configuration`.
 
-**Hiện trạng:** đã có danh sách thông báo cục bộ, bộ đếm chưa đọc và thao tác đánh dấu tất cả đã đọc. Thông báo nghiệp vụ booking chưa được nối vì các module booking chưa triển khai.
+**Hiện trạng:** đã có danh sách cục bộ, bộ đếm chưa đọc, đánh dấu tất cả đã đọc và thông báo từ các nghiệp vụ booking, mã truy cập, đổi phòng, hủy và nhận khóa.

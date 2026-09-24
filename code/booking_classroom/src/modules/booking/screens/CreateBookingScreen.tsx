@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,7 +10,8 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../../../shared';
-import { DEMO_ROOMS } from '../../room_management';
+import { getRooms, type Room } from '../../room_management';
+import { getConfiguration } from '../../configuration';
 import { createBooking } from '../services/bookingRepository';
 
 type CreateBookingScreenProps = { username: string; onBack: () => void };
@@ -32,7 +33,8 @@ export function CreateBookingScreen({
   username,
   onBack,
 }: CreateBookingScreenProps) {
-  const [roomId, setRoomId] = useState(DEMO_ROOMS[0].id);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomId, setRoomId] = useState('');
   const [date, setDate] = useState(tomorrow());
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
@@ -40,6 +42,18 @@ export function CreateBookingScreen({
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [ruleText, setRuleText] = useState('');
+
+  useEffect(() => {
+    getRooms().then(items => {
+      const available = items.filter(item => item.status === 'AVAILABLE');
+      setRooms(available);
+      setRoomId(current => current || available[0]?.id || '');
+    });
+    getConfiguration().then(config => setRuleText(
+      `Đặt trước từ ${config.minAdvanceDays} đến ${config.maxAdvanceDays} ngày; tối đa ${config.maxActiveBookingsPerUser} yêu cầu đang hoạt động.`,
+    ));
+  }, []);
 
   const submit = async () => {
     setSaving(true);
@@ -71,7 +85,7 @@ export function CreateBookingScreen({
       <ScreenHeader title="Đặt phòng" onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionTitle}>Chọn phòng</Text>
-        {DEMO_ROOMS.map(room => (
+        {rooms.map(room => (
           <Pressable
             key={room.id}
             onPress={() => setRoomId(room.id)}
@@ -109,7 +123,7 @@ export function CreateBookingScreen({
           testID="booking-purpose"
           value={purpose}
         />
-        <Text style={styles.rule}>Đặt trước từ 1 đến 3 ngày; mỗi tài khoản có tối đa 2 yêu cầu đang hoạt động.</Text>
+        <Text style={styles.rule}>{ruleText}</Text>
         {message ? <Text style={isError ? styles.error : styles.success}>{message}</Text> : null}
         <Pressable
           disabled={saving}

@@ -9,17 +9,21 @@ import {
 } from 'react-native';
 import type { AuthenticatedUser } from '../../core/types/authenticatedUser';
 import { ChangePasswordScreen } from '../../modules/auth';
+import { AccountManagementScreen } from '../../modules/account_management';
 import {
   AdminBookingScreen,
+  BookingScheduleScreen,
   CreateBookingScreen,
   MyBookingsScreen,
 } from '../../modules/booking';
+import { ConfigurationScreen } from '../../modules/configuration';
 import {
   getUnreadCount,
   NotificationScreen,
 } from '../../modules/notifications';
 import { ProfileScreen } from '../../modules/profile';
-import { FeaturePlaceholderScreen } from '../../shared';
+import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
+import { ScheduleMaintenanceScreen } from '../../modules/schedule_maintenance';
 
 type RoleDashboardScreenProps = {
   session: AuthenticatedUser;
@@ -118,6 +122,21 @@ export function RoleDashboardScreen({
       />
     );
   }
+  if (isAdmin && activeScreen === 'Quản lý user') {
+    return <AccountManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
+  }
+  if (isAdmin && activeScreen === 'Quản lý phòng') {
+    return <RoomManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
+  }
+  if (isAdmin && activeScreen === 'Quản lý lịch') {
+    return <ScheduleMaintenanceScreen username={session.username} onBack={closeChildScreen} />;
+  }
+  if (isAdmin && activeScreen === 'Cấu hình') {
+    return <ConfigurationScreen adminUsername={session.username} onBack={closeChildScreen} />;
+  }
+  if (!isAdmin && activeScreen === 'Tìm kiếm phòng') {
+    return <RoomSearchScreen onBack={closeChildScreen} />;
+  }
   if (!isAdmin && activeScreen === 'Đặt phòng') {
     return (
       <CreateBookingScreen
@@ -126,24 +145,14 @@ export function RoleDashboardScreen({
       />
     );
   }
-  if (
-    !isAdmin &&
-    (activeScreen === 'Lịch đặt phòng' ||
-      activeScreen === 'Quản lý đặt phòng')
-  ) {
+  if (!isAdmin && activeScreen === 'Lịch đặt phòng') {
+    return <BookingScheduleScreen username={session.username} onBack={closeChildScreen} />;
+  }
+  if (!isAdmin && activeScreen === 'Quản lý đặt phòng') {
     return (
       <MyBookingsScreen
         username={session.username}
-        title={activeScreen}
         onBack={closeChildScreen}
-      />
-    );
-  }
-  if (activeScreen) {
-    return (
-      <FeaturePlaceholderScreen
-        title={activeScreen}
-        onBack={() => setActiveScreen(null)}
       />
     );
   }

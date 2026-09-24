@@ -22,13 +22,14 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState('');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const submit = async () => {
     const normalizedUsername = username.trim().toLowerCase();
-    if (!normalizedUsername || !fullName.trim() || !email.trim() || !password) {
+    if (!normalizedUsername || !fullName.trim() || !email.trim() || !password || !recoveryCode) {
       setIsError(true);
       setMessage('Vui lòng nhập đầy đủ các trường bắt buộc.');
       return;
@@ -43,6 +44,11 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
       setMessage('Mật khẩu cần có ít nhất 4 ký tự.');
       return;
     }
+    if (recoveryCode.length < 4) {
+      setIsError(true);
+      setMessage('Mã khôi phục cần có ít nhất 4 ký tự.');
+      return;
+    }
     if (password !== confirmPassword) {
       setIsError(true);
       setMessage('Hai mật khẩu chưa trùng nhau.');
@@ -54,6 +60,7 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
       const account = await registerAccount({
         username: normalizedUsername,
         password,
+        recoveryCode,
       });
       await saveProfile({
         username: account.username,
@@ -110,6 +117,13 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
           autoCapitalize="none"
           keyboardType="email-address"
           testID="register-email"
+        />
+        <FormField
+          label="Mã khôi phục *"
+          onChangeText={setRecoveryCode}
+          value={recoveryCode}
+          secureTextEntry
+          testID="register-recovery-code"
         />
         <FormField
           label="Mật khẩu *"

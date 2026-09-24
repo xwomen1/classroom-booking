@@ -9,4 +9,4 @@
 - Đánh dấu phòng không thể đặt trong thời gian bảo trì.
 - Cung cấp dữ liệu lịch cho kiểm tra xung đột của module `booking`.
 
-**Hiện trạng:** mới tạo khung, chưa triển khai code nghiệp vụ.
+**Hiện trạng:** đã xem lịch sử dụng được duyệt, tạo/hủy lịch bảo trì và chặn bảo trì trùng booking đã duyệt.

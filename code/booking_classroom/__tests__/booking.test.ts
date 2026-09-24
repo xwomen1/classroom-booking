@@ -9,6 +9,7 @@ import {
   reviewBooking,
   toLocalDateTime,
 } from '../src/modules/booking';
+import { registerAccount } from '../src/modules/auth';
 
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
@@ -78,6 +79,7 @@ describe('local booking and temporary PIN flow', () => {
   });
 
   test('rejects a room collision and dates outside the one-to-three-day window', async () => {
+    await registerAccount({ username: 'teacher02', password: '1234' });
     const date = dateAfter(1);
     await createBooking({
       requesterUsername: 'user',

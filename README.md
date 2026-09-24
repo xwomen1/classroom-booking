@@ -30,7 +30,7 @@ Tài khoản demo:
 - Quản trị viên: `admin` / `1`
 - Người dùng: `user` / `2`
 
-Ứng dụng cũng cho phép đăng ký tài khoản User mới, cập nhật hồ sơ, đổi mật khẩu và xem thông báo. Luồng demo đặt phòng đã hỗ trợ User gửi yêu cầu; sau khi duyệt, Admin có thể tự tạo mật khẩu mở cửa hoặc cấp quyền cho đúng User tự tạo. Dữ liệu được giữ lại trên thiết bị sau khi đóng ứng dụng.
+Ứng dụng đã có đầy đủ luồng local cho hai vai trò: quản lý tài khoản, phòng, lịch bảo trì và cấu hình; tìm và đặt phòng; duyệt, từ chối, đổi phòng, hủy; lịch xem riêng với màn quản lý booking; hẹn/ủy quyền nhận khóa; tạo mật khẩu tạm thời và thông báo. Dữ liệu được giữ lại trên một thiết bị sau khi đóng ứng dụng.
 
 ## Dành cho thành viên phát triển
 

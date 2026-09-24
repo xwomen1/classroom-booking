@@ -3,6 +3,7 @@ import {
   authenticate,
   changePassword,
   registerAccount,
+  resetPasswordWithRecoveryCode,
 } from '../src/modules/auth';
 
 describe('local account authentication', () => {
@@ -45,5 +46,20 @@ describe('local account authentication', () => {
     await expect(
       registerAccount({ username: 'admin', password: '9999' }),
     ).rejects.toThrow('Tên đăng nhập đã tồn tại.');
+  });
+
+  test('adds recovery codes to demo accounts created by an older app version', async () => {
+    await storage.setItem(
+      'auth.accounts',
+      JSON.stringify([
+        { username: 'admin', password: '1', role: 'admin' },
+        { username: 'user', password: '2', role: 'user' },
+      ]),
+    );
+    await resetPasswordWithRecoveryCode('user', '222222', '2468');
+    await expect(authenticate('user', '2468')).resolves.toEqual({
+      username: 'user',
+      role: 'user',
+    });
   });
 });

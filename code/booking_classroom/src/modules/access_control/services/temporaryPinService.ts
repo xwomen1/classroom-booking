@@ -5,8 +5,10 @@ import {
   updateBooking,
 } from '../../booking/services/bookingRepository';
 import { addNotification } from '../../notifications';
-import { getRoomById } from '../../room_management';
+import { getRoomById } from '../../room_management/services/roomRepository';
 import type { UserRole } from '../../../core/types/userRole';
+import { getConfiguration } from '../../configuration/services/configurationRepository';
+import { assertAccountRole } from '../../auth/services/accountRepository';
 
 function addMinutes(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * 60_000);
@@ -21,6 +23,7 @@ export async function createTemporaryPin(
   actorUsername: string,
   actorRole: UserRole,
 ): Promise<Booking> {
+  await assertAccountRole(actorUsername, actorRole);
   const booking = await getBookingById(bookingId);
   if (!booking) {
     throw new Error('Không tìm thấy yêu cầu đặt phòng.');
@@ -28,7 +31,7 @@ export async function createTemporaryPin(
   if (booking.status !== 'APPROVED') {
     throw new Error('Chỉ tạo mã cho yêu cầu đã được duyệt.');
   }
-  const room = getRoomById(booking.roomId);
+  const room = await getRoomById(booking.roomId);
   if (!room || room.lockType !== 'PIN_CODE') {
     throw new Error('Phòng này không sử dụng khóa mã số.');
   }
@@ -44,14 +47,18 @@ export async function createTemporaryPin(
 
   const start = toLocalDateTime(booking.date, booking.startTime);
   const end = toLocalDateTime(booking.date, booking.endTime);
+  if (end <= new Date()) {
+    throw new Error('Không thể tạo mã cho phiên sử dụng đã kết thúc.');
+  }
+  const configuration = await getConfiguration();
   const updated = await updateBooking(bookingId, current => ({
     ...current,
     temporaryPin: {
       code: generateSixDigitPin(),
       createdAt: new Date().toISOString(),
       createdBy: actorUsername,
-      validFrom: addMinutes(start, -10).toISOString(),
-      validUntil: addMinutes(end, 10).toISOString(),
+      validFrom: addMinutes(start, -configuration.pinGraceMinutes).toISOString(),
+      validUntil: addMinutes(end, configuration.pinGraceMinutes).toISOString(),
     },
   }));
 
@@ -67,6 +74,7 @@ export async function grantUserPinPermission(
   bookingId: string,
   adminUsername: string,
 ): Promise<Booking> {
+  await assertAccountRole(adminUsername, 'admin');
   const booking = await getBookingById(bookingId);
   if (!booking) {
     throw new Error('Không tìm thấy yêu cầu đặt phòng.');
@@ -74,7 +82,7 @@ export async function grantUserPinPermission(
   if (booking.status !== 'APPROVED') {
     throw new Error('Chỉ cấp quyền cho yêu cầu đã được duyệt.');
   }
-  const room = getRoomById(booking.roomId);
+  const room = await getRoomById(booking.roomId);
   if (!room || room.lockType !== 'PIN_CODE') {
     throw new Error('Phòng này không sử dụng khóa mã số.');
   }

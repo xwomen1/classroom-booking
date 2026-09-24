@@ -1,164 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
-import {
-  createTemporaryPin,
-  grantUserPinPermission,
-} from '../../access_control';
-import { getRoomById } from '../../room_management';
+import { createTemporaryPin, grantUserPinPermission } from '../../access_control';
+import { getRooms, type Room } from '../../room_management';
 import { BookingInfo } from '../components/BookingInfo';
 import type { Booking } from '../model/booking';
-import { getBookings, reviewBooking } from '../services/bookingRepository';
+import { changeBookingRoom, getBookings, reviewBooking, scheduleKeyPickup } from '../services/bookingRepository';
 
-type AdminBookingScreenProps = { username: string; onBack: () => void };
-
-export function AdminBookingScreen({
-  username,
-  onBack,
-}: AdminBookingScreenProps) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [message, setMessage] = useState('');
-
-  const load = () =>
-    getBookings().then(items =>
-      setBookings(
-        [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-      ),
-    );
-  useEffect(() => {
-    getBookings().then(items =>
-      setBookings(
-        [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-      ),
-    );
-  }, []);
-
-  const review = async (id: string, decision: 'APPROVED' | 'REJECTED') => {
-    try {
-      await reviewBooking(id, decision, username);
-      setMessage(decision === 'APPROVED' ? 'Đã duyệt yêu cầu.' : 'Đã từ chối yêu cầu.');
-      await load();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Không thể xử lý yêu cầu.');
-    }
-  };
-
-  const generatePin = async (id: string) => {
-    try {
-      const updated = await createTemporaryPin(id, username, 'admin');
-      setMessage(`Đã tạo mã ${updated.temporaryPin?.code} cho ${updated.requesterUsername}.`);
-      await load();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Không thể tạo mã.');
-    }
-  };
-
-  const allowUserToGenerate = async (id: string) => {
-    try {
-      const updated = await grantUserPinPermission(id, username);
-      setMessage(
-        `Đã cho phép ${updated.requesterUsername} tự tạo mật khẩu tạm thời.`,
-      );
-      await load();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Không thể cấp quyền.');
-    }
-  };
-
-  return (
-    <View style={styles.page}>
-      <ScreenHeader title="Quản lý mượn phòng" onBack={onBack} />
-      <ScrollView contentContainerStyle={styles.content}>
-        {message ? <Text style={styles.message}>{message}</Text> : null}
-        {bookings.length === 0 ? (
-          <Text style={styles.empty}>Chưa có yêu cầu đặt phòng.</Text>
-        ) : (
-          bookings.map(booking => {
-            const room = getRoomById(booking.roomId);
-            return (
-              <View key={booking.id} style={styles.card}>
-                <BookingInfo booking={booking} />
-                {booking.status === 'PENDING' ? (
-                  <View style={styles.actions}>
-                    <ActionButton label="Duyệt" onPress={() => review(booking.id, 'APPROVED')} primary />
-                    <ActionButton label="Từ chối" onPress={() => review(booking.id, 'REJECTED')} />
-                  </View>
-                ) : null}
-                {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !booking.temporaryPin ? (
-                  <View style={styles.pinActions}>
-                    <Pressable
-                      onPress={() => generatePin(booking.id)}
-                      style={({ pressed }) => [styles.generateButton, pressed && styles.pressed]}
-                      testID={`generate-pin-${booking.id}`}
-                    >
-                      <Text style={styles.generateText}>Admin tạo mã</Text>
-                    </Pressable>
-                    <Pressable
-                      disabled={booking.userCanGeneratePin}
-                      onPress={() => allowUserToGenerate(booking.id)}
-                      style={({ pressed }) => [
-                        styles.allowButton,
-                        (pressed || booking.userCanGeneratePin) && styles.disabledButton,
-                      ]}
-                      testID={`allow-user-pin-${booking.id}`}
-                    >
-                      <Text style={styles.allowText}>
-                        {booking.userCanGeneratePin ? 'Đã cho User tự tạo' : 'Cho User tự tạo mã'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
-                {booking.temporaryPin ? (
-                  <View style={styles.pinBox}>
-                    <Text style={styles.pinLabel}>Mật khẩu tạm thời đã cấp</Text>
-                    <Text style={styles.pinCode}>{booking.temporaryPin.code}</Text>
-                    <Text style={styles.pinTime}>
-                      {new Date(booking.temporaryPin.validFrom).toLocaleString('vi-VN')} –{' '}
-                      {new Date(booking.temporaryPin.validUntil).toLocaleString('vi-VN')}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            );
-          })
-        )}
-      </ScrollView>
-    </View>
-  );
+type PickupDraft = { date: string; time: string; location: string };
+type ChangeDraft = { roomId: string; reason: string };
+export function AdminBookingScreen({ username, onBack }: { username: string; onBack: () => void }) {
+  const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [message, setMessage] = useState(''); const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
+  const [pickups, setPickups] = useState<Record<string, PickupDraft>>({}); const [changes, setChanges] = useState<Record<string, ChangeDraft>>({});
+  const load = useCallback(async () => { const [items, roomItems] = await Promise.all([getBookings(), getRooms()]); setBookings([...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))); setRooms(roomItems); }, []);
+  useEffect(() => { load(); }, [load]);
+  const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể xử lý yêu cầu.'); } };
+  const setPickup = (id: string, field: keyof PickupDraft, value: string) => setPickups(current => ({ ...current, [id]: { ...(current[id] ?? { date: '', time: '', location: '' }), [field]: value } }));
+  const setChange = (id: string, field: keyof ChangeDraft, value: string) => setChanges(current => ({ ...current, [id]: { ...(current[id] ?? { roomId: '', reason: '' }), [field]: value } }));
+  const visible = bookings.filter(item => {
+    const ended = new Date(`${item.date}T${item.endTime}:00`) <= new Date();
+    return filter === 'ACTIVE'
+      ? ['PENDING', 'APPROVED'].includes(item.status) && !ended
+      : ['REJECTED', 'CANCELLED'].includes(item.status) || ended;
+  });
+  return <View style={styles.page}><ScreenHeader title="Quản lý mượn phòng" onBack={onBack} /><View style={styles.tabs}><Tab label="Đang xử lý" on={filter === 'ACTIVE'} onPress={() => setFilter('ACTIVE')} /><Tab label="Đã đóng" on={filter === 'HISTORY'} onPress={() => setFilter('HISTORY')} /></View><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    {message ? <Text style={styles.message}>{message}</Text> : null}{visible.length === 0 ? <Text style={styles.empty}>Không có yêu cầu trong nhóm này.</Text> : visible.map(booking => {
+      const room = rooms.find(item => item.id === booking.roomId); const pickup = pickups[booking.id] ?? { date: booking.date, time: '', location: '' }; const change = changes[booking.id] ?? { roomId: '', reason: '' }; const activePin = booking.temporaryPin && !booking.temporaryPin.revokedAt;
+      return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+        {booking.status === 'PENDING' ? <View style={styles.row}><Button label="Duyệt" primary onPress={() => action(() => reviewBooking(booking.id, 'APPROVED', username), 'Đã duyệt yêu cầu.')} /><Button label="Từ chối" onPress={() => action(() => reviewBooking(booking.id, 'REJECTED', username), 'Đã từ chối yêu cầu.')} /></View> : null}
+        {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !activePin ? <View style={styles.section}><Text style={styles.sectionTitle}>Quyền vào phòng khóa số</Text><Pressable style={styles.purple} onPress={() => action(() => createTemporaryPin(booking.id, username, 'admin'), 'Admin đã tạo mã tạm thời.')}><Text style={styles.white}>Admin tạo mã</Text></Pressable><Pressable disabled={booking.userCanGeneratePin} style={[styles.outlinePurple, booking.userCanGeneratePin && styles.disabled]} onPress={() => action(() => grantUserPinPermission(booking.id, username), 'Đã cấp quyền cho User tự tạo mã.')}><Text style={styles.purpleText}>{booking.userCanGeneratePin ? 'Đã cấp quyền User tự tạo' : 'Cho User tự tạo mã'}</Text></Pressable></View> : null}
+        {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text></View> : null}
+        {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.section}><Text style={styles.sectionTitle}>Hẹn nhận khóa / thẻ</Text><Input placeholder="Ngày YYYY-MM-DD" value={pickup.date} onChangeText={value => setPickup(booking.id, 'date', value)} /><Input placeholder="Giờ HH:mm" value={pickup.time} onChangeText={value => setPickup(booking.id, 'time', value)} /><Input placeholder="Địa điểm nhận khóa" value={pickup.location} onChangeText={value => setPickup(booking.id, 'location', value)} /><Pressable style={styles.outlineBlue} onPress={() => action(() => scheduleKeyPickup(booking.id, username, pickup.date, pickup.time, pickup.location), 'Đã tạo lịch hẹn nhận khóa.')}><Text style={styles.blueText}>Lưu lịch hẹn</Text></Pressable></View> : null}
+        {booking.status === 'APPROVED' ? <View style={styles.section}><Text style={styles.sectionTitle}>Đổi phòng khi có việc cấp thiết</Text><View style={styles.roomChoices}>{rooms.filter(item => item.id !== booking.roomId && item.status === 'AVAILABLE').map(item => <Pressable key={item.id} onPress={() => setChange(booking.id, 'roomId', item.id)} style={[styles.roomChoice, change.roomId === item.id && styles.roomChoiceOn]}><Text style={[styles.roomChoiceText, change.roomId === item.id && styles.white]}>{item.name}</Text></Pressable>)}</View><Input placeholder="Lý do bắt buộc" value={change.reason} onChangeText={value => setChange(booking.id, 'reason', value)} /><Pressable style={styles.outlineBlue} onPress={() => action(() => changeBookingRoom(booking.id, change.roomId, username, change.reason), 'Đã đổi phòng và thông báo cho User.')}><Text style={styles.blueText}>Xác nhận đổi phòng</Text></Pressable></View> : null}
+      </View>;
+    })}
+  </ScrollView></View>;
 }
-
-type ActionButtonProps = { label: string; onPress: () => void; primary?: boolean };
-function ActionButton({ label, onPress, primary }: ActionButtonProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.actionButton, primary && styles.primaryAction, pressed && styles.pressed]}
-    >
-      <Text style={[styles.actionText, primary && styles.primaryActionText]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  page: { backgroundColor: '#F4F7FB', flex: 1 },
-  content: { padding: 18, paddingBottom: 34 },
-  message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 },
-  empty: { color: '#657084', marginTop: 40, textAlign: 'center' },
-  card: { backgroundColor: '#FFFFFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 13, padding: 16 },
-  actions: { flexDirection: 'row', marginTop: 14 },
-  actionButton: { alignItems: 'center', borderColor: '#B01432', borderRadius: 9, borderWidth: 1, flex: 1, marginRight: 8, paddingVertical: 10 },
-  primaryAction: { backgroundColor: '#B01432' },
-  actionText: { color: '#B01432', fontSize: 13, fontWeight: '800' },
-  primaryActionText: { color: '#FFFFFF' },
-  generateButton: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 9, marginTop: 14, paddingVertical: 12 },
-  generateText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  pinActions: { marginTop: 14 },
-  allowButton: { alignItems: 'center', borderColor: '#5A3788', borderRadius: 9, borderWidth: 1, marginTop: 8, paddingVertical: 11 },
-  allowText: { color: '#5A3788', fontSize: 13, fontWeight: '800' },
-  disabledButton: { opacity: 0.55 },
-  pinBox: { backgroundColor: '#F4F0FF', borderRadius: 10, marginTop: 14, padding: 13 },
-  pinLabel: { color: '#66547D', fontSize: 12, fontWeight: '700' },
-  pinCode: { color: '#3B235F', fontSize: 25, fontWeight: '900', letterSpacing: 4, marginTop: 5 },
-  pinTime: { color: '#725E88', fontSize: 11, lineHeight: 17, marginTop: 5 },
-  pressed: { opacity: 0.68 },
-});
+function Tab({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) { return <Pressable onPress={onPress} style={[styles.tab, on && styles.tabOn]}><Text style={[styles.tabText, on && styles.white]}>{label}</Text></Pressable>; }
+function Button({ label, onPress, primary }: { label: string; onPress: () => void; primary?: boolean }) { return <Pressable onPress={onPress} style={[styles.button, primary && styles.buttonPrimary]}><Text style={[styles.buttonText, primary && styles.white]}>{label}</Text></Pressable>; }
+function Input(props: React.ComponentProps<typeof TextInput>) { return <TextInput {...props} placeholderTextColor="#7D8795" style={styles.input} />; }
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: '#F4F7FB' }, tabs: { backgroundColor: '#FFF', flexDirection: 'row', padding: 8 }, tab: { alignItems: 'center', borderRadius: 8, flex: 1, paddingVertical: 9 }, tabOn: { backgroundColor: '#B01432' }, tabText: { color: '#657084', fontWeight: '800' }, content: { padding: 18, paddingBottom: 40 }, message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 }, empty: { color: '#657084', marginTop: 40, textAlign: 'center' }, card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 14, padding: 15 }, row: { flexDirection: 'row', marginTop: 13 }, button: { alignItems: 'center', borderColor: '#B01432', borderRadius: 8, borderWidth: 1, flex: 1, marginRight: 7, paddingVertical: 10 }, buttonPrimary: { backgroundColor: '#B01432' }, buttonText: { color: '#B01432', fontWeight: '800' }, white: { color: '#FFF', fontWeight: '800' }, section: { backgroundColor: '#F7F9FC', borderRadius: 9, marginTop: 12, padding: 11 }, sectionTitle: { color: '#344057', fontSize: 13, fontWeight: '800', marginBottom: 8 }, purple: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 8, paddingVertical: 10 }, outlinePurple: { alignItems: 'center', borderColor: '#5A3788', borderRadius: 8, borderWidth: 1, marginTop: 7, paddingVertical: 9 }, purpleText: { color: '#5A3788', fontWeight: '800' }, disabled: { opacity: 0.5 }, pinBox: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 12, padding: 11 }, pinLabel: { color: '#5C4778', fontWeight: '800' }, pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 5 }, detail: { color: '#657084', fontSize: 12, marginTop: 5 }, input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', marginBottom: 7, paddingHorizontal: 10, paddingVertical: 9 }, outlineBlue: { alignItems: 'center', borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, paddingVertical: 9 }, blueText: { color: '#315A86', fontWeight: '800' }, roomChoices: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 4 }, roomChoice: { borderColor: '#386E9F', borderRadius: 7, borderWidth: 1, marginBottom: 6, marginRight: 6, paddingHorizontal: 11, paddingVertical: 7 }, roomChoiceOn: { backgroundColor: '#386E9F' }, roomChoiceText: { color: '#315A86', fontWeight: '700' } });

@@ -8,4 +8,6 @@ export type Room = {
   equipment: readonly string[];
   lockType: LockType;
   status: 'AVAILABLE' | 'MAINTENANCE';
+  createdAt?: string;
+  updatedAt?: string;
 };

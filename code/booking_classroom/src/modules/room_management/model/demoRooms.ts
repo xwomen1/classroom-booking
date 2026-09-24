@@ -20,7 +20,3 @@ export const DEMO_ROOMS: readonly Room[] = [
     status: 'AVAILABLE',
   },
 ];
-
-export function getRoomById(roomId: string): Room | undefined {
-  return DEMO_ROOMS.find(room => room.id === roomId);
-}

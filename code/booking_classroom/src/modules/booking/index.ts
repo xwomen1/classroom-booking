@@ -16,6 +16,11 @@ export {
   toLocalDateTime,
   updateBooking,
 } from './services/bookingRepository';
+export {
+  getBookingDraftSelection,
+  saveBookingDraftSelection,
+} from './services/bookingDraftRepository';
+export type { BookingDraftSelection } from './services/bookingDraftRepository';
 export type {
   Booking,
   BookingStatus,

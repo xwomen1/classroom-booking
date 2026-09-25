@@ -34,7 +34,7 @@ type FeatureItem = { title: string; description: string };
 type ActiveScreen = 'profile' | 'password' | 'notifications' | string | null;
 
 const ADMIN_FEATURES: readonly FeatureItem[] = [
-  { title: 'Quản lý user', description: 'Tài khoản, tìm kiếm và phân quyền' },
+  { title: 'Quản lý user', description: 'Tài khoản và thu hồi quyền tự tạo mã theo phòng' },
   {
     title: 'Quản lý phòng',
     description: 'Phòng, sức chứa, thiết bị và trạng thái',
@@ -56,7 +56,7 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
 const USER_FEATURES: readonly FeatureItem[] = [
   {
     title: 'Tìm kiếm phòng',
-    description: 'Theo vị trí, ngày, giờ, sức chứa và thiết bị',
+    description: 'Sơ đồ tầng, phòng trống theo thời gian, sức chứa và thiết bị',
   },
   {
     title: 'Đặt phòng',
@@ -135,7 +135,7 @@ export function RoleDashboardScreen({
     return <ConfigurationScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
   if (!isAdmin && activeScreen === 'Tìm kiếm phòng') {
-    return <RoomSearchScreen onBack={closeChildScreen} />;
+    return <RoomSearchScreen username={session.username} onBack={closeChildScreen} />;
   }
   if (!isAdmin && activeScreen === 'Đặt phòng') {
     return (

@@ -32,6 +32,8 @@ Tài khoản demo:
 
 Ứng dụng đã có đầy đủ luồng local cho hai vai trò: quản lý tài khoản, phòng, lịch bảo trì và cấu hình; tìm và đặt phòng; duyệt, từ chối, đổi phòng, hủy; lịch xem riêng với màn quản lý booking; hẹn/ủy quyền nhận khóa; tạo mật khẩu tạm thời và thông báo. Dữ liệu được giữ lại trên một thiết bị sau khi đóng ứng dụng.
 
+Bản hiện tại có sơ đồ chữ U cho tầng 1–8, hiển thị trực quan phòng trống/đã đặt/bảo trì theo khoảng thời gian. User có thể đánh dấu phòng trên sơ đồ rồi mở chức năng Đặt phòng để dùng lại phòng và thời gian đã chọn. Khi Admin duyệt booking của phòng khóa số, User được cấp quyền tự tạo mật khẩu riêng cho đúng phòng đó; Admin có thể thu hồi quyền theo từng phòng trong Quản lý user.
+
 ## Dành cho thành viên phát triển
 
 Hướng dẫn cài dependency, chạy Debug, xử lý lỗi ADB/Metro, build khi đường dẫn có ký tự tiếng Việt, kiểm tra source và sơ đồ module nằm tại [`code/booking_classroom/README.md`](code/booking_classroom/README.md).

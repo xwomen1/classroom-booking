@@ -5,6 +5,7 @@ import { getRoomById } from '../../room_management/services/roomRepository';
 import { hasMaintenanceConflict } from '../../schedule_maintenance/services/maintenanceRepository';
 import type { Booking, BookingStatus, CreateBookingInput } from '../model/booking';
 import { assertAccountRole } from '../../auth/services/accountRepository';
+import { grantRoomPinPermission } from '../../access_control/services/roomPinPermissionRepository';
 
 const BOOKINGS_KEY = 'booking.records';
 const ACTIVE_STATUSES: readonly BookingStatus[] = ['PENDING', 'APPROVED'];
@@ -127,9 +128,15 @@ export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED
     }
   }
   const updated = await updateBooking(id, booking => ({
-    ...booking, status: decision, reviewedAt: new Date().toISOString(), reviewedBy: adminUsername,
+    ...booking,
+    status: decision,
+    reviewedAt: new Date().toISOString(),
+    reviewedBy: adminUsername,
   }));
   const room = await getRoomById(updated.roomId);
+  if (decision === 'APPROVED' && room?.lockType === 'PIN_CODE') {
+    await grantRoomPinPermission(updated.requesterUsername, updated.roomId, adminUsername);
+  }
   await addNotification(updated.requesterUsername, decision === 'APPROVED' ? 'Yêu cầu đã được duyệt' : 'Yêu cầu bị từ chối',
     `Phòng ${room?.name}, ngày ${updated.date} lúc ${updated.startTime}.`);
   return updated;
@@ -216,6 +223,10 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
     roomChanges: [...(current.roomChanges ?? []), { fromRoomId: current.roomId, toRoomId: newRoomId,
       changedAt: new Date().toISOString(), changedBy: adminUsername, reason: reason.trim() }],
   }));
+  if (room.lockType === 'PIN_CODE') {
+    await grantRoomPinPermission(updated.requesterUsername, newRoomId, adminUsername);
+    await updateBooking(id, current => ({ ...current, userCanGeneratePin: true }));
+  }
   await addNotification(updated.requesterUsername, 'Booking đã được đổi phòng',
     `${oldRoom?.name} được đổi sang ${room.name}. Lý do: ${reason.trim()}`);
   return updated;

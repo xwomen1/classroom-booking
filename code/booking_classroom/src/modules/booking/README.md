@@ -4,7 +4,8 @@
 
 ## Chức năng con của User
 
-- Tìm phòng theo vị trí, ngày, khung giờ, sức chứa và thiết bị.
+- Tìm phòng trên sơ đồ chữ U theo tầng, ngày, khung giờ, sức chứa và thiết bị.
+- Đánh dấu phòng trên sơ đồ để chuyển phòng và thời gian đã chọn sang màn Đặt phòng.
 - Đặt phòng với ngày/giờ và mục đích sử dụng.
 - Xem lịch sắp tới, đã sử dụng và đã hủy.
 - Xem trạng thái, hủy yêu cầu và ủy quyền người lấy thẻ hộ.

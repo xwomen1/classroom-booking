@@ -5,7 +5,7 @@ import type { LockType, Room } from '../model/room';
 import { createRoom, deleteRoom, getRooms, updateRoom } from '../services/roomRepository';
 
 type Props = { adminUsername: string; onBack: () => void };
-const EMPTY = { name: '', location: '', capacity: '30', equipment: '', lockType: 'PIN_CODE' as LockType, status: 'AVAILABLE' as Room['status'] };
+const EMPTY = { name: '', floor: '1', location: '', capacity: '30', equipment: '', lockType: 'PIN_CODE' as LockType, status: 'AVAILABLE' as Room['status'] };
 
 export function RoomManagementScreen({ adminUsername, onBack }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -19,14 +19,14 @@ export function RoomManagementScreen({ adminUsername, onBack }: Props) {
 
   const save = async () => {
     try {
-      const data = { ...form, capacity: Number(form.capacity), equipment: form.equipment.split(',').map(item => item.trim()).filter(Boolean) };
+      const data = { ...form, floor: Number(form.floor), capacity: Number(form.capacity), equipment: form.equipment.split(',').map(item => item.trim()).filter(Boolean) };
       if (editingId) await updateRoom(editingId, data, adminUsername);
       else await createRoom(data, adminUsername);
       setMessage(editingId ? 'Đã cập nhật phòng.' : 'Đã thêm phòng.'); setEditingId(null); setForm(EMPTY); await load();
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu phòng.'); }
   };
   const edit = (room: Room) => {
-    setEditingId(room.id); setForm({ name: room.name, location: room.location, capacity: String(room.capacity), equipment: room.equipment.join(', '), lockType: room.lockType, status: room.status });
+    setEditingId(room.id); setForm({ name: room.name, floor: String(room.floor), location: room.location, capacity: String(room.capacity), equipment: room.equipment.join(', '), lockType: room.lockType, status: room.status });
   };
   const remove = async (id: string) => {
     try { await deleteRoom(id, adminUsername); setMessage('Đã xóa phòng.'); await load(); }
@@ -37,6 +37,7 @@ export function RoomManagementScreen({ adminUsername, onBack }: Props) {
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.heading}>{editingId ? 'Sửa phòng' : 'Thêm phòng'}</Text>
       <Input label="Tên phòng" value={form.name} onChangeText={value => set('name', value)} />
+      <Input label="Tầng (1–8)" value={form.floor} onChangeText={value => set('floor', value)} keyboardType="number-pad" />
       <Input label="Vị trí" value={form.location} onChangeText={value => set('location', value)} />
       <Input label="Sức chứa" value={form.capacity} onChangeText={value => set('capacity', value)} keyboardType="number-pad" />
       <Input label="Thiết bị (phân cách bằng dấu phẩy)" value={form.equipment} onChangeText={value => set('equipment', value)} />

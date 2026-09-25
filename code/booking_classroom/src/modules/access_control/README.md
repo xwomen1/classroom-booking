@@ -4,7 +4,8 @@ Module xử lý cách User nhận quyền vào phòng sau khi booking được d
 
 ## Khóa mã số online
 
-- Admin tạo mật khẩu tạm thời hoặc cho phép User tự tạo sau khi duyệt.
+- Duyệt booking tự cấp cho User quyền tự tạo mật khẩu tại đúng phòng khóa số đã duyệt.
+- Admin có thể thu hồi quyền theo từng cặp User--phòng trong màn Quản lý user; thao tác này không thay đổi vai trò tài khoản.
 - Mã dùng được từ 10 phút trước giờ bắt đầu đến 10 phút sau giờ kết thúc.
 - Gắn mã với booking và thu hồi khi hết hiệu lực hoặc booking bị hủy.
 

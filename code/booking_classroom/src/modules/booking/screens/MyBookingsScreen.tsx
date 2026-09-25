@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
-import { createTemporaryPin, getPinDisplayStatus } from '../../access_control';
+import { createTemporaryPin, getPinDisplayStatus, getRoomPinPermissions } from '../../access_control';
 import { getRooms, type Room } from '../../room_management';
 import { BookingInfo } from '../components/BookingInfo';
 import type { Booking } from '../model/booking';
@@ -12,7 +12,8 @@ type DelegateDraft = { fullName: string; studentId: string };
 
 export function MyBookingsScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [revealedPinId, setRevealedPinId] = useState<string | null>(null); const [message, setMessage] = useState(''); const [delegates, setDelegates] = useState<Record<string, DelegateDraft>>({});
-  const load = useCallback(async () => { const [items, roomItems] = await Promise.all([getBookingsForUser(username), getRooms()]); setBookings(items); setRooms(roomItems); }, [username]);
+  const [permittedRoomIds, setPermittedRoomIds] = useState<string[]>([]);
+  const load = useCallback(async () => { const [items, roomItems, permissionItems] = await Promise.all([getBookingsForUser(username), getRooms(), getRoomPinPermissions()]); setBookings(items); setRooms(roomItems); setPermittedRoomIds(permissionItems.filter(item => item.username === username && item.active).map(item => item.roomId)); }, [username]);
   useEffect(() => { load(); }, [load]);
   const active = bookings.filter(item => ['PENDING', 'APPROVED'].includes(item.status) && toLocalDateTime(item.date, item.endTime) > new Date());
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể thực hiện thao tác.'); } };
@@ -20,10 +21,11 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
   return <View style={styles.page}><ScreenHeader title="Quản lý đặt phòng" onBack={onBack} /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}{active.length === 0 ? <Text style={styles.empty}>Không có yêu cầu đang chờ hoặc sắp sử dụng.</Text> : active.map(booking => {
       const room = rooms.find(item => item.id === booking.roomId); const pin = booking.temporaryPin?.revokedAt ? undefined : booking.temporaryPin; const reveal = revealedPinId === booking.id; const pinStatus = getPinDisplayStatus(booking); const draft = delegates[booking.id] ?? { fullName: '', studentId: '' };
+      const canCreatePin = permittedRoomIds.includes(booking.roomId);
       return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
         {pin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mã mở cửa · {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}</Text><Text style={styles.pinCode}>{reveal ? pin.code : '••••••'}</Text><Text style={styles.pinTime}>Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} – {new Date(pin.validUntil).toLocaleString('vi-VN')}</Text><Pressable onPress={() => setRevealedPinId(reveal ? null : booking.id)}><Text style={styles.link}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text></Pressable></View> : null}
-        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && booking.userCanGeneratePin ? <View style={styles.permission}><Text style={styles.permissionText}>Admin đã cấp quyền cho bạn tự tạo mã.</Text><Pressable style={styles.purpleButton} onPress={() => action(() => createTemporaryPin(booking.id, username, 'user'), 'Đã tạo mật khẩu tạm thời.')}><Text style={styles.whiteText}>Tạo mật khẩu tạm thời</Text></Pressable></View> : null}
-        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !booking.userCanGeneratePin ? <Text style={styles.waiting}>Đang chờ Admin tạo mã hoặc cấp quyền tự tạo.</Text> : null}
+        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && canCreatePin ? <View style={styles.permission}><Text style={styles.permissionText}>Bạn có quyền tự tạo mã cho riêng phòng {room.name}.</Text><Pressable style={styles.purpleButton} onPress={() => action(() => createTemporaryPin(booking.id, username, 'user'), 'Đã tạo mật khẩu tạm thời.')}><Text style={styles.whiteText}>Tạo mật khẩu tạm thời</Text></Pressable></View> : null}
+        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !canCreatePin ? <Text style={styles.waiting}>Quyền tự tạo mã của phòng này đã bị thu hồi. Liên hệ Admin để được hỗ trợ.</Text> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.delegateBox}><Text style={styles.boxTitle}>Ủy quyền người nhận khóa/thẻ hộ</Text><TextInput placeholder="Họ tên người nhận hộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.fullName} onChangeText={value => updateDelegate(booking.id, 'fullName', value)} /><TextInput placeholder="Mã sinh viên / cán bộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.studentId} onChangeText={value => updateDelegate(booking.id, 'studentId', value)} /><Pressable style={styles.outlineButton} onPress={() => action(() => setPickupDelegate(booking.id, username, draft.fullName, draft.studentId), 'Đã lưu người nhận khóa hộ.')}><Text style={styles.outlineText}>Lưu ủy quyền</Text></Pressable></View> : null}
         <Pressable style={styles.cancelButton} onPress={() => action(() => cancelBooking(booking.id, username), 'Đã hủy booking và thu hồi quyền truy cập liên quan.')}><Text style={styles.cancelText}>{booking.status === 'PENDING' ? 'Rút yêu cầu' : 'Hủy booking'}</Text></Pressable>
       </View>;

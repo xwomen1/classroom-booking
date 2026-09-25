@@ -40,9 +40,9 @@ describe('complete local business rules', () => {
   });
 
   test('supports room CRUD and rejects non-admin mutations', async () => {
-    await expect(createRoom({ name: 'C303', location: 'Nhà C', capacity: 20, equipment: [], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'user')).rejects.toThrow('quyền Admin');
-    const room = await createRoom({ name: 'C303', location: 'Nhà C', capacity: 20, equipment: ['TV'], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'admin');
-    const updated = await updateRoom(room.id, { name: 'C304', location: 'Nhà C', capacity: 25, equipment: ['TV'], lockType: 'PHYSICAL_KEY', status: 'AVAILABLE' }, 'admin');
+    await expect(createRoom({ name: 'C303', floor: 3, location: 'Nhà C', capacity: 20, equipment: [], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'user')).rejects.toThrow('quyền Admin');
+    const room = await createRoom({ name: 'C303', floor: 3, location: 'Nhà C', capacity: 20, equipment: ['TV'], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'admin');
+    const updated = await updateRoom(room.id, { name: 'C304', floor: 3, location: 'Nhà C', capacity: 25, equipment: ['TV'], lockType: 'PHYSICAL_KEY', status: 'AVAILABLE' }, 'admin');
     expect(updated.name).toBe('C304');
     await deleteRoom(room.id, 'admin');
     expect((await getRooms()).some(item => item.id === room.id)).toBe(false);

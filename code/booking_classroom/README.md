@@ -6,14 +6,18 @@ README này dành cho thành viên phát triển: mô tả phần đã có, các
 
 ## Chức năng đã có
 
+- Tìm phòng bằng sơ đồ chữ U theo tầng 1–8; bộ chọn ngày, giờ bắt đầu và giờ kết thúc cuộn dọc; bản đồ phân màu phòng trống, đã đặt, bảo trì và phòng không khớp bộ lọc.
+- User có thể đánh dấu phòng cùng khoảng thời gian trên sơ đồ. Màn Đặt phòng tự nhận lựa chọn này, đồng thời vẫn hỗ trợ nhập tên phòng và chọn từ danh sách gợi ý.
+- Duyệt booking phòng khóa số tự cấp quyền `User + phòng`: User chỉ được tự tạo mật khẩu ở đúng phòng đã duyệt. Quản lý user chỉ thu hồi quyền theo phòng, không nâng User thành Admin toàn hệ thống.
+
 - Tài khoản demo: Admin `admin/1`, User `user/2`; đăng ký, đăng nhập/đăng xuất, đổi và khôi phục mật khẩu bằng mã cục bộ, hồ sơ cá nhân và thông báo.
-- Admin quản lý tài khoản: tìm kiếm, thêm, phân quyền, khóa/mở, đặt lại mật khẩu và xóa có kiểm tra ràng buộc.
+- Admin quản lý tài khoản: tìm kiếm, thêm User, khóa/mở, đặt lại mật khẩu, xóa và thu hồi quyền tự tạo mật khẩu theo từng phòng.
 - Admin quản lý phòng: tìm kiếm, thêm/sửa/xóa, sức chứa, thiết bị, trạng thái và loại khóa.
-- User tìm phòng khả dụng theo tên/vị trí, ngày giờ, sức chứa, thiết bị và loại khóa; kết quả loại phòng trùng booking hoặc bảo trì.
+- User tìm phòng trực quan theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa; sơ đồ giữ vị trí phòng và hiển thị cả trạng thái trùng booking hoặc bảo trì.
 - User gửi yêu cầu đặt phòng. Tầng dịch vụ kiểm tra ngày/giờ hợp lệ, khoảng đặt trước, phòng bảo trì, trùng phòng, trùng lịch User và giới hạn booking đang hoạt động.
 - Admin duyệt/từ chối, đổi sang phòng khả dụng trước hạn và nhận thông báo thay đổi.
 - `Lịch đặt phòng` chỉ đọc và phân nhóm sắp tới/đã dùng/đã đóng. `Quản lý đặt phòng` mới chứa thao tác rút/hủy, mã truy cập và ủy quyền nhận khóa.
-- Phòng khóa mã số: Admin tự tạo mã hoặc cấp quyền cho đúng User tự tạo; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
+- Phòng khóa mã số: duyệt booking tự cấp quyền cho User tại đúng phòng; Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
 - Phòng khóa cơ/thẻ: Admin tạo lịch hẹn nhận khóa; User khai báo người nhận hộ và mã sinh viên/cán bộ.
 - Admin xem lịch sử dụng, tạo/hủy lịch bảo trì và sửa các tham số đặt trước, giới hạn, hạn hủy, hạn đổi phòng, thời gian mã và thông báo.
 - Toàn bộ dữ liệu trên được lưu bằng Async Storage và tiếp tục tồn tại sau khi tắt/mở ứng dụng.
@@ -126,6 +130,8 @@ Một bản đã build sẵn nằm tại:
 ```text
 release/booking_classroom-v1.0.apk
 ```
+
+SHA-256 của bản hiện tại: `A4B1BFCAE01B6A863033A2C5960797FB0E36C5BCFC01517CC37D73E08E13A684`.
 
 Cài bản có sẵn qua ADB:
 

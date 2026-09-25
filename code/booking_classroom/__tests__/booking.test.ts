@@ -1,7 +1,9 @@
 import { storage } from '../src/core/storage/jsonStorage';
 import {
   createTemporaryPin,
-  grantUserPinPermission,
+  grantRoomPinPermission,
+  hasRoomPinPermission,
+  revokeRoomPinPermission,
 } from '../src/modules/access_control';
 import {
   createBooking,
@@ -57,7 +59,7 @@ describe('local booking and temporary PIN flow', () => {
     await expect(getBookingsForUser('another-user')).resolves.toHaveLength(0);
   });
 
-  test('lets the requester create a PIN only after admin grants permission', async () => {
+  test('approving a booking grants room-scoped PIN permission that admin can revoke', async () => {
     const booking = await createBooking({
       requesterUsername: 'user',
       roomId: 'room-a101',
@@ -67,11 +69,12 @@ describe('local booking and temporary PIN flow', () => {
       purpose: 'User tự tạo mã',
     });
     await reviewBooking(booking.id, 'APPROVED', 'admin');
-
+    await expect(hasRoomPinPermission('user', 'room-a101')).resolves.toBe(true);
+    await revokeRoomPinPermission('user', 'room-a101', 'admin');
     await expect(
       createTemporaryPin(booking.id, 'user', 'user'),
-    ).rejects.toThrow('User chưa được Admin cho phép tạo mã.');
-    await grantUserPinPermission(booking.id, 'admin');
+    ).rejects.toThrow('Quyền tự tạo mã tại phòng này đã bị thu hồi');
+    await grantRoomPinPermission('user', 'room-a101', 'admin');
     const updated = await createTemporaryPin(booking.id, 'user', 'user');
 
     expect(updated.temporaryPin?.code).toMatch(/^\d{6}$/);

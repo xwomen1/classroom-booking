@@ -78,7 +78,7 @@
     User, Role, Room, Equipment\\Booking, Approval\\Card, Pass Task\\Check-in/out, Audit Log};
 
   \node[data,text width=4.7cm] (evidence) at (7.0,-0.3) {\textbf{Một luồng demo chung}\\[3pt]
-    Tìm phòng $\rightarrow$ đặt $\rightarrow$ duyệt $\rightarrow$ tiếp cận\\$\rightarrow$ sử dụng $\rightarrow$ check-out $\rightarrow$ đóng booking};
+    Tìm, chọn và gửi yêu cầu trên một màn hình $\rightarrow$ duyệt\\$\rightarrow$ tiếp cận $\rightarrow$ sử dụng $\rightarrow$ check-out $\rightarrow$ đóng booking};
 
   \node[physical] (access) at (13.7,-0.3) {\textbf{Tiếp cận phòng ngoài đời thực}\\[3pt]
     Bàn giao/thu hồi thẻ từ\\hoặc\\nhân viên reset/cấp/đổi pass tại khóa};
@@ -118,9 +118,9 @@ ET4710 tập trung vào ứng dụng di động TypeScript, trải nghiệm ngư
   \node[stage,fill=mobileblue] (login) at (1.7,3.7)
     {\textbf{1. Đăng nhập}\\[3pt]Server xác thực\\Trả tài khoản và vai trò\\Mở đúng chế độ};
   \node[stage] (search) at (5.6,3.7)
-    {\textbf{2. Tra cứu}\\[3pt]Thời gian, cơ sở\\Sức chứa, loại phòng\\Thiết bị cần dùng};
+    {\textbf{2. Tìm và chọn}\\[3pt]Sơ đồ tầng, thời gian\\Sức chứa, loại phòng\\Thiết bị cần dùng};
   \node[stage,fill=mobileblue] (request) at (9.5,3.7)
-    {\textbf{3. Tạo yêu cầu}\\[3pt]Chọn phòng\\Mục đích, số người\\Đơn vị và liên hệ};
+    {\textbf{3. Gửi ngay}\\[3pt]Cùng màn hình tra cứu\\Mục đích, số người\\Đơn vị và liên hệ};
   \node[stage,fill=javayellow] (approval) at (13.4,3.7)
     {\textbf{4. Phê duyệt}\\[3pt]Tự duyệt hoặc thủ công\\Kiểm tra lại lịch\\Ghi kết quả};
   \node[stage,fill=physicalorange] (accessplan) at (17.3,3.7)

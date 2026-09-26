@@ -13,7 +13,6 @@ import { AccountManagementScreen } from '../../modules/account_management';
 import {
   AdminBookingScreen,
   BookingScheduleScreen,
-  CreateBookingScreen,
   MyBookingsScreen,
 } from '../../modules/booking';
 import { ConfigurationScreen } from '../../modules/configuration';
@@ -55,12 +54,8 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
 
 const USER_FEATURES: readonly FeatureItem[] = [
   {
-    title: 'Tìm kiếm phòng',
-    description: 'Sơ đồ tầng, phòng trống theo thời gian, sức chứa và thiết bị',
-  },
-  {
-    title: 'Đặt phòng',
-    description: 'Chọn phòng, ngày giờ và mục đích sử dụng',
+    title: 'Tìm và đặt phòng',
+    description: 'Chọn phòng trống trên sơ đồ và gửi yêu cầu ngay',
   },
   {
     title: 'Lịch đặt phòng',
@@ -134,16 +129,8 @@ export function RoleDashboardScreen({
   if (isAdmin && activeScreen === 'Cấu hình') {
     return <ConfigurationScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
-  if (!isAdmin && activeScreen === 'Tìm kiếm phòng') {
+  if (!isAdmin && activeScreen === 'Tìm và đặt phòng') {
     return <RoomSearchScreen username={session.username} onBack={closeChildScreen} />;
-  }
-  if (!isAdmin && activeScreen === 'Đặt phòng') {
-    return (
-      <CreateBookingScreen
-        username={session.username}
-        onBack={closeChildScreen}
-      />
-    );
   }
   if (!isAdmin && activeScreen === 'Lịch đặt phòng') {
     return <BookingScheduleScreen username={session.username} onBack={closeChildScreen} />;

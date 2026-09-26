@@ -36,13 +36,13 @@
   \item Xác thực local đã có đăng ký, đăng nhập/đăng xuất theo vai trò, đổi/khôi phục mật khẩu, hồ sơ và thông báo.
   \item Admin quản lý tài khoản User, khóa/mở, đặt lại mật khẩu và thu hồi quyền tự tạo mã theo từng phòng; quyền phòng không làm User trở thành Admin toàn hệ thống.
   \item Dữ liệu mẫu có 8 tầng, mỗi tầng 7 phòng. User chọn tầng, xem sơ đồ chữ U, lọc theo ngày/giờ bằng bộ chọn cuộn dọc, sức chứa, thiết bị, loại khóa và thấy trực tiếp trạng thái trống/đã đặt/bảo trì.
-  \item User có thể đánh dấu phòng trên sơ đồ; màn Đặt phòng nhận lại phòng và khoảng thời gian đó, hoặc cho phép nhập tên phòng và chọn gợi ý.
+  \item Chức năng \textit{Tìm và đặt phòng} đã được gộp: User chọn phòng trên sơ đồ hoặc nhập tên phòng, nhập mục đích và gửi booking ngay trên cùng màn hình, không cần lưu đánh dấu rồi chuyển màn.
   \item Admin duyệt/từ chối, đổi phòng trước hạn, xem lịch sử dụng, tạo/hủy bảo trì và chỉnh các tham số nghiệp vụ.
   \item \textit{Lịch đặt phòng} là màn chỉ đọc, phân nhóm sắp tới/đã dùng/đã đóng; thao tác hủy, mã truy cập và ủy quyền nằm riêng trong \textit{Quản lý đặt phòng}.
   \item Khi Admin duyệt booking phòng khóa số, hệ thống tự cấp quyền cho User tự tạo mật khẩu tại đúng phòng đó. Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user. Khóa cơ/thẻ hỗ trợ lịch hẹn và người nhận hộ.
   \item Kiểm tra source đạt: Jest 13/13 ca, ESLint và TypeScript không báo lỗi.
-  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.938.222 byte; SHA-256: \path{A4B1BFCAE01B6A863033A2C5960797FB0E36C5BCFC01517CC37D73E08E13A684}.
-  \item Đã cài và mở đủ 5 module Admin, 4 module User trên Samsung M21; không dùng \texttt{adb reverse} hoặc Metro.
+  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.932.438 byte; SHA-256: \path{0A684B07BF4C29AF0CACBEAF7F38B96D5ED5AB1AD06FAEDEA8F972FE63390FDC}.
+  \item Đã cài và mở đủ 5 mục Admin, 3 mục User trên Samsung M21; không dùng \texttt{adb reverse} hoặc Metro.
   \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
 \end{itemize}
 

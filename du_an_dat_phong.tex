@@ -108,7 +108,7 @@ Người đặt phòng tra cứu, gửi, theo dõi, đổi hoặc hủy yêu c�
 
 Khi mở ứng dụng, người dùng phải đăng nhập. Dịch vụ Java xác thực tài khoản, lấy vai trò được lưu trong hệ thống và trả thông tin phiên đăng nhập cho ứng dụng di động. Ứng dụng tự điều hướng đến chế độ tương ứng; người dùng \textbf{không tự chọn vai trò} trên màn hình đăng nhập.
 
-Tài khoản \textbf{người dùng} vào chế độ đặt phòng, gồm tìm phòng, tạo và theo dõi booking, check-in/out và xem thông báo. Tài khoản \textbf{quản trị viên} vào chế độ quản trị, gồm quản lý tài khoản, phòng, trang thiết bị, chính sách và audit log. Tài khoản người phê duyệt và CSVC/Bảo vệ mở các chức năng nghiệp vụ đúng thẩm quyền. Việc ẩn/hiện màn hình giúp giao diện phù hợp với từng vai trò; dịch vụ Java vẫn phải kiểm tra quyền cho mọi yêu cầu để ngăn truy cập trái phép qua API.
+Tài khoản \textbf{người dùng} vào chế độ đặt phòng, trong đó việc tìm phòng, chọn phòng và gửi booking được thực hiện liền mạch trên cùng một màn hình; các chức năng còn lại gồm theo dõi booking, check-in/out và xem thông báo. Tài khoản \textbf{quản trị viên} vào chế độ quản trị, gồm quản lý tài khoản, phòng, trang thiết bị, chính sách và audit log. Tài khoản người phê duyệt và CSVC/Bảo vệ mở các chức năng nghiệp vụ đúng thẩm quyền. Việc ẩn/hiện màn hình giúp giao diện phù hợp với từng vai trò; dịch vụ Java vẫn phải kiểm tra quyền cho mọi yêu cầu để ngăn truy cập trái phép qua API.
 
 \subsection{Ranh giới nghiệp vụ}
 
@@ -120,8 +120,8 @@ Hệ thống \textbf{không điều khiển khóa từ xa}. Khóa dùng pass tro
 
 \begin{enumerate}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Đăng nhập bằng tài khoản thử nghiệm. Hệ thống xác thực, lấy vai trò từ máy chủ và tự mở chế độ người dùng, quản trị viên, người phê duyệt hoặc CSVC/Bảo vệ tương ứng. Người dùng không được tự nâng hoặc đổi vai trò.
-  \item Ở chế độ người dùng, tìm phòng theo cơ sở, thời gian, sức chứa, loại phòng và thiết bị cần dùng. Chi tiết phòng hiện số lượng và tình trạng của từng thiết bị. Ở chế độ quản trị viên, quản lý tài khoản, phòng, thiết bị, chính sách và xem audit log.
-  \item Gửi yêu cầu với mục đích, số người, đơn vị và liên hệ; xem trạng thái và hủy/đổi theo chính sách. Yêu cầu được tự duyệt hoặc chuyển người có thẩm quyền tùy cấu hình minh họa.
+  \item Ở chế độ người dùng, tìm phòng theo cơ sở, thời gian, sức chứa, loại phòng và thiết bị cần dùng; chọn phòng rồi nhập mục đích để gửi yêu cầu ngay trên cùng màn hình. Chi tiết phòng hiện số lượng và tình trạng của từng thiết bị. Ở chế độ quản trị viên, quản lý tài khoản, phòng, thiết bị, chính sách và xem audit log.
+  \item Yêu cầu gồm mục đích, số người, đơn vị và liên hệ; người dùng xem trạng thái và hủy/đổi theo chính sách. Yêu cầu được tự duyệt hoặc chuyển người có thẩm quyền tùy cấu hình minh họa.
   \item Kiểm tra quyền, sức chứa, lịch trùng, phòng bảo trì và thiết bị bắt buộc trước khi xác nhận; kiểm tra lại ngay trước khi duyệt.
   \item Với booking dùng thẻ, ghi nhận người nhận, thời điểm bàn giao, trả và tình trạng thẻ. Với booking dùng pass, tạo nhiệm vụ cho nhân viên thao tác tại khóa, ghi nhận người thực hiện và thời điểm hoàn tất; không lưu pass dạng rõ trong nhật ký.
   \item Ghi nhận check-in/out, hủy hoặc đổi booking, các nhiệm vụ xử lý thẻ/pass phát sinh và nhật ký thao tác. Hiển thị thông báo trạng thái và báo cáo cơ bản về lịch phòng, thẻ chưa trả, nhiệm vụ pass.

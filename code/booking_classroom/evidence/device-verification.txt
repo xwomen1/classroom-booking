@@ -1,18 +1,18 @@
 booking_classroom - device verification
-Date: 2026-09-25
+Date: 2026-09-26
 Device: Samsung SM-M215F (Samsung M21)
 ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
 Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 57938222 bytes
-Release APK SHA256: A4B1BFCAE01B6A863033A2C5960797FB0E36C5BCFC01517CC37D73E08E13A684
+Release APK size: 57932438 bytes
+Release APK SHA256: 0A684B07BF4C29AF0CACBEAF7F38B96D5ED5AB1AD06FAEDEA8F972FE63390FDC
 Release package debuggable flag: false
 Metro process required: no
 adb reverse rules during verification: none
 Force-stop and cold relaunch without Metro: PASS
 Admin login and all 5 Admin modules open: PASS
-User login and all 4 User modules open: PASS
+User login and all 3 User modules open: PASS
 Account management, status/password and room permission revocation logic: PASS
 Room CRUD form and room list rendered: PASS
 Booking review and access-control screen rendered: PASS
@@ -20,7 +20,7 @@ Usage and maintenance schedule screen rendered: PASS
 Business configuration screen rendered: PASS
 Floor 1-8 selector and U-shaped availability map rendered: PASS
 Vertical date/time pickers rendered: PASS
-Map room mark -> booking draft transfer on device: PASS
+Room selection -> purpose input -> direct booking form on one screen: PASS
 Booking calendar has separate read-only tabs: PASS
 Booking management is a separate action screen: PASS
 Admin-created temporary PIN flow: PASS

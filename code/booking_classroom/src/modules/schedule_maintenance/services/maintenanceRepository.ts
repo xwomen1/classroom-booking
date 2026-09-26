@@ -41,7 +41,7 @@ export async function createMaintenance(input: {
   const bookings = await readJson<Array<{ roomId: string; date: string; startTime: string; endTime: string; status: string }>>('booking.records', []);
   if (bookings.some(item => item.roomId === input.roomId && item.status === 'APPROVED' &&
       periodsOverlap(item.date, item.startTime, item.endTime, input.date, input.startTime, input.endTime))) {
-    throw new Error('Phòng có booking đã duyệt trùng thời gian; cần đổi phòng trước khi lên lịch bảo trì.');
+    throw new Error('Phòng có yêu cầu đã duyệt trùng thời gian; cần đổi phòng trước khi lên lịch bảo trì.');
   }
   const record: MaintenanceRecord = {
     ...input, reason: input.reason.trim(),

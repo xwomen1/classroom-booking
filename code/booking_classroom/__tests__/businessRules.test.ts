@@ -30,7 +30,7 @@ describe('complete local business rules', () => {
   beforeEach(async () => { await storage.clear(); });
 
   test('enforces admin account management and local recovery', async () => {
-    await expect(createManagedAccount({ username: 'teacher01', password: '1234', recoveryCode: '9876', role: 'user' }, 'user')).rejects.toThrow('quyền Admin');
+    await expect(createManagedAccount({ username: 'teacher01', password: '1234', recoveryCode: '9876', role: 'user' }, 'user')).rejects.toThrow('không có quyền');
     await createManagedAccount({ username: 'teacher01', password: '1234', recoveryCode: '9876', role: 'user' }, 'admin');
     await updateManagedAccount('teacher01', { active: false }, 'admin');
     await expect(authenticate('teacher01', '1234')).resolves.toBeNull();
@@ -40,7 +40,7 @@ describe('complete local business rules', () => {
   });
 
   test('supports room CRUD and rejects non-admin mutations', async () => {
-    await expect(createRoom({ name: 'C303', floor: 3, location: 'Nhà C', capacity: 20, equipment: [], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'user')).rejects.toThrow('quyền Admin');
+    await expect(createRoom({ name: 'C303', floor: 3, location: 'Nhà C', capacity: 20, equipment: [], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'user')).rejects.toThrow('không có quyền');
     const room = await createRoom({ name: 'C303', floor: 3, location: 'Nhà C', capacity: 20, equipment: ['TV'], lockType: 'PIN_CODE', status: 'AVAILABLE' }, 'admin');
     const updated = await updateRoom(room.id, { name: 'C304', floor: 3, location: 'Nhà C', capacity: 25, equipment: ['TV'], lockType: 'PHYSICAL_KEY', status: 'AVAILABLE' }, 'admin');
     expect(updated.name).toBe('C304');
@@ -67,8 +67,9 @@ describe('complete local business rules', () => {
 
     const digital = await createBooking({ requesterUsername: 'user', roomId: 'room-a101', date, startTime: '17:00', endTime: '18:00', purpose: 'Họp khẩn' });
     await reviewBooking(digital.id, 'APPROVED', 'admin');
-    const moved = await changeBookingRoom(digital.id, 'room-b202', 'admin', 'A101 cần phục vụ sự kiện ưu tiên');
-    expect(moved.roomId).toBe('room-b202');
+    await expect(changeBookingRoom(digital.id, 'room-b202', 'admin', 'A101 cần phục vụ sự kiện ưu tiên')).rejects.toThrow('cùng loại khóa');
+    const moved = await changeBookingRoom(digital.id, 'room-floor-2-1', 'admin', 'A101 cần phục vụ sự kiện ưu tiên');
+    expect(moved.roomId).toBe('room-floor-2-1');
     expect(moved.roomChanges).toHaveLength(1);
   });
 });

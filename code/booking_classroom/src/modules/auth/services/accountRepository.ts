@@ -42,7 +42,7 @@ export async function authenticate(
 export async function assertAccountRole(username: string, role: AccountRecord['role']): Promise<void> {
   const account = (await getAccounts()).find(item => item.username === username);
   if (!account || account.active === false || account.role !== role) {
-    throw new Error(role === 'admin' ? 'Thao tác này yêu cầu quyền Admin.' : 'Thao tác này yêu cầu tài khoản User đang hoạt động.');
+    throw new Error(role === 'admin' ? 'Bạn không có quyền thực hiện thao tác này.' : 'Tài khoản không hoạt động hoặc không có quyền thực hiện thao tác này.');
   }
 }
 
@@ -126,7 +126,7 @@ export async function updateManagedAccount(
   const index = accounts.findIndex(account => account.username === username);
   if (index < 0) throw new Error('Không tìm thấy tài khoản.');
   if (username === actorUsername && (changes.active === false || changes.role === 'user')) {
-    throw new Error('Admin đang đăng nhập không thể tự khóa hoặc tự hạ quyền.');
+    throw new Error('Không thể tự khóa hoặc thay đổi quyền của tài khoản đang đăng nhập.');
   }
   if (changes.password !== undefined && changes.password.length < 4) {
     throw new Error('Mật khẩu cần ít nhất 4 ký tự.');

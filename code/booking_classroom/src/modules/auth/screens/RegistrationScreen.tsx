@@ -95,7 +95,7 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.note}>
-          Tài khoản đăng ký mới được tạo với vai trò người dùng.
+          Tài khoản đăng ký mới dành cho giảng viên.
         </Text>
         <FormField
           label="Tên đăng nhập *"

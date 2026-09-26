@@ -21,7 +21,7 @@ export async function getNotifications(
 
   const welcome: NotificationItem = {
     id: `welcome-${username}`,
-    title: 'Chào mừng đến booking_classroom',
+    title: 'Chào mừng đến ứng dụng đặt phòng',
     message: 'Tài khoản của bạn đã sẵn sàng để sử dụng.',
     createdAt: new Date().toISOString(),
     read: false,

@@ -60,8 +60,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <View style={styles.brandMark}>
           <Text style={styles.brandMarkText}>BC</Text>
         </View>
-        <Text style={styles.appName}>booking_classroom</Text>
-        <Text style={styles.subtitle}>Đăng nhập để sử dụng đúng chế độ</Text>
+        <Text style={styles.appName}>Đặt phòng học</Text>
+        <Text style={styles.subtitle}>Đăng nhập để tiếp tục</Text>
 
         <View style={styles.formCard}>
           <Text style={styles.label}>Tài khoản</Text>
@@ -124,10 +124,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </View>
 
         <View style={styles.demoBox}>
-          <Text style={styles.demoTitle}>Tài khoản demo cục bộ</Text>
+          <Text style={styles.demoTitle}>Tài khoản dùng thử</Text>
           <Text style={styles.demoText}>Quản trị viên: admin / 1</Text>
-          <Text style={styles.demoText}>Người dùng: user / 2</Text>
+          <Text style={styles.demoText}>Giảng viên: user / 2</Text>
         </View>
+
       </View>
     </KeyboardAvoidingView>
   );

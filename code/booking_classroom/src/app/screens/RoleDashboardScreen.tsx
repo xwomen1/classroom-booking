@@ -33,21 +33,21 @@ type FeatureItem = { title: string; description: string };
 type ActiveScreen = 'profile' | 'password' | 'notifications' | string | null;
 
 const ADMIN_FEATURES: readonly FeatureItem[] = [
-  { title: 'Quản lý user', description: 'Tài khoản và thu hồi quyền tự tạo mã theo phòng' },
+  { title: 'Quản lý tài khoản', description: 'Tài khoản và quyền tạo mã theo phòng' },
   {
     title: 'Quản lý phòng',
     description: 'Phòng, sức chứa, thiết bị và trạng thái',
   },
   {
-    title: 'Quản lý mượn phòng',
+    title: 'Yêu cầu đặt phòng',
     description: 'Duyệt, từ chối, đổi phòng và cấp quyền vào phòng',
   },
   {
-    title: 'Quản lý lịch',
+    title: 'Lịch phòng và bảo trì',
     description: 'Lịch sử dụng phòng và lịch bảo trì',
   },
   {
-    title: 'Cấu hình',
+    title: 'Quy định đặt phòng',
     description: 'Thời gian đặt, quy định hủy và thông báo',
   },
 ];
@@ -55,14 +55,14 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
 const USER_FEATURES: readonly FeatureItem[] = [
   {
     title: 'Tìm và đặt phòng',
-    description: 'Chọn phòng trống trên sơ đồ và gửi yêu cầu ngay',
+    description: 'Tìm phòng trống theo tầng và thời gian',
   },
   {
     title: 'Lịch đặt phòng',
     description: 'Sắp tới, đã sử dụng và đã hủy',
   },
   {
-    title: 'Quản lý đặt phòng',
+    title: 'Đặt phòng của tôi',
     description: 'Xem trạng thái, hủy và ủy quyền nhận khóa',
   },
 ];
@@ -109,7 +109,7 @@ export function RoleDashboardScreen({
       />
     );
   }
-  if (isAdmin && activeScreen === 'Quản lý mượn phòng') {
+  if (isAdmin && activeScreen === 'Yêu cầu đặt phòng') {
     return (
       <AdminBookingScreen
         username={session.username}
@@ -117,16 +117,16 @@ export function RoleDashboardScreen({
       />
     );
   }
-  if (isAdmin && activeScreen === 'Quản lý user') {
+  if (isAdmin && activeScreen === 'Quản lý tài khoản') {
     return <AccountManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
   if (isAdmin && activeScreen === 'Quản lý phòng') {
     return <RoomManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
-  if (isAdmin && activeScreen === 'Quản lý lịch') {
+  if (isAdmin && activeScreen === 'Lịch phòng và bảo trì') {
     return <ScheduleMaintenanceScreen username={session.username} onBack={closeChildScreen} />;
   }
-  if (isAdmin && activeScreen === 'Cấu hình') {
+  if (isAdmin && activeScreen === 'Quy định đặt phòng') {
     return <ConfigurationScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
   if (!isAdmin && activeScreen === 'Tìm và đặt phòng') {
@@ -135,7 +135,7 @@ export function RoleDashboardScreen({
   if (!isAdmin && activeScreen === 'Lịch đặt phòng') {
     return <BookingScheduleScreen username={session.username} onBack={closeChildScreen} />;
   }
-  if (!isAdmin && activeScreen === 'Quản lý đặt phòng') {
+  if (!isAdmin && activeScreen === 'Đặt phòng của tôi') {
     return (
       <MyBookingsScreen
         username={session.username}
@@ -159,7 +159,7 @@ export function RoleDashboardScreen({
           <View style={styles.headerText}>
             <Text style={styles.welcome}>Xin chào, {session.username}</Text>
             <Text style={styles.dashboardTitle}>
-              {isAdmin ? 'Chế độ quản trị viên' : 'Chế độ người dùng'}
+              {isAdmin ? 'Trang quản lý' : 'Đặt phòng học'}
             </Text>
           </View>
           <Pressable
@@ -203,10 +203,10 @@ export function RoleDashboardScreen({
             isAdmin ? styles.adminBadge : styles.userBadge,
           ]}
         >
-          <Text style={styles.roleBadgeText}>{isAdmin ? 'ADMIN' : 'USER'}</Text>
+          <Text style={styles.roleBadgeText}>{isAdmin ? 'QUẢN TRỊ' : 'GIẢNG VIÊN'}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Chức năng theo vai trò</Text>
+        <Text style={styles.sectionTitle}>{isAdmin ? 'Danh mục quản lý' : 'Dịch vụ'}</Text>
         {roleFeatures.map(item => (
           <Pressable
             key={item.title}
@@ -247,7 +247,7 @@ export function RoleDashboardScreen({
               <View>
                 <Text style={styles.accountName}>{session.username}</Text>
                 <Text style={styles.accountRole}>
-                  {isAdmin ? 'Quản trị viên' : 'Người dùng'}
+                  {isAdmin ? 'Quản trị viên' : 'Giảng viên'}
                 </Text>
               </View>
             </View>

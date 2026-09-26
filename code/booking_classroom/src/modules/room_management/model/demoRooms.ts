@@ -11,7 +11,7 @@ const EQUIPMENT = [
   ['Máy chiếu', 'Micro', 'Camera'],
 ] as const;
 
-/** Bảy phòng mỗi tầng tương ứng bảy vị trí trên sơ đồ chữ U. */
+/** Dữ liệu khởi tạo gồm bảy phòng cho mỗi tầng. */
 export const DEMO_ROOMS: readonly Room[] = Array.from(
   { length: 8 },
   (_floorValue, floorIndex) => {

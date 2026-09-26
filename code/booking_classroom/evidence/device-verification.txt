@@ -5,20 +5,21 @@ ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
 Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 57932438 bytes
-Release APK SHA256: 0A684B07BF4C29AF0CACBEAF7F38B96D5ED5AB1AD06FAEDEA8F972FE63390FDC
+Release APK size: 57942770 bytes
+Release APK SHA256: F91229B129C17CB340B6313EB9DE5D0000FE1E3404B032E5841CC36DFFE39CFC
 Release package debuggable flag: false
 Metro process required: no
 adb reverse rules during verification: none
 Force-stop and cold relaunch without Metro: PASS
-Admin login and all 5 Admin modules open: PASS
-User login and all 3 User modules open: PASS
+Admin login and updated Admin navigation: PASS
+User authentication and role routing on fresh local data: PASS (automated test)
+Existing device user/2 login: not repeated because this device's preserved local account data had previously been changed
 Account management, status/password and room permission revocation logic: PASS
-Room CRUD form and room list rendered: PASS
+Room CRUD form and 8-floor accordion room list rendered: PASS
 Booking review and access-control screen rendered: PASS
-Usage and maintenance schedule screen rendered: PASS
+Usage and maintenance schedule with 8-floor room selector rendered: PASS
 Business configuration screen rendered: PASS
-Floor 1-8 selector and U-shaped availability map rendered: PASS
+Floor 1-8 availability view rendered without implementation/demo wording: PASS
 Vertical date/time pickers rendered: PASS
 Room selection -> purpose input -> direct booking form on one screen: PASS
 Booking calendar has separate read-only tabs: PASS
@@ -29,3 +30,4 @@ Room permission revocation blocks User PIN generation: PASS
 Source tests: 13/13 PASS
 TypeScript and ESLint: PASS
 Fatal or Metro connection errors in checked logcat: 0
+Current regression screenshots: evidence/18-admin-room-floors.png, evidence/19-maintenance-room-floors.png, evidence/20-login-demo-accounts.png

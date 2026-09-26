@@ -2,6 +2,7 @@ import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { addNotification } from '../../notifications';
 import { getRoomById } from '../../room_management/services/roomRepository';
+import type { Room } from '../../room_management/model/room';
 import { hasMaintenanceConflict } from '../../schedule_maintenance/services/maintenanceRepository';
 import type { Booking, BookingStatus, CreateBookingInput } from '../model/booking';
 import { assertAccountRole } from '../../auth/services/accountRepository';
@@ -9,6 +10,15 @@ import { grantRoomPinPermission } from '../../access_control/services/roomPinPer
 
 const BOOKINGS_KEY = 'booking.records';
 const ACTIVE_STATUSES: readonly BookingStatus[] = ['PENDING', 'APPROVED'];
+
+export function meetsReplacementRoomRequirements(currentRoom: Room, candidate: Room): boolean {
+  const candidateEquipment = new Set(candidate.equipment.map(item => item.trim().toLowerCase()));
+  return candidate.id !== currentRoom.id &&
+    candidate.status === 'AVAILABLE' &&
+    candidate.lockType === currentRoom.lockType &&
+    candidate.capacity >= currentRoom.capacity &&
+    currentRoom.equipment.every(item => candidateEquipment.has(item.trim().toLowerCase()));
+}
 
 export function toLocalDateTime(date: string, time: string): Date {
   return new Date(`${date}T${time}:00`);
@@ -124,7 +134,7 @@ export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED
       throw new Error('Phòng đã có lịch bảo trì trong khung giờ này.');
     }
     if (bookings.some(item => item.id !== id && item.status === 'APPROVED' && item.roomId === target.roomId && overlaps(item, target.date, target.startTime, target.endTime))) {
-      throw new Error('Phòng đã có booking được duyệt trùng thời gian.');
+      throw new Error('Phòng đã có yêu cầu được duyệt trùng thời gian.');
     }
   }
   const updated = await updateBooking(id, booking => ({
@@ -151,7 +161,7 @@ export async function cancelBooking(id: string, username: string): Promise<Booki
     const minutesUntilStart = (toLocalDateTime(booking.date, booking.startTime).getTime() - Date.now()) / 60_000;
     if (minutesUntilStart <= 0) throw new Error('Không thể hủy sau khi phiên sử dụng đã bắt đầu.');
     if (booking.status === 'APPROVED' && minutesUntilStart < configuration.cancellationCutoffMinutes) {
-      throw new Error(`Booking đã duyệt chỉ được hủy trước ít nhất ${configuration.cancellationCutoffMinutes} phút.`);
+      throw new Error(`Yêu cầu đã duyệt chỉ được hủy trước ít nhất ${configuration.cancellationCutoffMinutes} phút.`);
     }
     return { ...booking, status: 'CANCELLED',
       temporaryPin: booking.temporaryPin ? { ...booking.temporaryPin, revokedAt: new Date().toISOString() } : undefined };
@@ -164,8 +174,8 @@ export async function cancelBooking(id: string, username: string): Promise<Booki
 export async function setPickupDelegate(id: string, username: string, fullName: string, studentId: string): Promise<Booking> {
   await assertAccountRole(username, 'user');
   const booking = await getBookingById(id);
-  if (!booking || booking.requesterUsername !== username) throw new Error('Bạn không có quyền cập nhật booking này.');
-  if (booking.status !== 'APPROVED') throw new Error('Chỉ ủy quyền cho booking đã được duyệt.');
+  if (!booking || booking.requesterUsername !== username) throw new Error('Bạn không có quyền cập nhật yêu cầu này.');
+  if (booking.status !== 'APPROVED') throw new Error('Chỉ ủy quyền cho yêu cầu đã được duyệt.');
   const room = await getRoomById(booking.roomId);
   if (room?.lockType !== 'PHYSICAL_KEY') throw new Error('Ủy quyền nhận hộ chỉ áp dụng cho khóa cơ/thẻ.');
   if (toLocalDateTime(booking.date, booking.startTime) <= new Date()) throw new Error('Phiên sử dụng đã bắt đầu.');
@@ -180,7 +190,7 @@ export async function setPickupDelegate(id: string, username: string, fullName: 
 export async function scheduleKeyPickup(id: string, adminUsername: string, date: string, time: string, location: string): Promise<Booking> {
   await assertAccountRole(adminUsername, 'admin');
   const booking = await getBookingById(id);
-  if (!booking || booking.status !== 'APPROVED') throw new Error('Chỉ hẹn nhận khóa cho booking đã duyệt.');
+  if (!booking || booking.status !== 'APPROVED') throw new Error('Chỉ hẹn nhận khóa cho yêu cầu đã duyệt.');
   const room = await getRoomById(booking.roomId);
   if (room?.lockType !== 'PHYSICAL_KEY') throw new Error('Phòng này không dùng khóa cơ/thẻ.');
   validateDateAndTime(date, time, '23:59');
@@ -200,7 +210,7 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const booking = bookings.find(item => item.id === id);
-  if (!booking || booking.status !== 'APPROVED') throw new Error('Chỉ đổi phòng cho booking đã duyệt.');
+  if (!booking || booking.status !== 'APPROVED') throw new Error('Chỉ đổi phòng cho yêu cầu đã duyệt.');
   if (booking.roomId === newRoomId) throw new Error('Hãy chọn một phòng khác.');
   const configuration = await getConfiguration();
   const minutesUntilStart = (toLocalDateTime(booking.date, booking.startTime).getTime() - Date.now()) / 60_000;
@@ -208,15 +218,22 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
     throw new Error(`Chỉ được đổi phòng trước giờ bắt đầu ít nhất ${configuration.roomChangeCutoffMinutes} phút.`);
   }
   if (!reason.trim()) throw new Error('Vui lòng nhập lý do đổi phòng.');
+  const oldRoom = await getRoomById(booking.roomId);
+  if (!oldRoom) throw new Error('Không tìm thấy thông tin phòng hiện tại.');
   const room = await getRoomById(newRoomId);
   if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng thay thế không khả dụng.');
+  if (room.lockType !== oldRoom.lockType) throw new Error('Phòng thay thế phải có cùng loại khóa với phòng hiện tại.');
+  if (room.capacity < oldRoom.capacity) throw new Error('Phòng thay thế phải có sức chứa bằng hoặc lớn hơn phòng hiện tại.');
+  const replacementEquipment = new Set(room.equipment.map(item => item.trim().toLowerCase()));
+  if (oldRoom.equipment.some(item => !replacementEquipment.has(item.trim().toLowerCase()))) {
+    throw new Error('Phòng thay thế phải có đầy đủ thiết bị của phòng hiện tại.');
+  }
   if (await hasMaintenanceConflict(newRoomId, booking.date, booking.startTime, booking.endTime)) {
     throw new Error('Phòng thay thế có lịch bảo trì trong khung giờ này.');
   }
-  if (bookings.some(item => item.id !== id && item.status === 'APPROVED' && item.roomId === newRoomId && overlaps(item, booking.date, booking.startTime, booking.endTime))) {
-    throw new Error('Phòng thay thế đã có booking trùng thời gian.');
+  if (bookings.some(item => item.id !== id && ACTIVE_STATUSES.includes(item.status) && item.roomId === newRoomId && overlaps(item, booking.date, booking.startTime, booking.endTime))) {
+    throw new Error('Phòng thay thế đã có yêu cầu chờ hoặc yêu cầu được duyệt trùng thời gian.');
   }
-  const oldRoom = await getRoomById(booking.roomId);
   const updated = await updateBooking(id, current => ({
     ...current, roomId: newRoomId, userCanGeneratePin: false, keyPickupAppointment: undefined,
     temporaryPin: current.temporaryPin ? { ...current.temporaryPin, revokedAt: new Date().toISOString() } : undefined,
@@ -227,7 +244,7 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
     await grantRoomPinPermission(updated.requesterUsername, newRoomId, adminUsername);
     await updateBooking(id, current => ({ ...current, userCanGeneratePin: true }));
   }
-  await addNotification(updated.requesterUsername, 'Booking đã được đổi phòng',
+  await addNotification(updated.requesterUsername, 'Đặt phòng đã được đổi phòng',
     `${oldRoom?.name} được đổi sang ${room.name}. Lý do: ${reason.trim()}`);
   return updated;
 }

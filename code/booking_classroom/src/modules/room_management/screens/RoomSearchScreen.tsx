@@ -93,7 +93,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
     setSelectedId(room.id);
     setRoomQuery(room.name);
     setIsError(false);
-    setMessage(`Đã chọn ${room.name}. Kiểm tra trạng thái trên sơ đồ rồi nhập mục đích để đặt.`);
+    setMessage(`Đã chọn phòng ${room.name}.`);
   };
 
   const submitBooking = async () => {
@@ -116,7 +116,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
       setPurpose('');
       await refreshMap();
       setIsError(false);
-      setMessage(`Đã gửi yêu cầu đặt phòng ${bookedRoomName}. Phòng được chuyển sang trạng thái đã đặt trong khung giờ này.`);
+      setMessage(`Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`);
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : 'Không thể tạo yêu cầu đặt phòng.');
@@ -188,7 +188,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
             ))}
           </View>
           <View style={styles.mapArea}>
-            <Text style={styles.mapTitle}>SƠ ĐỒ CHỮ U · TẦNG {floor}</Text>
+            <Text style={styles.mapTitle}>TẦNG {floor}</Text>
             {MAP_ROWS.map((row, rowIndex) => (
               <View key={rowIndex} style={styles.mapRow}>
                 {row.map((roomIndex, columnIndex) => {
@@ -226,7 +226,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
             </Pressable>
           </View>
         ) : (
-          <Text style={styles.selectHint}>Chọn một phòng trên sơ đồ hoặc nhập tên phòng để đặt ngay.</Text>
+          <Text style={styles.selectHint}>Chọn một phòng hoặc nhập tên phòng để tiếp tục.</Text>
         )}
       </ScrollView>
     </View>

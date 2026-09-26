@@ -24,7 +24,7 @@
 \begin{center}
   {\LARGE\bfseries\color{hustred} HIỆN TRẠNG TRIỂN KHAI BOOKING APP}\par
   \vspace{0.1cm}
-  {\small Cập nhật: 25/09/2026}
+  {\small Cập nhật: 26/09/2026}
 \end{center}
 
 \textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
@@ -35,14 +35,15 @@
   \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
   \item Xác thực local đã có đăng ký, đăng nhập/đăng xuất theo vai trò, đổi/khôi phục mật khẩu, hồ sơ và thông báo.
   \item Admin quản lý tài khoản User, khóa/mở, đặt lại mật khẩu và thu hồi quyền tự tạo mã theo từng phòng; quyền phòng không làm User trở thành Admin toàn hệ thống.
-  \item Dữ liệu mẫu có 8 tầng, mỗi tầng 7 phòng. User chọn tầng, xem sơ đồ chữ U, lọc theo ngày/giờ bằng bộ chọn cuộn dọc, sức chứa, thiết bị, loại khóa và thấy trực tiếp trạng thái trống/đã đặt/bảo trì.
-  \item Chức năng \textit{Tìm và đặt phòng} đã được gộp: User chọn phòng trên sơ đồ hoặc nhập tên phòng, nhập mục đích và gửi booking ngay trên cùng màn hình, không cần lưu đánh dấu rồi chuyển màn.
-  \item Admin duyệt/từ chối, đổi phòng trước hạn, xem lịch sử dụng, tạo/hủy bảo trì và chỉnh các tham số nghiệp vụ.
+  \item Dữ liệu mẫu có 8 tầng, mỗi tầng 7 phòng. Giảng viên chọn tầng, lọc theo ngày/giờ, sức chứa, thiết bị, loại khóa và thấy trực tiếp trạng thái trống/đã đặt/bảo trì.
+  \item Chức năng \textit{Tìm và đặt phòng} đã được gộp: giảng viên chọn hoặc nhập tên phòng, nhập mục đích và gửi yêu cầu ngay trên cùng màn hình.
+  \item Quản lý phòng và chọn phòng bảo trì hiển thị thành 8 thanh tầng; chỉ mở danh sách phòng của tầng đang chọn.
+  \item Admin duyệt/từ chối, xem lịch sử dụng, tạo/hủy bảo trì và chỉnh các tham số nghiệp vụ. Khi đổi phòng, ứng dụng chỉ đề xuất phòng cùng loại khóa, đủ sức chứa, đủ thiết bị và không trùng lịch.
   \item \textit{Lịch đặt phòng} là màn chỉ đọc, phân nhóm sắp tới/đã dùng/đã đóng; thao tác hủy, mã truy cập và ủy quyền nằm riêng trong \textit{Quản lý đặt phòng}.
   \item Khi Admin duyệt booking phòng khóa số, hệ thống tự cấp quyền cho User tự tạo mật khẩu tại đúng phòng đó. Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user. Khóa cơ/thẻ hỗ trợ lịch hẹn và người nhận hộ.
   \item Kiểm tra source đạt: Jest 13/13 ca, ESLint và TypeScript không báo lỗi.
-  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.932.438 byte; SHA-256: \path{0A684B07BF4C29AF0CACBEAF7F38B96D5ED5AB1AD06FAEDEA8F972FE63390FDC}.
-  \item Đã cài và mở đủ 5 mục Admin, 3 mục User trên Samsung M21; không dùng \texttt{adb reverse} hoặc Metro.
+  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 57.942.770 byte; SHA-256: \path{F91229B129C17CB340B6313EB9DE5D0000FE1E3404B032E5841CC36DFFE39CFC}.
+  \item Đã cài lại và kiểm tra các màn hình Admin vừa sửa trên Samsung M21; ứng dụng khởi động độc lập khi không có \texttt{adb reverse} hoặc Metro.
   \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
 \end{itemize}
 

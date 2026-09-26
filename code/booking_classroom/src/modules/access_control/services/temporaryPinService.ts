@@ -38,10 +38,10 @@ export async function createTemporaryPin(
     throw new Error('Phòng này không sử dụng khóa mã số.');
   }
   if (booking.temporaryPin && !booking.temporaryPin.revokedAt) {
-    throw new Error('Booking đã có mã tạm thời.');
+    throw new Error('Yêu cầu đặt phòng đã có mã tạm thời.');
   }
   if (actorRole === 'user' && booking.requesterUsername !== actorUsername) {
-    throw new Error('Bạn không có quyền tạo mã cho booking của người khác.');
+    throw new Error('Bạn không có quyền tạo mã cho yêu cầu của người khác.');
   }
   if (actorRole === 'user' && !(await hasRoomPinPermission(actorUsername, booking.roomId))) {
     throw new Error('Quyền tự tạo mã tại phòng này đã bị thu hồi hoặc chưa được cấp.');
@@ -64,7 +64,7 @@ export async function createTemporaryPin(
   await addNotification(
     updated.requesterUsername,
     'Đã cấp mã mở cửa tạm thời',
-    `Mã cho phòng ${room.name} đã sẵn sàng trong chi tiết booking.`,
+    `Mã cho phòng ${room.name} đã sẵn sàng trong chi tiết đặt phòng.`,
   );
   return updated;
 }

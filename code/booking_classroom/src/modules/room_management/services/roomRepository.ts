@@ -99,7 +99,7 @@ export async function deleteRoom(id: string, adminUsername: string): Promise<voi
   if (!rooms.some(room => room.id === id)) throw new Error('Không tìm thấy phòng.');
   const bookings = await readJson<Array<{ roomId: string; status: string }>>('booking.records', []);
   if (bookings.some(item => item.roomId === id && ['PENDING', 'APPROVED'].includes(item.status))) {
-    throw new Error('Phòng còn booking đang hoạt động nên chưa thể xóa.');
+    throw new Error('Phòng còn yêu cầu đang hoạt động nên chưa thể xóa.');
   }
   await writeJson(ROOMS_KEY, rooms.filter(room => room.id !== id));
 }

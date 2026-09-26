@@ -22,7 +22,7 @@ export async function saveConfiguration(input: AppConfiguration, adminUsername: 
     throw new Error('Số ngày đặt tối thiểu không được lớn hơn tối đa.');
   }
   if (input.maxActiveBookingsPerUser < 1) {
-    throw new Error('Mỗi User phải được phép có ít nhất một booking hoạt động.');
+    throw new Error('Mỗi người phải được phép có ít nhất một yêu cầu đang hoạt động.');
   }
   await writeJson(CONFIGURATION_KEY, input);
   return input;

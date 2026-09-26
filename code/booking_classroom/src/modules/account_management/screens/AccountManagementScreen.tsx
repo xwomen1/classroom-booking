@@ -43,7 +43,7 @@ export function AccountManagementScreen({ adminUsername, onBack }: Props) {
     try {
       await createManagedAccount({ username, password, recoveryCode, role: 'user' }, adminUsername);
       setUsername(''); setPassword(''); setRecoveryCode('');
-      setMessage('Đã thêm tài khoản User.');
+      setMessage('Đã thêm tài khoản giảng viên.');
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Không thể thêm tài khoản.');
@@ -85,9 +85,9 @@ export function AccountManagementScreen({ adminUsername, onBack }: Props) {
   );
   return (
     <View style={styles.page}>
-      <ScreenHeader title="Quản lý user và quyền phòng" onBack={onBack} />
+      <ScreenHeader title="Quản lý tài khoản và quyền phòng" onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.heading}>Thêm tài khoản User</Text>
+        <Text style={styles.heading}>Thêm tài khoản giảng viên</Text>
         <Input label="Tên đăng nhập" value={username} onChangeText={setUsername} />
         <Input label="Mật khẩu ban đầu" value={password} onChangeText={setPassword} secureTextEntry />
         <Input label="Mã khôi phục" value={recoveryCode} onChangeText={setRecoveryCode} secureTextEntry />
@@ -95,7 +95,7 @@ export function AccountManagementScreen({ adminUsername, onBack }: Props) {
         {message ? <Text style={styles.message}>{message}</Text> : null}
 
         <Text style={styles.heading}>Tài khoản và quyền tự tạo mã theo phòng</Text>
-        <Text style={styles.note}>Quyền được cấp tự động khi duyệt booking phòng khóa số. Thu hồi tại đây không đổi User thành Admin toàn hệ thống.</Text>
+        <Text style={styles.note}>Quyền tạo mã được cấp theo từng phòng sau khi yêu cầu được duyệt và có thể thu hồi tại đây.</Text>
         <Input label="Tìm theo tên đăng nhập" value={query} onChangeText={setQuery} />
         {visible.map(account => {
           const activePermissions = permissions.filter(
@@ -118,7 +118,7 @@ export function AccountManagementScreen({ adminUsername, onBack }: Props) {
                   <View key={permission.id} style={styles.permissionRow}>
                     <View style={styles.permissionInfo}>
                       <Text style={styles.roomName}>{room?.name ?? permission.roomId}</Text>
-                      <Text style={styles.roomDetail}>Tầng {room?.floor ?? '?'} · cấp khi duyệt booking</Text>
+                      <Text style={styles.roomDetail}>Tầng {room?.floor ?? '?'} · cấp khi duyệt yêu cầu</Text>
                     </View>
                     <Pressable style={styles.revokeButton} onPress={() => revoke(account.username, permission.roomId)}>
                       <Text style={styles.revokeText}>Thu hồi</Text>

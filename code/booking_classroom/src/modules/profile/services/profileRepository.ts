@@ -10,7 +10,7 @@ function createDefaultProfile(username: string): UserProfile {
       username === 'admin'
         ? 'Cán bộ quản lý cơ sở vật chất'
         : username === 'user'
-          ? 'Giảng viên demo'
+          ? 'Giảng viên'
           : '',
     email: '',
     phone: '',

@@ -1,3 +1,4 @@
+import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { addNotification } from '../../notifications';
@@ -7,6 +8,9 @@ import type { RoomPinPermission } from '../model/roomPinPermission';
 const PERMISSIONS_KEY = 'access.roomPinPermissions';
 
 export async function getRoomPinPermissions(): Promise<RoomPinPermission[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<RoomPinPermission[]>('/api/pin-permissions');
+  }
   return readJson<RoomPinPermission[]>(PERMISSIONS_KEY, []);
 }
 

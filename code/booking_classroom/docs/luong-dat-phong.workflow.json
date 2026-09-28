@@ -1,0 +1,70 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Luồng đặt phòng hiện tại",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "user", "label": "Giảng viên" },
+    { "id": "api", "label": "Dịch vụ Java" },
+    { "id": "admin", "label": "Quản trị" },
+    { "id": "store", "label": "Kết quả và H2", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "entry", "label": "Vào ứng dụng", "fromCol": 0, "toCol": 1 },
+    { "id": "request", "label": "Gửi yêu cầu", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "decision", "label": "Duyệt và cấp quyền", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["login", "search", "check", "pending", "review", "grant"],
+  "nodes": [
+    { "id": "login", "lane": "user", "col": 0, "type": "frontend", "label": "Đăng nhập", "sublabel": "admin hoặc user", "width": 156 },
+    { "id": "search", "lane": "user", "col": 1, "type": "frontend", "label": "Tìm và đặt phòng", "sublabel": "RoomSearchScreen", "width": 168 },
+    { "id": "check", "lane": "api", "col": 2, "type": "security", "label": "Kiểm tra quy tắc", "sublabel": "1–3 ngày, tối đa 2", "width": 168 },
+    { "id": "pending", "lane": "api", "col": 3, "type": "backend", "label": "Lưu PENDING", "sublabel": "POST /api/bookings", "width": 168 },
+    { "id": "review", "lane": "admin", "col": 4, "type": "security", "label": "Phê duyệt", "sublabel": "chạm thông báo", "width": 160 },
+    { "id": "grant", "lane": "admin", "col": 5, "type": "backend", "label": "Cấp mã PIN", "sublabel": "phòng PIN_CODE", "width": 156 },
+    { "id": "database", "lane": "store", "col": 3, "type": "database", "label": "Cơ sở H2", "sublabel": "booking.mv.db", "width": 156 },
+    { "id": "blocked", "lane": "store", "col": 2, "type": "security", "label": "Không tạo được", "sublabel": "trùng hoặc bảo trì", "width": 168 },
+    { "id": "rejected", "lane": "store", "col": 4, "type": "security", "label": "Từ chối", "sublabel": "REJECTED", "width": 148 },
+    { "id": "notice", "lane": "user", "col": 5, "type": "messagebus", "label": "Báo giảng viên", "sublabel": "khi đăng nhập lại", "width": 168 }
+  ],
+  "edges": [
+    { "id": "open-app", "from": "login", "to": "search", "role": "main" },
+    { "id": "submit", "from": "search", "to": "check", "label": "gửi yêu cầu", "variant": "emphasis", "role": "main" },
+    { "id": "accepted", "from": "check", "to": "pending", "label": "hợp lệ", "variant": "emphasis", "role": "main" },
+    { "id": "rejected-create", "from": "check", "to": "blocked", "label": "không đạt", "variant": "security", "role": "error" },
+    { "id": "save-pending", "from": "pending", "to": "database", "label": "ghi booking", "variant": "dashed", "role": "branch" },
+    { "id": "notify-admin", "from": "pending", "to": "review", "label": "báo Admin", "role": "main" },
+    { "id": "approve", "from": "review", "to": "grant", "label": "APPROVED", "variant": "emphasis", "role": "main" },
+    { "id": "deny", "from": "review", "to": "rejected", "label": "REJECTED", "variant": "security", "role": "error" },
+    { "id": "tell-user", "from": "grant", "to": "notice", "label": "đã duyệt", "variant": "dashed", "role": "branch" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Ứng dụng trên điện thoại",
+      "items": [
+        "Đăng nhập admin/1 hoặc user/2 qua POST /api/auth/login",
+        "Vuốt mép màn hình quay về trang trước",
+        "Mật khẩu được che cả số lẫn chữ"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Thông báo đúng tài khoản",
+      "items": [
+        "Admin chạm Có yêu cầu đặt phòng mới để mở phê duyệt",
+        "Giảng viên chỉ thấy kết quả sau khi đăng nhập lại"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Phần còn trên máy",
+      "items": [
+        "Hủy, đổi phòng, nhận khóa và quản lý tài khoản vẫn dùng Async Storage",
+        "H2 Console xem bookings, notifications và pin_permissions"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { PasswordInput } from '../../../shared';
 import type { AuthenticatedUser } from '../../../core/types/authenticatedUser';
 import { authenticate } from '../services/accountRepository';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
@@ -25,6 +27,17 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!selectedFeature) {
+      return;
+    }
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedFeature(null);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [selectedFeature]);
+
   const submit = async () => {
     if (!username.trim() || !password) {
       setError('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
@@ -32,15 +45,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
 
     setSubmitting(true);
-    const user = await authenticate(username, password);
-    setSubmitting(false);
-    if (!user) {
-      setError('Sai tài khoản hoặc mật khẩu.');
-      return;
+    try {
+      const user = await authenticate(username, password);
+      if (!user) {
+        setError('Sai tài khoản hoặc mật khẩu.');
+        return;
+      }
+      setError('');
+      onLogin(user);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Không kết nối được máy chủ.');
+    } finally {
+      setSubmitting(false);
     }
-
-    setError('');
-    onLogin(user);
   };
 
   if (selectedFeature === 'Đăng ký') {
@@ -78,13 +95,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           />
 
           <Text style={styles.label}>Mật khẩu</Text>
-          <TextInput
+          <PasswordInput
             onChangeText={setPassword}
             onSubmitEditing={submit}
             placeholder="Nhập mật khẩu"
             placeholderTextColor="#7D8795"
             returnKeyType="done"
-            secureTextEntry
             style={styles.input}
             testID="password-input"
             value={password}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
 import type { NotificationItem } from '../model/notificationItem';
 import {
@@ -10,11 +10,13 @@ import {
 type NotificationScreenProps = {
   username: string;
   onBack: () => void;
+  onOpen?: (notification: NotificationItem) => void;
 };
 
 export function NotificationScreen({
   username,
   onBack,
+  onOpen,
 }: NotificationScreenProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
@@ -50,8 +52,9 @@ export function NotificationScreen({
           <Text style={styles.empty}>Chưa có thông báo.</Text>
         ) : (
           notifications.map(notification => (
-            <View
+            <Pressable
               key={notification.id}
+              onPress={() => onOpen?.(notification)}
               style={[
                 styles.card,
                 !notification.read && styles.unreadCard,
@@ -65,7 +68,7 @@ export function NotificationScreen({
               <Text style={styles.time}>
                 {new Date(notification.createdAt).toLocaleString('vi-VN')}
               </Text>
-            </View>
+            </Pressable>
           ))
         )}
       </ScrollView>

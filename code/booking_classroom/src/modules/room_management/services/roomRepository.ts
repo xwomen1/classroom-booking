@@ -1,3 +1,4 @@
+import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { DEMO_ROOMS } from '../model/demoRooms';
@@ -11,6 +12,9 @@ function inferFloor(room: Omit<Room, 'floor'> & { floor?: number }): number {
 }
 
 export async function getRooms(): Promise<Room[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<Room[]>('/api/rooms');
+  }
   const stored = await readJson<Array<Omit<Room, 'floor'> & { floor?: number }> | null>(ROOMS_KEY, null);
   if (stored) {
     const normalized = stored.map(room => ({ ...room, floor: inferFloor(room) }));

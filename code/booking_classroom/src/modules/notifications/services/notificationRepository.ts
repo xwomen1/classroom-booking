@@ -1,6 +1,8 @@
+import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
+import { presentPriorityNotification } from './priorityBanner';
 
 const NOTIFICATION_KEY_PREFIX = 'notifications.';
 
@@ -11,6 +13,9 @@ function keyFor(username: string) {
 export async function getNotifications(
   username: string,
 ): Promise<NotificationItem[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<NotificationItem[]>('/api/notifications');
+  }
   const stored = await readJson<NotificationItem[] | null>(
     keyFor(username),
     null,
@@ -35,6 +40,16 @@ export async function addNotification(
   title: string,
   message: string,
 ): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    const created = await apiRequest<NotificationItem | undefined>('/api/notifications', {
+      method: 'POST',
+      body: { username, title, message },
+    });
+    if (created) {
+      await presentPriorityNotification(title, message);
+    }
+    return;
+  }
   if (!(await getConfiguration()).notificationsEnabled) return;
   const notifications = await getNotifications(username);
   const item: NotificationItem = {
@@ -45,11 +60,20 @@ export async function addNotification(
     read: false,
   };
   await writeJson(keyFor(username), [item, ...notifications]);
+  try {
+    await presentPriorityNotification(title, message);
+  } catch {
+    // The in-app list is already saved. A banner failure must not roll back the action.
+  }
 }
 
 export async function markAllNotificationsRead(
   username: string,
 ): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest('/api/notifications/read', { method: 'POST' });
+    return;
+  }
   const notifications = await getNotifications(username);
   await writeJson(
     keyFor(username),

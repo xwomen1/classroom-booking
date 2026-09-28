@@ -1,3 +1,4 @@
+import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { DEFAULT_CONFIGURATION, type AppConfiguration } from '../model/appConfiguration';
 import { assertAccountRole } from '../../auth/services/accountRepository';
@@ -5,6 +6,9 @@ import { assertAccountRole } from '../../auth/services/accountRepository';
 const CONFIGURATION_KEY = 'configuration.app';
 
 export async function getConfiguration(): Promise<AppConfiguration> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AppConfiguration>('/api/configuration');
+  }
   const stored = await readJson<Partial<AppConfiguration> | null>(CONFIGURATION_KEY, null);
   return { ...DEFAULT_CONFIGURATION, ...(stored ?? {}) };
 }

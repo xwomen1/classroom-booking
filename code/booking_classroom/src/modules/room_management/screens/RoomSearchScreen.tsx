@@ -31,6 +31,8 @@ export function RoomSearchScreen({ username, onBack }: Props) {
   const [rooms, setRooms] = useState<MapRoom[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purpose, setPurpose] = useState('');
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState('1');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -111,12 +113,20 @@ export function RoomSearchScreen({ username, onBack }: Props) {
         startTime,
         endTime,
         purpose,
+        repeatWeekly,
+        repeatWeeks: Number(repeatWeeks) || 1,
       });
       const bookedRoomName = selected.name;
       setPurpose('');
+      setRepeatWeekly(false);
+      setRepeatWeeks('1');
       await refreshMap();
       setIsError(false);
-      setMessage(`Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`);
+      setMessage(
+        repeatWeekly
+          ? `Đã gửi yêu cầu đặt phòng ${bookedRoomName} lặp lại ${Number(repeatWeeks) || 1} tuần.`
+          : `Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`,
+      );
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : 'Không thể tạo yêu cầu đặt phòng.');
@@ -216,6 +226,30 @@ export function RoomSearchScreen({ username, onBack }: Props) {
                 multiline
               />
             </View>
+
+            <View style={styles.repeatBox}>
+              <Pressable
+                onPress={() => setRepeatWeekly(value => !value)}
+                style={[styles.repeatToggle, repeatWeekly && styles.repeatToggleActive]}
+              >
+                <Text style={[styles.repeatToggleText, repeatWeekly && styles.repeatToggleTextActive]}>
+                  {repeatWeekly ? 'Lặp lại mỗi tuần' : 'Không lặp lại'}
+                </Text>
+              </Pressable>
+              {repeatWeekly ? (
+                <View style={styles.repeatWeeksRow}>
+                  <Text style={styles.repeatLabel}>Số tuần:</Text>
+                  <TextInput
+                    value={repeatWeeks}
+                    onChangeText={setRepeatWeeks}
+                    keyboardType="number-pad"
+                    style={styles.repeatInput}
+                    placeholder="1"
+                  />
+                </View>
+              ) : null}
+            </View>
+
             <Pressable
               disabled={saving || selected.mapStatus !== 'AVAILABLE'}
               onPress={submitBooking}

@@ -126,24 +126,52 @@ public class BookingService {
     }
     em.createQuery("select b.id from Booking b").setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
     List<Domain.Booking> bookings = bookings();
-    validateBooking(actor.username, input, bookings);
+    boolean repeatWeekly = Boolean.TRUE.equals(input.repeatWeekly());
+    int repeatWeeks = input.repeatWeeks() == null ? 1 : input.repeatWeeks();
+    if (repeatWeekly && (repeatWeeks < 1 || repeatWeeks > 8)) {
+      throw new IllegalArgumentException("Số tuần lặp lại phải từ 1 đến 8.");
+    }
+    if (input.date() == null || !input.date().matches("\\d{4}-\\d{2}-\\d{2}")) {
+      throw new IllegalArgumentException("Ngày phải có định dạng YYYY-MM-DD.");
+    }
     Domain.Room room = em.find(Domain.Room.class, input.roomId());
-    Domain.Booking booking = new Domain.Booking();
-    booking.id = "booking-" + UUID.randomUUID();
-    booking.requesterUsername = actor.username;
-    booking.roomId = input.roomId();
-    booking.date = input.date();
-    booking.startTime = input.startTime();
-    booking.endTime = input.endTime();
-    booking.purpose = input.purpose().trim();
-    booking.status = "PENDING";
-    booking.createdAt = Instant.now().toString();
-    em.persist(booking);
+    int occurrences = repeatWeekly ? repeatWeeks : 1;
+    Domain.Booking firstBooking = null;
+    for (int index = 0; index < occurrences; index++) {
+      String occurrenceDate;
+      try {
+        occurrenceDate = LocalDate.parse(input.date()).plusWeeks(index).toString();
+      } catch (DateTimeParseException error) {
+        throw new IllegalArgumentException("Ngày hoặc khoảng thời gian đặt phòng không hợp lệ.");
+      }
+      BookingInput occurrence = new BookingInput(
+          input.requesterUsername(), input.roomId(), occurrenceDate, input.startTime(), input.endTime(),
+          input.purpose(), repeatWeekly, occurrences);
+      validateBooking(actor.username, occurrence, bookings, index > 0, index > 0);
+      Domain.Booking booking = new Domain.Booking();
+      booking.id = "booking-" + UUID.randomUUID();
+      booking.requesterUsername = actor.username;
+      booking.roomId = input.roomId();
+      booking.date = occurrenceDate;
+      booking.startTime = input.startTime();
+      booking.endTime = input.endTime();
+      booking.repeatWeekly = repeatWeekly;
+      booking.repeatWeeks = occurrences;
+      booking.purpose = input.purpose().trim();
+      booking.status = "PENDING";
+      booking.createdAt = Instant.now().toString();
+      em.persist(booking);
+      bookings.add(booking);
+      if (firstBooking == null) {
+        firstBooking = booking;
+      }
+    }
     Domain.Notification notification = storeNotification(
         "admin",
         "Có yêu cầu đặt phòng mới",
-        actor.username + " yêu cầu đặt phòng " + room.name + ".");
-    return new BookingResult(booking, notification);
+        actor.username + " yêu cầu đặt phòng " + room.name
+            + (repeatWeekly ? " và " + occurrences + " lịch lặp lại." : "."));
+    return new BookingResult(firstBooking, notification);
   }
 
   @Transactional
@@ -192,7 +220,12 @@ public class BookingService {
     return new BookingResult(target, notification);
   }
 
-  private void validateBooking(String username, BookingInput input, List<Domain.Booking> bookings) {
+  private void validateBooking(
+      String username,
+      BookingInput input,
+      List<Domain.Booking> bookings,
+      boolean skipAdvanceWindowCheck,
+      boolean skipUserLimitCheck) {
     Domain.Room room = em.find(Domain.Room.class, input.roomId());
     if (room == null || !"AVAILABLE".equals(room.status)) {
       throw new IllegalArgumentException("Phòng không tồn tại hoặc đang tạm khóa/bảo trì.");
@@ -200,7 +233,8 @@ public class BookingService {
     LocalDateTime start = validateDateAndTime(input.date(), input.startTime(), input.endTime());
     Domain.Configuration configuration = configuration();
     long dayDifference = ChronoUnit.DAYS.between(LocalDate.now(ZONE), start.toLocalDate());
-    if (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays) {
+    if (!skipAdvanceWindowCheck
+      && (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays)) {
       throw new IllegalArgumentException(
           "Chỉ được đặt trước từ " + configuration.minAdvanceDays + " đến " + configuration.maxAdvanceDays + " ngày.");
     }
@@ -215,7 +249,7 @@ public class BookingService {
       throw new IllegalArgumentException("Bạn đã có lịch đặt khác trùng thời gian.");
     }
     long ownActive = active.stream().filter(item -> item.requesterUsername.equals(username)).count();
-    if (ownActive >= configuration.maxActiveBookingsPerUser) {
+    if (!skipUserLimitCheck && ownActive >= configuration.maxActiveBookingsPerUser) {
       throw new IllegalArgumentException(
           "Mỗi người chỉ có tối đa " + configuration.maxActiveBookingsPerUser + " yêu cầu đang chờ hoặc sắp dùng.");
     }
@@ -315,7 +349,9 @@ public class BookingService {
       String date,
       String startTime,
       String endTime,
-      String purpose) {}
+      String purpose,
+      Boolean repeatWeekly,
+      Integer repeatWeeks) {}
 
   public record BookingResult(Domain.Booking booking, Domain.Notification notification) {}
 

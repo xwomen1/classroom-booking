@@ -12,6 +12,38 @@ import { grantRoomPinPermission } from '../../access_control/services/roomPinPer
 const BOOKINGS_KEY = 'booking.records';
 const ACTIVE_STATUSES: readonly BookingStatus[] = ['PENDING', 'APPROVED'];
 
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function buildRecurringBookingInputs(input: CreateBookingInput): CreateBookingInput[] {
+  const repeatWeekly = Boolean(input.repeatWeekly);
+  const repeatWeeks = Number.isInteger(input.repeatWeeks) ? Math.max(1, Math.min(8, input.repeatWeeks!)) : 1;
+
+  if (!repeatWeekly) {
+    return [{ ...input, repeatWeekly: false, repeatWeeks: 1 }];
+  }
+
+  const baseDate = new Date(`${input.date}T00:00:00`);
+  const results: CreateBookingInput[] = [];
+
+  for (let index = 0; index < repeatWeeks; index += 1) {
+    const date = new Date(baseDate);
+    date.setDate(baseDate.getDate() + index * 7);
+    results.push({
+      ...input,
+      date: formatDate(date),
+      repeatWeekly: true,
+      repeatWeeks: repeatWeeks,
+    });
+  }
+
+  return results;
+}
+
 export function meetsReplacementRoomRequirements(currentRoom: Room, candidate: Room): boolean {
   const candidateEquipment = new Set(candidate.equipment.map(item => item.trim().toLowerCase()));
   return candidate.id !== currentRoom.id &&
@@ -77,13 +109,17 @@ function isStillActive(booking: Booking, now = new Date()) {
   return ACTIVE_STATUSES.includes(booking.status) && toLocalDateTime(booking.date, booking.endTime) > now;
 }
 
-async function validateBooking(input: CreateBookingInput, bookings: Booking[]) {
+async function validateBooking(
+  input: CreateBookingInput,
+  bookings: Booking[],
+  options: { skipAdvanceWindowCheck?: boolean; skipUserLimitCheck?: boolean } = {},
+) {
   const room = await getRoomById(input.roomId);
   if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng không tồn tại hoặc đang tạm khóa/bảo trì.');
   const { start } = validateDateAndTime(input.date, input.startTime, input.endTime);
   const configuration = await getConfiguration();
   const dayDifference = calendarDayDifference(start, new Date());
-  if (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays) {
+  if (!options.skipAdvanceWindowCheck && (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays)) {
     throw new Error(`Chỉ được đặt trước từ ${configuration.minAdvanceDays} đến ${configuration.maxAdvanceDays} ngày.`);
   }
   if (await hasMaintenanceConflict(input.roomId, input.date, input.startTime, input.endTime)) {
@@ -96,7 +132,7 @@ async function validateBooking(input: CreateBookingInput, bookings: Booking[]) {
   if (activeBookings.some(item => item.requesterUsername === input.requesterUsername && overlaps(item, input.date, input.startTime, input.endTime))) {
     throw new Error('Bạn đã có lịch đặt khác trùng thời gian.');
   }
-  if (activeBookings.filter(item => item.requesterUsername === input.requesterUsername).length >= configuration.maxActiveBookingsPerUser) {
+  if (!options.skipUserLimitCheck && activeBookings.filter(item => item.requesterUsername === input.requesterUsername).length >= configuration.maxActiveBookingsPerUser) {
     throw new Error(`Mỗi người chỉ có tối đa ${configuration.maxActiveBookingsPerUser} yêu cầu đang chờ hoặc sắp dùng.`);
   }
   if (!input.purpose.trim()) throw new Error('Vui lòng nhập mục đích sử dụng phòng.');
@@ -110,17 +146,43 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     );
     return result.booking;
   }
+
+  const repeatWeekly = Boolean(input.repeatWeekly);
+  const repeatWeeks = Number.isInteger(input.repeatWeeks) ? Math.max(1, Math.min(8, input.repeatWeeks!)) : 1;
+  if (repeatWeekly && (!Number.isInteger(input.repeatWeeks) || input.repeatWeeks! < 1)) {
+    throw new Error('Số tuần lặp lại phải là số nguyên dương.');
+  }
+
   await assertAccountRole(input.requesterUsername, 'user');
   const bookings = await getBookings();
-  await validateBooking(input, bookings);
-  const booking: Booking = {
-    ...input, purpose: input.purpose.trim(), id: `booking-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    status: 'PENDING', createdAt: new Date().toISOString(),
-  };
-  await writeJson(BOOKINGS_KEY, [...bookings, booking]);
-  const room = await getRoomById(input.roomId);
-  await addNotification('admin', 'Có yêu cầu đặt phòng mới', `${input.requesterUsername} yêu cầu đặt phòng ${room?.name}.`);
-  return booking;
+  const recurringInputs = buildRecurringBookingInputs({ ...input, repeatWeekly, repeatWeeks });
+  const createdBookings: Booking[] = [];
+
+  for (const [index, item] of recurringInputs.entries()) {
+    await validateBooking(item, [...bookings, ...createdBookings], {
+      skipAdvanceWindowCheck: index > 0 && repeatWeekly,
+      skipUserLimitCheck: index > 0 && repeatWeekly,
+    });
+    const booking: Booking = {
+      ...item,
+      purpose: item.purpose.trim(),
+      id: `booking-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
+    createdBookings.push(booking);
+  }
+
+  await writeJson(BOOKINGS_KEY, [...bookings, ...createdBookings]);
+
+  const firstRoom = await getRoomById(createdBookings[0].roomId);
+  await addNotification(
+    'admin',
+    'Có yêu cầu đặt phòng mới',
+    `${input.requesterUsername} yêu cầu đặt phòng ${firstRoom?.name}${repeatWeekly ? ` và ${createdBookings.length} lịch lặp lại` : ''}.`,
+  );
+
+  return createdBookings[0];
 }
 
 export async function updateBooking(id: string, update: (booking: Booking) => Booking): Promise<Booking> {

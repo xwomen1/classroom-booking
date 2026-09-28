@@ -1,6 +1,7 @@
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
+import { presentPriorityNotification } from './priorityBanner';
 
 const NOTIFICATION_KEY_PREFIX = 'notifications.';
 
@@ -45,6 +46,11 @@ export async function addNotification(
     read: false,
   };
   await writeJson(keyFor(username), [item, ...notifications]);
+  try {
+    await presentPriorityNotification(title, message);
+  } catch {
+    // The in-app list is already saved. A banner failure must not roll back the action.
+  }
 }
 
 export async function markAllNotificationsRead(

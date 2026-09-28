@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { RoleDashboardScreen } from './src/app';
 import type { AuthenticatedUser } from './src/core/types/authenticatedUser';
 import { LoginScreen } from './src/modules/auth';
+import {
+  PriorityBannerHost,
+  requestPriorityNotificationPermission,
+} from './src/modules/notifications';
 
 function App() {
   const [session, setSession] = useState<AuthenticatedUser | null>(null);
+
+  useEffect(() => {
+    requestPriorityNotificationPermission().catch(() => {});
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -24,6 +32,7 @@ function App() {
           <LoginScreen onLogin={setSession} />
         )}
       </SafeAreaView>
+      <PriorityBannerHost />
     </SafeAreaProvider>
   );
 }

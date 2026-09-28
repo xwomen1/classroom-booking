@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Luồng đặt phòng hiện tại",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "user", "label": "User" },
+    { "id": "rules", "label": "Quy tắc", "variant": "exception" },
+    { "id": "admin", "label": "Admin" },
+    { "id": "store", "label": "Lưu cục bộ" }
+  ],
+  "phases": [
+    { "id": "entry", "label": "Vào ứng dụng", "fromCol": 0, "toCol": 1 },
+    { "id": "request", "label": "Gửi yêu cầu", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "decision", "label": "Duyệt và cấp quyền", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["login", "search", "check", "pending", "review", "grant"],
+  "nodes": [
+    { "id": "login", "lane": "user", "col": 0, "type": "frontend", "label": "Đăng nhập", "sublabel": "LoginScreen", "width": 156 },
+    { "id": "search", "lane": "user", "col": 1, "type": "frontend", "label": "Tìm và đặt phòng", "sublabel": "RoomSearchScreen", "width": 168 },
+    { "id": "pending", "lane": "user", "col": 3, "type": "backend", "label": "Yêu cầu PENDING", "sublabel": "createBooking", "width": 168 },
+    { "id": "check", "lane": "rules", "col": 2, "type": "security", "label": "Kiểm tra quy tắc", "sublabel": "validateBooking", "width": 168 },
+    { "id": "blocked", "lane": "rules", "col": 3, "type": "security", "label": "Không tạo được", "sublabel": "trùng, bảo trì, hạn", "width": 168 },
+    { "id": "rejected", "lane": "rules", "col": 5, "type": "security", "label": "REJECTED", "sublabel": "báo User", "width": 156 },
+    { "id": "review", "lane": "admin", "col": 4, "type": "security", "label": "Duyệt yêu cầu", "sublabel": "reviewBooking", "width": 160 },
+    { "id": "grant", "lane": "admin", "col": 5, "type": "backend", "label": "Cấp quyền phòng", "sublabel": "PIN hoặc khóa cơ", "width": 168 },
+    { "id": "store", "lane": "store", "col": 3, "type": "database", "label": "Async Storage", "sublabel": "JSON trên máy", "width": 168 }
+  ],
+  "edges": [
+    { "id": "open-app", "from": "login", "to": "search", "role": "main" },
+    { "id": "submit", "from": "search", "to": "check", "label": "gửi yêu cầu", "variant": "emphasis", "role": "main" },
+    { "id": "accepted", "from": "check", "to": "pending", "label": "hợp lệ", "variant": "emphasis", "role": "main" },
+    { "id": "rejected-create", "from": "check", "to": "blocked", "label": "không đạt", "variant": "security", "role": "error" },
+    { "id": "save-pending", "from": "pending", "to": "store", "label": "ghi booking", "variant": "dashed", "role": "branch" },
+    { "id": "notify-admin", "from": "pending", "to": "review", "label": "báo Admin", "role": "main", "route": "up-channel" },
+    { "id": "approve", "from": "review", "to": "grant", "label": "APPROVED", "variant": "emphasis", "role": "main" },
+    { "id": "deny", "from": "review", "to": "rejected", "label": "REJECTED", "variant": "security", "role": "error" },
+    { "id": "persist-grant", "from": "grant", "to": "store", "label": "lưu kết quả", "variant": "dashed", "role": "return" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Điểm vào ứng dụng",
+      "items": [
+        "App.tsx chỉ có LoginScreen hoặc RoleDashboardScreen",
+        "User mở Tìm và đặt phòng; Admin mở Yêu cầu đặt phòng"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Sau khi được duyệt",
+      "items": [
+        "PIN_CODE gọi grantRoomPinPermission cho đúng User và phòng",
+        "PHYSICAL_KEY do Admin hẹn nhận khóa; User có thể ủy quyền nhận hộ"
+      ]
+    }
+  ]
+}

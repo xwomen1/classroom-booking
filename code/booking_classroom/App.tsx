@@ -3,6 +3,7 @@ import { StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { RoleDashboardScreen } from './src/app';
 import type { AuthenticatedUser } from './src/core/types/authenticatedUser';
+import { clearApiSession } from './src/core/api/client';
 import { LoginScreen } from './src/modules/auth';
 import {
   PriorityBannerHost,
@@ -26,7 +27,10 @@ function App() {
         {session ? (
           <RoleDashboardScreen
             session={session}
-            onLogout={() => setSession(null)}
+            onLogout={() => {
+              clearApiSession();
+              setSession(null);
+            }}
           />
         ) : (
           <LoginScreen onLogin={setSession} />

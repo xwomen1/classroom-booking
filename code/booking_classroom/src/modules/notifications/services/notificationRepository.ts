@@ -1,3 +1,4 @@
+import { apiRequest, useRemoteApi } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
@@ -12,6 +13,9 @@ function keyFor(username: string) {
 export async function getNotifications(
   username: string,
 ): Promise<NotificationItem[]> {
+  if (useRemoteApi()) {
+    return apiRequest<NotificationItem[]>('/api/notifications');
+  }
   const stored = await readJson<NotificationItem[] | null>(
     keyFor(username),
     null,
@@ -36,6 +40,16 @@ export async function addNotification(
   title: string,
   message: string,
 ): Promise<void> {
+  if (useRemoteApi()) {
+    const created = await apiRequest<NotificationItem | undefined>('/api/notifications', {
+      method: 'POST',
+      body: { username, title, message },
+    });
+    if (created) {
+      await presentPriorityNotification(title, message);
+    }
+    return;
+  }
   if (!(await getConfiguration()).notificationsEnabled) return;
   const notifications = await getNotifications(username);
   const item: NotificationItem = {
@@ -56,6 +70,10 @@ export async function addNotification(
 export async function markAllNotificationsRead(
   username: string,
 ): Promise<void> {
+  if (useRemoteApi()) {
+    await apiRequest('/api/notifications/read', { method: 'POST' });
+    return;
+  }
   const notifications = await getNotifications(username);
   await writeJson(
     keyFor(username),

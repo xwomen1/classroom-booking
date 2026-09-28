@@ -17,9 +17,11 @@ import {
 } from '../../modules/booking';
 import { ConfigurationScreen } from '../../modules/configuration';
 import {
+  getNotifications,
   getUnreadCount,
   NotificationScreen,
 } from '../../modules/notifications';
+import { presentPriorityNotification } from '../../modules/notifications/services/priorityBanner';
 import { ProfileScreen } from '../../modules/profile';
 import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
 import { ScheduleMaintenanceScreen } from '../../modules/schedule_maintenance';
@@ -82,6 +84,24 @@ export function RoleDashboardScreen({
   }, [session.username]);
 
   useEffect(refreshUnreadCount, [refreshUnreadCount]);
+
+  useEffect(() => {
+    let active = true;
+    getNotifications(session.username).then(items => {
+      if (!active) {
+        return;
+      }
+      const latest = items.find(
+        item => !item.read && item.title !== 'Chào mừng đến ứng dụng đặt phòng',
+      );
+      if (latest) {
+        presentPriorityNotification(latest.title, latest.message).catch(() => {});
+      }
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [session.username]);
 
   const closeChildScreen = () => {
     setActiveScreen(null);

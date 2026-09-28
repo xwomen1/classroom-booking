@@ -1,4 +1,6 @@
+import { apiRequest, setApiToken, useRemoteApi } from '../../../core/api/client';
 import type { AuthenticatedUser } from '../../../core/types/authenticatedUser';
+import type { UserRole } from '../../../core/types/userRole';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { DEMO_ACCOUNTS, type AccountRecord } from '../model/demoAccounts';
 
@@ -29,6 +31,21 @@ export async function authenticate(
   username: string,
   password: string,
 ): Promise<AuthenticatedUser | null> {
+  if (useRemoteApi()) {
+    try {
+      const session = await apiRequest<{ token: string; username: string; role: UserRole }>(
+        '/api/auth/login',
+        { method: 'POST', body: { username, password } },
+      );
+      setApiToken(session.token);
+      return { username: session.username, role: session.role };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Sai tài khoản hoặc mật khẩu.') {
+        return null;
+      }
+      throw error;
+    }
+  }
   const normalizedUsername = username.trim().toLowerCase();
   const accounts = await getAccounts();
 

@@ -32,15 +32,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
 
     setSubmitting(true);
-    const user = await authenticate(username, password);
-    setSubmitting(false);
-    if (!user) {
-      setError('Sai tài khoản hoặc mật khẩu.');
-      return;
+    try {
+      const user = await authenticate(username, password);
+      if (!user) {
+        setError('Sai tài khoản hoặc mật khẩu.');
+        return;
+      }
+      setError('');
+      onLogin(user);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Không kết nối được máy chủ.');
+    } finally {
+      setSubmitting(false);
     }
-
-    setError('');
-    onLogin(user);
   };
 
   if (selectedFeature === 'Đăng ký') {

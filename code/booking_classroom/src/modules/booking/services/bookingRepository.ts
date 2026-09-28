@@ -1,3 +1,4 @@
+import { apiRequest, useRemoteApi } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { addNotification } from '../../notifications';
@@ -25,6 +26,9 @@ export function toLocalDateTime(date: string, time: string): Date {
 }
 
 export async function getBookings(): Promise<Booking[]> {
+  if (useRemoteApi()) {
+    return apiRequest<Booking[]>('/api/bookings');
+  }
   return readJson<Booking[]>(BOOKINGS_KEY, []);
 }
 
@@ -99,6 +103,13 @@ async function validateBooking(input: CreateBookingInput, bookings: Booking[]) {
 }
 
 export async function createBooking(input: CreateBookingInput): Promise<Booking> {
+  if (useRemoteApi()) {
+    const result = await apiRequest<{ booking: Booking }>(
+      '/api/bookings',
+      { method: 'POST', body: input },
+    );
+    return result.booking;
+  }
   await assertAccountRole(input.requesterUsername, 'user');
   const bookings = await getBookings();
   await validateBooking(input, bookings);
@@ -123,6 +134,13 @@ export async function updateBooking(id: string, update: (booking: Booking) => Bo
 }
 
 export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED', adminUsername: string): Promise<Booking> {
+  if (useRemoteApi()) {
+    const result = await apiRequest<{ booking: Booking }>(
+      `/api/bookings/${id}/review`,
+      { method: 'POST', body: { decision, adminUsername } },
+    );
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const target = bookings.find(item => item.id === id);

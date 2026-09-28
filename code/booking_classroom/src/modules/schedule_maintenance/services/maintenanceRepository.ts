@@ -1,3 +1,4 @@
+import { apiRequest, useRemoteApi } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import type { MaintenanceRecord } from '../model/maintenance';
@@ -6,6 +7,9 @@ import { assertAccountRole } from '../../auth/services/accountRepository';
 const MAINTENANCE_KEY = 'maintenance.records';
 
 export async function getMaintenanceRecords(): Promise<MaintenanceRecord[]> {
+  if (useRemoteApi()) {
+    return apiRequest<MaintenanceRecord[]>('/api/maintenance');
+  }
   return readJson<MaintenanceRecord[]>(MAINTENANCE_KEY, []);
 }
 

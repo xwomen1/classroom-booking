@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ScreenHeader } from '../../../shared';
+import { PasswordInput, ScreenHeader } from '../../../shared';
 import {
   getRoomPinPermissions,
   revokeRoomPinPermission,
@@ -140,8 +140,9 @@ export function AccountManagementScreen({ adminUsername, onBack }: Props) {
 }
 
 function Input(props: React.ComponentProps<typeof TextInput> & { label: string }) {
-  const { label, ...rest } = props;
-  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput {...rest} autoCapitalize="none" placeholderTextColor="#7D8795" style={styles.input} /></View>;
+  const { label, secureTextEntry, ...rest } = props;
+  const Field = secureTextEntry ? PasswordInput : TextInput;
+  return <View style={styles.field}><Text style={styles.label}>{label}</Text><Field {...rest} autoCapitalize="none" autoCorrect={false} placeholderTextColor="#7D8795" style={styles.input} /></View>;
 }
 function SmallButton({ label, onPress, danger }: { label: string; onPress: () => void; danger?: boolean }) {
   return <Pressable onPress={onPress} style={[styles.smallButton, danger && styles.dangerButton]}><Text style={[styles.smallText, danger && styles.dangerText]}>{label}</Text></Pressable>;

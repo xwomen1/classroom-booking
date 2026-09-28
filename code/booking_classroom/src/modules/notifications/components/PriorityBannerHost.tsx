@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  openPriorityBanner,
   subscribePriorityBanners,
   type PriorityBanner,
 } from '../services/priorityBanner';
@@ -86,14 +87,21 @@ export function PriorityBannerHost() {
       >
         <Pressable
           accessibilityRole="alert"
-          onPress={() => hideRef.current()}
+          onPress={() => {
+            openPriorityBanner(banner);
+            hideRef.current();
+          }}
           style={styles.card}
         >
           <View style={styles.mark}>
             <Text style={styles.markText}>!</Text>
           </View>
           <View style={styles.copy}>
-            <Text style={styles.kicker}>Thông báo ưu tiên</Text>
+            <Text style={styles.kicker}>
+              {banner.title === 'Có yêu cầu đặt phòng mới'
+                ? 'Chạm để phê duyệt'
+                : 'Thông báo ưu tiên'}
+            </Text>
             <Text numberOfLines={1} style={styles.title}>
               {banner.title}
             </Text>

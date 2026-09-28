@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { ScreenHeader } from '../../../shared';
+import { PasswordInput, ScreenHeader } from '../../../shared';
 import { addNotification } from '../../notifications';
 import { saveProfile } from '../../profile';
 import { registerAccount } from '../services/accountRepository';
@@ -129,14 +129,20 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
           label="Mật khẩu *"
           onChangeText={setPassword}
           value={password}
+          autoCapitalize="none"
+          autoCorrect={false}
           secureTextEntry
+          textContentType="password"
           testID="register-password"
         />
         <FormField
           label="Nhập lại mật khẩu *"
           onChangeText={setConfirmPassword}
           value={confirmPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
           secureTextEntry
+          textContentType="password"
           testID="register-confirm-password"
         />
         {message ? (
@@ -165,11 +171,12 @@ type FormFieldProps = React.ComponentProps<typeof TextInput> & {
   label: string;
 };
 
-function FormField({ label, ...props }: FormFieldProps) {
+function FormField({ label, secureTextEntry, ...props }: FormFieldProps) {
+  const Field = secureTextEntry ? PasswordInput : TextInput;
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput
+      <Field
         {...props}
         placeholderTextColor="#7D8795"
         style={styles.input}

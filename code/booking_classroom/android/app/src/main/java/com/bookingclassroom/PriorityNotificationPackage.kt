@@ -50,7 +50,7 @@ class PriorityNotificationModule(
   override fun getName(): String = NAME
 
   @ReactMethod
-  fun show(title: String, message: String, promise: Promise) {
+  fun show(title: String, message: String, destination: String, promise: Promise) {
     try {
       val context = reactApplicationContext
       if (
@@ -72,11 +72,14 @@ class PriorityNotificationModule(
       val openApp =
           Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            if (destination.isNotBlank()) {
+              putExtra(OPEN_SCREEN, destination)
+            }
           }
       val pendingIntent =
           PendingIntent.getActivity(
               context,
-              0,
+              destination.hashCode(),
               openApp,
               PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
           )
@@ -103,6 +106,16 @@ class PriorityNotificationModule(
     }
   }
 
+  @ReactMethod
+  fun consumeOpenScreen(promise: Promise) {
+    val activity = reactApplicationContext.currentActivity
+    val destination = activity?.intent?.getStringExtra(OPEN_SCREEN)
+    if (!destination.isNullOrBlank()) {
+      activity.intent?.removeExtra(OPEN_SCREEN)
+    }
+    promise.resolve(destination)
+  }
+
   private fun ensureChannel(manager: NotificationManager) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
       return
@@ -125,5 +138,6 @@ class PriorityNotificationModule(
 
   companion object {
     const val NAME = "PriorityNotification"
+    const val OPEN_SCREEN = "openScreen"
   }
 }

@@ -13,12 +13,24 @@ export type PriorityBanner = {
 type BannerListener = (banner: PriorityBanner) => void;
 
 const listeners = new Set<BannerListener>();
+const openListeners = new Set<BannerListener>();
 
 export function subscribePriorityBanners(listener: BannerListener) {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
+}
+
+export function subscribePriorityBannerOpen(listener: BannerListener) {
+  openListeners.add(listener);
+  return () => {
+    openListeners.delete(listener);
+  };
+}
+
+export function openPriorityBanner(banner: PriorityBanner) {
+  openListeners.forEach(listener => listener(banner));
 }
 
 export async function requestPriorityNotificationPermission(): Promise<void> {
@@ -36,6 +48,19 @@ export async function requestPriorityNotificationPermission(): Promise<void> {
   );
 }
 
+export async function consumeNotificationDestination(): Promise<string | null> {
+  if (Platform.OS !== 'android') {
+    return null;
+  }
+  const nativeModule = NativeModules.PriorityNotification as
+    | { consumeOpenScreen?: () => Promise<string | null> }
+    | undefined;
+  if (!nativeModule?.consumeOpenScreen) {
+    return null;
+  }
+  const destination = await nativeModule.consumeOpenScreen();
+  return destination || null;
+}
 export async function presentPriorityNotification(
   title: string,
   message: string,
@@ -51,7 +76,7 @@ export async function presentPriorityNotification(
     return;
   }
   const nativeModule = NativeModules.PriorityNotification as
-    | { show?: (title: string, message: string) => Promise<boolean> }
+    | { show?: (title: string, message: string, destination: string) => Promise<boolean> }
     | undefined;
   if (!nativeModule?.show) {
     return;
@@ -64,5 +89,6 @@ export async function presentPriorityNotification(
       return;
     }
   }
-  await nativeModule.show(title, message);
+  const destination = title === 'Có yêu cầu đặt phòng mới' ? 'approval' : '';
+  await nativeModule.show(title, message, destination);
 }

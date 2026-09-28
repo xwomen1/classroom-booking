@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { ScreenHeader } from '../../../shared';
+import { PasswordInput, ScreenHeader } from '../../../shared';
 import { addNotification } from '../../notifications';
 import { changePassword } from '../services/accountRepository';
 
@@ -124,10 +124,9 @@ function PasswordField({ label, ...props }: PasswordFieldProps) {
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput
+      <PasswordInput
         {...props}
         placeholderTextColor="#7D8795"
-        secureTextEntry
         style={styles.input}
       />
     </View>

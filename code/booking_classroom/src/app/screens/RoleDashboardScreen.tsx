@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  AppState,
+  BackHandler,
   Modal,
   Pressable,
   ScrollView,
@@ -21,7 +23,7 @@ import {
   getUnreadCount,
   NotificationScreen,
 } from '../../modules/notifications';
-import { presentPriorityNotification } from '../../modules/notifications/services/priorityBanner';
+import { presentPriorityNotification, consumeNotificationDestination, subscribePriorityBannerOpen } from '../../modules/notifications/services/priorityBanner';
 import { ProfileScreen } from '../../modules/profile';
 import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
 import { ScheduleMaintenanceScreen } from '../../modules/schedule_maintenance';
@@ -103,10 +105,52 @@ export function RoleDashboardScreen({
     };
   }, [session.username]);
 
-  const closeChildScreen = () => {
+  useEffect(() => {
+    return subscribePriorityBannerOpen(banner => {
+      if (session.role === 'admin' && banner.title === 'Có yêu cầu đặt phòng mới') {
+        setActiveScreen('Yêu cầu đặt phòng');
+      }
+    });
+  }, [session.role]);
+
+  useEffect(() => {
+    const openPendingScreen = () => {
+      consumeNotificationDestination()
+        .then(destination => {
+          if (destination === 'approval' && session.role === 'admin') {
+            setActiveScreen('Yêu cầu đặt phòng');
+          }
+        })
+        .catch(() => {});
+    };
+    openPendingScreen();
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        openPendingScreen();
+      }
+    });
+    return () => subscription.remove();
+  }, [session.role]);
+
+  const closeChildScreen = useCallback(() => {
     setActiveScreen(null);
     refreshUnreadCount();
-  };
+  }, [refreshUnreadCount]);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (menuVisible) {
+        setMenuVisible(false);
+        return true;
+      }
+      if (activeScreen) {
+        closeChildScreen();
+        return true;
+      }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [activeScreen, closeChildScreen, menuVisible]);
 
   if (activeScreen === 'profile') {
     return (
@@ -126,6 +170,14 @@ export function RoleDashboardScreen({
       <NotificationScreen
         username={session.username}
         onBack={closeChildScreen}
+        onOpen={notification => {
+          if (
+            session.role === 'admin' &&
+            notification.title === 'Có yêu cầu đặt phòng mới'
+          ) {
+            setActiveScreen('Yêu cầu đặt phòng');
+          }
+        }}
       />
     );
   }

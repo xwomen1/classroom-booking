@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { PasswordInput } from '../../../shared';
 import type { AuthenticatedUser } from '../../../core/types/authenticatedUser';
 import { authenticate } from '../services/accountRepository';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
@@ -24,6 +26,17 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedFeature) {
+      return;
+    }
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedFeature(null);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [selectedFeature]);
 
   const submit = async () => {
     if (!username.trim() || !password) {
@@ -82,13 +95,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           />
 
           <Text style={styles.label}>Mật khẩu</Text>
-          <TextInput
+          <PasswordInput
             onChangeText={setPassword}
             onSubmitEditing={submit}
             placeholder="Nhập mật khẩu"
             placeholderTextColor="#7D8795"
             returnKeyType="done"
-            secureTextEntry
             style={styles.input}
             testID="password-input"
             value={password}

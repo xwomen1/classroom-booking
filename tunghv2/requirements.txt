@@ -1,0 +1,6 @@
+paho-mqtt>=2.0,<3
+cryptography>=42
+Nuitka>=2.5
+ordered-set
+zstandard
+

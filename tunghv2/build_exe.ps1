@@ -12,12 +12,12 @@ python -m nuitka `
     --enable-plugin=tk-inter `
     --windows-console-mode=disable `
     --output-dir=dist `
-    --output-filename=VNPT_SmartLock_Simulator.exe `
+    --output-filename=SmartLock_Simulator.exe `
     smartlock_simulator.py
 
 if ($LASTEXITCODE -ne 0) {
     throw "Nuitka build failed with exit code $LASTEXITCODE"
 }
 
-Write-Host "EXE: $ScriptDir\dist\VNPT_SmartLock_Simulator.exe"
+Write-Host "EXE: $ScriptDir\dist\SmartLock_Simulator.exe"
 

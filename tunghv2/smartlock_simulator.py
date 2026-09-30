@@ -451,7 +451,7 @@ class LocalOtaServer:
 class SmartLockSimulatorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("VNPT SmartLock Simulator - DLWA12")
+        self.root.title("SmartLock Simulator - DLWA12")
         self.root.geometry("1080x820")
         self.root.minsize(960, 720)
         self.events = queue.Queue()
@@ -490,7 +490,7 @@ class SmartLockSimulatorApp:
 
         tk.Label(
             lock_panel,
-            text="VNPT\nSMART LOCK",
+            text="SMART\nLOCK",
             font=("Segoe UI", 18, "bold"),
             fg="#e5e7eb",
             bg="#0b0f19",

@@ -1,4 +1,4 @@
-# VNPT SmartLock Simulator
+# SmartLock Simulator
 
 Simulator độc lập cho SmartLock DLWA12. Chương trình không dùng source firmware C và tự kết nối OneIoT bằng cấu hình test bypass có sẵn trong `simulator_config.py`.
 
@@ -52,7 +52,7 @@ Script sẽ tự cài các thư viện trong `requirements.txt`, tải bộ biê
 File phát hành:
 
 ```text
-tunghv2\dist\VNPT_SmartLock_Simulator.exe
+tunghv2\dist\SmartLock_Simulator.exe
 ```
 
 Không commit các thư mục `dist`, `.nuitka-cache`, `__pycache__` hoặc các thư mục build trung gian. Chúng đã được loại trừ trong `.gitignore`.

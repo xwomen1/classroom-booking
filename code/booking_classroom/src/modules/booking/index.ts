@@ -10,6 +10,7 @@ export {
   getBookings,
   getBookingsForUser,
   reviewBooking,
+  saveTemporaryPin,
   scheduleKeyPickup,
   setPickupDelegate,
   toLocalDateTime,

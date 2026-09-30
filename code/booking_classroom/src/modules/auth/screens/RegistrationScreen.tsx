@@ -29,12 +29,12 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
 
   const submit = async () => {
     const normalizedUsername = username.trim().toLowerCase();
-    if (!normalizedUsername || !fullName.trim() || !email.trim() || !password || !recoveryCode) {
+    if (!normalizedUsername || !password || !confirmPassword) {
       setIsError(true);
       setMessage('Vui lòng nhập đầy đủ các trường bắt buộc.');
       return;
     }
-    if (!email.includes('@')) {
+    if (email.trim() && !email.includes('@')) {
       setIsError(true);
       setMessage('Email chưa đúng định dạng.');
       return;
@@ -44,7 +44,7 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
       setMessage('Mật khẩu cần có ít nhất 4 ký tự.');
       return;
     }
-    if (recoveryCode.length < 4) {
+    if (recoveryCode && recoveryCode.length < 4) {
       setIsError(true);
       setMessage('Mã khôi phục cần có ít nhất 4 ký tự.');
       return;
@@ -105,27 +105,6 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
           testID="register-username"
         />
         <FormField
-          label="Họ và tên *"
-          onChangeText={setFullName}
-          value={fullName}
-          testID="register-full-name"
-        />
-        <FormField
-          label="Email *"
-          onChangeText={setEmail}
-          value={email}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          testID="register-email"
-        />
-        <FormField
-          label="Mã khôi phục *"
-          onChangeText={setRecoveryCode}
-          value={recoveryCode}
-          secureTextEntry
-          testID="register-recovery-code"
-        />
-        <FormField
           label="Mật khẩu *"
           onChangeText={setPassword}
           value={password}
@@ -144,6 +123,28 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
           secureTextEntry
           textContentType="password"
           testID="register-confirm-password"
+        />
+        <Text style={styles.optionalTitle}>Thông tin bổ sung (không bắt buộc)</Text>
+        <FormField
+          label="Họ và tên"
+          onChangeText={setFullName}
+          value={fullName}
+          testID="register-full-name"
+        />
+        <FormField
+          label="Email"
+          onChangeText={setEmail}
+          value={email}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          testID="register-email"
+        />
+        <FormField
+          label="Mã khôi phục"
+          onChangeText={setRecoveryCode}
+          value={recoveryCode}
+          secureTextEntry
+          testID="register-recovery-code"
         />
         {message ? (
           <Text style={isError ? styles.error : styles.success}>{message}</Text>
@@ -195,6 +196,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 18,
     padding: 13,
+  },
+  optionalTitle: {
+    color: '#536179',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 12,
+    marginTop: 3,
   },
   field: { marginBottom: 15 },
   label: { color: '#253047', fontSize: 14, fontWeight: '700', marginBottom: 7 },

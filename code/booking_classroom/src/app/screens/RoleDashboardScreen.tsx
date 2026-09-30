@@ -27,6 +27,7 @@ import { presentPriorityNotification, consumeNotificationDestination, subscribeP
 import { ProfileScreen } from '../../modules/profile';
 import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
 import { ScheduleMaintenanceScreen } from '../../modules/schedule_maintenance';
+import { SmartLockManagementScreen } from '../../modules/smart_lock';
 
 type RoleDashboardScreenProps = {
   session: AuthenticatedUser;
@@ -41,6 +42,10 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
   {
     title: 'Quản lý phòng',
     description: 'Phòng, sức chứa, thiết bị và trạng thái',
+  },
+  {
+    title: 'Quản lý khóa',
+    description: 'Gắn SmartLock duy nhất vào một phòng khóa số',
   },
   {
     title: 'Yêu cầu đặt phòng',
@@ -194,6 +199,9 @@ export function RoleDashboardScreen({
   }
   if (isAdmin && activeScreen === 'Quản lý phòng') {
     return <RoomManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
+  }
+  if (isAdmin && activeScreen === 'Quản lý khóa') {
+    return <SmartLockManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
   if (isAdmin && activeScreen === 'Lịch phòng và bảo trì') {
     return <ScheduleMaintenanceScreen username={session.username} onBack={closeChildScreen} />;

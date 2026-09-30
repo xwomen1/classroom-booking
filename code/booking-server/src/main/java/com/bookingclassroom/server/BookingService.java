@@ -192,6 +192,66 @@ public class BookingService {
     return new BookingResult(target, notification);
   }
 
+  @Transactional
+  public BookingResult saveTemporaryPin(Domain.Account actor, String id, TemporaryPinInput input) {
+    Domain.Booking target = em.find(Domain.Booking.class, id, LockModeType.PESSIMISTIC_WRITE);
+    if (target == null) {
+      throw new IllegalArgumentException("Không tìm thấy yêu cầu đặt phòng.");
+    }
+    if (!"APPROVED".equals(target.status)) {
+      throw new IllegalArgumentException("Chỉ tạo mã cho yêu cầu đã được duyệt.");
+    }
+    Domain.Room room = em.find(Domain.Room.class, target.roomId);
+    if (room == null || !"PIN_CODE".equals(room.lockType)) {
+      throw new IllegalArgumentException("Phòng này không sử dụng khóa mã số.");
+    }
+    if (target.temporaryPin != null && target.temporaryPin.revokedAt == null) {
+      throw new IllegalArgumentException("Yêu cầu đặt phòng đã có mã tạm thời.");
+    }
+    if (!"admin".equals(actor.role)) {
+      if (!"user".equals(actor.role) || !actor.username.equals(target.requesterUsername)) {
+        throw new ForbiddenException("Bạn không có quyền tạo mã cho yêu cầu của người khác.");
+      }
+      boolean permitted = em.createQuery(
+              "select count(p) from PinPermission p where p.username = :username and p.roomId = :roomId and p.active = true",
+              Long.class)
+          .setParameter("username", actor.username)
+          .setParameter("roomId", target.roomId)
+          .getSingleResult() > 0;
+      if (!permitted) {
+        throw new ForbiddenException("Quyền tự tạo mã tại phòng này đã bị thu hồi hoặc chưa được cấp.");
+      }
+    }
+    if (input == null || input.code() == null || !input.code().matches("\\d{4,12}")) {
+      throw new IllegalArgumentException("Mật khẩu tạm thời phải gồm 4 đến 12 chữ số.");
+    }
+    if (input.lockPasswordId() == null || input.lockPasswordId() < 1 || input.lockPasswordId() > 255) {
+      throw new IllegalArgumentException("ID mật khẩu trên khóa phải nằm trong khoảng 1 đến 255.");
+    }
+    LocalDateTime end = localDateTime(target.date, target.endTime);
+    if (!end.isAfter(LocalDateTime.now(ZONE))) {
+      throw new IllegalArgumentException("Không thể tạo mã cho phiên sử dụng đã kết thúc.");
+    }
+    Domain.Configuration configuration = configuration();
+    Domain.TemporaryPin pin = new Domain.TemporaryPin();
+    pin.code = input.code();
+    pin.createdAt = Instant.now().toString();
+    pin.createdBy = actor.username;
+    pin.validFrom = localDateTime(target.date, target.startTime)
+        .minusMinutes(configuration.pinGraceMinutes).atZone(ZONE).toInstant().toString();
+    pin.validUntil = end.plusMinutes(configuration.pinGraceMinutes)
+        .atZone(ZONE).toInstant().toString();
+    pin.lockPasswordId = input.lockPasswordId();
+    pin.lockCommandId = input.lockCommandId();
+    pin.lockDeliveredAt = input.lockDeliveredAt();
+    target.temporaryPin = pin;
+    Domain.Notification notification = storeNotification(
+        target.requesterUsername,
+        "Đã cấp mã mở cửa tạm thời",
+        "Mã cho phòng " + room.name + " đã sẵn sàng trong chi tiết đặt phòng.");
+    return new BookingResult(target, notification);
+  }
+
   private void validateBooking(String username, BookingInput input, List<Domain.Booking> bookings) {
     Domain.Room room = em.find(Domain.Room.class, input.roomId());
     if (room == null || !"AVAILABLE".equals(room.status)) {
@@ -318,6 +378,12 @@ public class BookingService {
       String purpose) {}
 
   public record BookingResult(Domain.Booking booking, Domain.Notification notification) {}
+
+  public record TemporaryPinInput(
+      String code,
+      Integer lockPasswordId,
+      String lockCommandId,
+      String lockDeliveredAt) {}
 
   public static class UnauthorizedException extends RuntimeException {
     public UnauthorizedException(String message) {

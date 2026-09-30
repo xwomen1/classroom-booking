@@ -33,6 +33,22 @@ try {
     Pop-Location
   }
 
+  # Autolinking stores the temporary subst drive as an absolute path. Remove
+  # only generated autolinking output so Gradle recreates it for this build.
+  $autolinkingPaths = @(
+    (Join-Path $projectRoot 'android\build\generated\autolinking'),
+    (Join-Path $projectRoot 'android\app\build\generated\autolinking')
+  )
+  foreach ($autolinkingPath in $autolinkingPaths) {
+    $absoluteAutolinkingPath = [System.IO.Path]::GetFullPath($autolinkingPath)
+    if (-not $absoluteAutolinkingPath.StartsWith($projectRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+      throw "Refusing to remove generated path outside project: $absoluteAutolinkingPath"
+    }
+    if (Test-Path -LiteralPath $absoluteAutolinkingPath) {
+      Remove-Item -LiteralPath $absoluteAutolinkingPath -Recurse -Force
+    }
+  }
+
   & subst $drive $projectRoot
   if ($LASTEXITCODE -ne 0) {
     throw "Could not map $drive to the project directory."

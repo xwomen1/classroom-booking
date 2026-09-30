@@ -133,6 +133,20 @@ export async function updateBooking(id: string, update: (booking: Booking) => Bo
   return updated;
 }
 
+export async function saveTemporaryPin(
+  id: string,
+  temporaryPin: NonNullable<Booking['temporaryPin']>,
+): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(
+      `/api/bookings/${id}/temporary-pin`,
+      { method: 'POST', body: temporaryPin },
+    );
+    return result.booking;
+  }
+  return updateBooking(id, current => ({ ...current, temporaryPin }));
+}
+
 export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED', adminUsername: string): Promise<Booking> {
   if (isRemoteApiEnabled()) {
     const result = await apiRequest<{ booking: Booking }>(

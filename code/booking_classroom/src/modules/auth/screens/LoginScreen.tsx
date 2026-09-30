@@ -54,7 +54,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       setError('');
       onLogin(user);
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Không kết nối được máy chủ.');
+      setError(caughtError instanceof Error ? caughtError.message : 'Không thể đăng nhập.');
     } finally {
       setSubmitting(false);
     }

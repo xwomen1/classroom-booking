@@ -1,6 +1,6 @@
 # booking_classroom
 
-Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp. Bản hiện tại triển khai toàn bộ luồng nghiệp vụ bằng dữ liệu local trên một điện thoại và phân quyền Admin/User.
+Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp, phân quyền Admin/User, lưu dữ liệu local và kết nối SmartLock gateway khi cần gửi lệnh xuống khóa.
 
 README này dành cho thành viên phát triển: mô tả phần đã có, cách sửa/chạy kiểm tra code, cách xử lý lỗi môi trường và cách chia module. Hướng dẫn cài APK nhanh cho người chỉ cần sử dụng nằm tại [`../../README.md`](../../README.md).
 
@@ -18,13 +18,28 @@ README này dành cho thành viên phát triển: mô tả phần đã có, các
 - Admin duyệt/từ chối, đổi sang phòng khả dụng trước hạn và nhận thông báo thay đổi.
 - `Lịch đặt phòng` chỉ đọc và phân nhóm sắp tới/đã dùng/đã đóng. `Quản lý đặt phòng` mới chứa thao tác rút/hủy, mã truy cập và ủy quyền nhận khóa.
 - Phòng khóa mã số: duyệt booking tự cấp quyền cho User tại đúng phòng; Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
+- Admin có màn **Quản lý khóa**: hệ thống hiện quản lý một SmartLock, cho phép gắn/tháo/chuyển khóa giữa các phòng khóa số và cấu hình địa chỉ gateway `tunghv3`.
+- Khi tạo mật khẩu, app chỉ gửi lệnh nếu phòng của booking trùng phòng đang gắn khóa. Gateway mã hóa mật khẩu và phát `traitCreateTmpPasswordLock` tới OneIoT.
 - Phòng khóa cơ/thẻ: Admin tạo lịch hẹn nhận khóa; User khai báo người nhận hộ và mã sinh viên/cán bộ.
 - Admin xem lịch sử dụng, tạo/hủy lịch bảo trì và sửa các tham số đặt trước, giới hạn, hạn hủy, hạn đổi phòng, thời gian mã và thông báo.
 - Toàn bộ dữ liệu trên được lưu bằng Async Storage và tiếp tục tồn tại sau khi tắt/mở ứng dụng.
 
 Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
 
-Hai tài khoản ban đầu được khai báo trong `src/modules/auth/model/demoAccounts.ts`. Tài khoản, hồ sơ, phòng, cấu hình, bảo trì, booking, quyền truy cập và thông báo đều được lưu cục bộ bằng Async Storage. Mã hiện chỉ mô phỏng trong app và chưa được gửi tới khóa thật. Dịch vụ Java, cơ sở dữ liệu máy chủ và đồng bộ nhiều thiết bị chưa được triển khai.
+Hai tài khoản demo là `admin/1` và `user/2`. Tài khoản, phòng, booking, quyền, thông báo, liên kết SmartLock--phòng và địa chỉ gateway đều được giữ trên thiết bị bằng Async Storage. Gateway nằm tại `../../tunghv3` và không lưu token OneIoT trong repository.
+
+## Chọn chế độ local hoặc đồng bộ server
+
+Công tắc duy nhất nằm tại `src/core/config/runtimeFlags.ts`:
+
+```ts
+export const ENABLE_REMOTE_SYNC = false;
+```
+
+- `false`: app dùng toàn bộ repository local và đăng nhập được bằng `admin/1`, `user/2` mà không cần booking server.
+- `true`: app gọi REST API. Trước khi bật, sửa `REMOTE_API_BASE_URL` trong cùng file thành địa chỉ LAN của máy chạy `../../booking-server`.
+
+Source server và các nhánh gọi API vẫn được giữ để merge tiếp với branch `syncdata`. Gateway khóa `../../tunghv3` hoạt động độc lập với cờ này.
 
 ## Công nghệ và môi trường đã kiểm tra
 
@@ -131,7 +146,7 @@ Một bản đã build sẵn nằm tại:
 release/booking_classroom-v1.0.apk
 ```
 
-SHA-256 của bản hiện tại: `0A684B07BF4C29AF0CACBEAF7F38B96D5ED5AB1AD06FAEDEA8F972FE63390FDC`.
+SHA-256 của bản hiện tại: `C5AE6A5ED734BC9E217F77FE5FED8751FDFF6DA0966B6C1AECD3CE9F6B7B4DFD`.
 
 Cài bản có sẵn qua ADB:
 
@@ -139,7 +154,7 @@ Cài bản có sẵn qua ADB:
 adb install -r .\release\booking_classroom-v1.0.apk
 ```
 
-Để cài trên điện thoại khác, gửi tệp `release/booking_classroom-v1.0.apk` sang máy đó, cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu, rồi mở APK để cài. Hai tài khoản demo tiếp tục hoạt động hoàn toàn cục bộ và không cần mạng.
+Để cài trên điện thoại khác, gửi tệp `release/booking_classroom-v1.0.apk` sang máy đó, cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu, rồi mở APK để cài. Hai tài khoản demo và toàn bộ nghiệp vụ đặt phòng hoạt động cục bộ, không cần booking server. Mạng chỉ cần khi app gửi lệnh tới gateway SmartLock.
 
 Bản Release đã được kiểm tra bằng cách xóa `adb reverse`, tắt hẳn ứng dụng rồi mở lại trên Samsung M21. Cả hai chế độ `admin/1` và `user/2` hoạt động khi Metro không chạy.
 
@@ -167,6 +182,7 @@ booking_classroom/
 │   ├── room_management/     # Dữ liệu phòng mẫu và loại khóa
 │   ├── booking/             # Tạo, duyệt, từ chối, xem và hủy booking
 │   ├── access_control/      # Sinh và tính hiệu lực mã số tạm thời
+│   ├── smart_lock/          # Gắn một khóa vào phòng và gọi gateway tunghv3
 │   ├── schedule_maintenance/# Lịch sử dụng và lịch bảo trì
 │   ├── profile/             # Thông tin cá nhân
 │   ├── notifications/       # Thông báo nghiệp vụ

@@ -1,14 +1,20 @@
 import type { UserRole } from '../../../core/types/userRole';
+import { isRemoteApiEnabled } from '../../../core/api/client';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import type { Booking } from '../../booking/model/booking';
 import {
   getBookingById,
+  saveTemporaryPin,
   toLocalDateTime,
   updateBooking,
 } from '../../booking/services/bookingRepository';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { addNotification } from '../../notifications';
 import { getRoomById } from '../../room_management/services/roomRepository';
+import {
+  reserveSmartLockPasswordId,
+  sendTemporaryPasswordToGateway,
+} from '../../smart_lock';
 import {
   grantRoomPinPermission,
   hasRoomPinPermission,
@@ -51,21 +57,35 @@ export async function createTemporaryPin(
   const end = toLocalDateTime(booking.date, booking.endTime);
   if (end <= new Date()) throw new Error('Không thể tạo mã cho phiên sử dụng đã kết thúc.');
   const configuration = await getConfiguration();
-  const updated = await updateBooking(bookingId, current => ({
-    ...current,
-    temporaryPin: {
-      code: generateSixDigitPin(),
-      createdAt: new Date().toISOString(),
-      createdBy: actorUsername,
-      validFrom: addMinutes(start, -configuration.pinGraceMinutes).toISOString(),
-      validUntil: addMinutes(end, configuration.pinGraceMinutes).toISOString(),
-    },
-  }));
-  await addNotification(
-    updated.requesterUsername,
-    'Đã cấp mã mở cửa tạm thời',
-    `Mã cho phòng ${room.name} đã sẵn sàng trong chi tiết đặt phòng.`,
-  );
+  const code = generateSixDigitPin();
+  const validFrom = addMinutes(start, -configuration.pinGraceMinutes);
+  const validUntil = addMinutes(end, configuration.pinGraceMinutes);
+  const { lock, passwordId } = await reserveSmartLockPasswordId(booking.roomId);
+  const command = await sendTemporaryPasswordToGateway(lock, {
+    roomId: room.id,
+    roomName: room.name,
+    code,
+    passwordId,
+    startTime: Math.floor(validFrom.getTime() / 1000),
+    endTime: Math.floor(validUntil.getTime() / 1000),
+  });
+  const updated = await saveTemporaryPin(bookingId, {
+    code,
+    createdAt: new Date().toISOString(),
+    createdBy: actorUsername,
+    validFrom: validFrom.toISOString(),
+    validUntil: validUntil.toISOString(),
+    lockPasswordId: command.passwordId,
+    lockCommandId: command.requestId,
+    lockDeliveredAt: command.publishedAt,
+  });
+  if (!isRemoteApiEnabled()) {
+    await addNotification(
+      updated.requesterUsername,
+      'Đã cấp mã mở cửa tạm thời',
+      `Mã cho phòng ${room.name} đã sẵn sàng trong chi tiết đặt phòng.`,
+    );
+  }
   return updated;
 }
 

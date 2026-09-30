@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+gateway_state.json
+*.log
+*.pid
+.venv/

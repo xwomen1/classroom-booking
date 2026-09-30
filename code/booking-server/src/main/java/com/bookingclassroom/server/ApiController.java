@@ -57,6 +57,14 @@ public class ApiController {
     return bookingService.reviewBooking(account(request), id, body.get("decision"));
   }
 
+  @PostMapping("/bookings/{id}/temporary-pin")
+  public BookingService.BookingResult temporaryPin(
+      @PathVariable String id,
+      @RequestBody BookingService.TemporaryPinInput input,
+      HttpServletRequest request) {
+    return bookingService.saveTemporaryPin(account(request), id, input);
+  }
+
   @GetMapping("/pin-permissions")
   public Object pinPermissions(HttpServletRequest request) {
     return bookingService.pinPermissions(account(request));

@@ -1,9 +1,13 @@
 package com.bookingclassroom.server;
 
 import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Converter;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -56,6 +60,32 @@ public final class Domain {
     public String createdAt;
     public String reviewedAt;
     public String reviewedBy;
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "code", column = @Column(name = "temporary_pin_code")),
+        @AttributeOverride(name = "createdAt", column = @Column(name = "temporary_pin_created_at")),
+        @AttributeOverride(name = "createdBy", column = @Column(name = "temporary_pin_created_by")),
+        @AttributeOverride(name = "validFrom", column = @Column(name = "temporary_pin_valid_from")),
+        @AttributeOverride(name = "validUntil", column = @Column(name = "temporary_pin_valid_until")),
+        @AttributeOverride(name = "lockPasswordId", column = @Column(name = "temporary_pin_lock_password_id")),
+        @AttributeOverride(name = "lockCommandId", column = @Column(name = "temporary_pin_lock_command_id")),
+        @AttributeOverride(name = "lockDeliveredAt", column = @Column(name = "temporary_pin_lock_delivered_at")),
+        @AttributeOverride(name = "revokedAt", column = @Column(name = "temporary_pin_revoked_at"))
+    })
+    public TemporaryPin temporaryPin;
+  }
+
+  @Embeddable
+  public static class TemporaryPin {
+    public String code;
+    public String createdAt;
+    public String createdBy;
+    public String validFrom;
+    public String validUntil;
+    public Integer lockPasswordId;
+    public String lockCommandId;
+    public String lockDeliveredAt;
+    public String revokedAt;
   }
 
   @Entity(name = "Maintenance")

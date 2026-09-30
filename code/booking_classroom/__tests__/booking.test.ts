@@ -12,6 +12,7 @@ import {
   toLocalDateTime,
 } from '../src/modules/booking';
 import { registerAccount } from '../src/modules/auth';
+import { assignSmartLockToRoom } from '../src/modules/smart_lock';
 
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
@@ -29,6 +30,7 @@ function dateAfter(days: number): string {
 describe('local booking and temporary PIN flow', () => {
   beforeEach(async () => {
     await storage.clear();
+    await assignSmartLockToRoom('room-a101', 'admin');
   });
 
   test('creates, approves and issues a six-digit PIN for the requester', async () => {
@@ -79,6 +81,23 @@ describe('local booking and temporary PIN flow', () => {
 
     expect(updated.temporaryPin?.code).toMatch(/^\d{6}$/);
     expect(updated.temporaryPin?.createdBy).toBe('user');
+  });
+
+  test('only sends a PIN for the room currently attached to the single SmartLock', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '13:00',
+      endTime: '14:00',
+      purpose: 'Kiểm tra liên kết khóa',
+    });
+    await reviewBooking(booking.id, 'APPROVED', 'admin');
+    await assignSmartLockToRoom('room-floor-1-2', 'admin');
+
+    await expect(
+      createTemporaryPin(booking.id, 'admin', 'admin'),
+    ).rejects.toThrow('Phòng chưa được gắn với SmartLock');
   });
 
   test('rejects a room collision and dates outside the one-to-three-day window', async () => {

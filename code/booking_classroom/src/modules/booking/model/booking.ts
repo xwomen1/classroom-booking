@@ -6,6 +6,9 @@ export type TemporaryPin = {
   createdBy: string;
   validFrom: string;
   validUntil: string;
+  lockPasswordId?: number;
+  lockCommandId?: string;
+  lockDeliveredAt?: string;
   revokedAt?: string;
 };
 

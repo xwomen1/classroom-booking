@@ -1,4 +1,9 @@
-export const API_BASE_URL = 'http://192.168.121.22:8080';
+import {
+  ENABLE_REMOTE_SYNC,
+  REMOTE_API_BASE_URL,
+} from '../config/runtimeFlags';
+
+export const API_BASE_URL = REMOTE_API_BASE_URL;
 
 export function isRemoteApiEnabled(): boolean {
   const nodeEnv = (
@@ -7,7 +12,7 @@ export function isRemoteApiEnabled(): boolean {
     }
   ).process?.env?.NODE_ENV;
 
-  return nodeEnv !== 'test';
+  return ENABLE_REMOTE_SYNC && nodeEnv !== 'test';
 }
 
 let token: string | null = null;

@@ -15,12 +15,11 @@ Simulator độc lập cho SmartLock DLWA12. Chương trình không dùng source
 ```powershell
 cd tunghv2
 python -m pip install -r requirements.txt
-$env:SMARTLOCK_MQTT_TOKEN = "<token-test-do-chu-du-an-cung-cap>"
 .\run_simulator.ps1
 ```
 
-Token MQTT không được lưu trong repository. Thành viên dự án nhận token test từ
-chủ dự án và đặt qua biến môi trường `SMARTLOCK_MQTT_TOKEN` trước khi chạy.
+Trước khi chạy, mở `simulator_config.py` và tự nhập token test vào biến
+`MQTT_TOKEN`. Giá trị trong repository được để rỗng để tránh công khai credential.
 
 Sau đó mở tool trong một terminal khác tại thư mục gốc của project:
 

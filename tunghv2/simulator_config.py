@@ -1,14 +1,13 @@
 """Test identity for the standalone SmartLock simulator."""
 
-import os
-
 ONEIOT_BROKER = "oneiot.com.vn"
 ONEIOT_PORT = 2111
 ONEIOT_CSE_ID = "/in-cse"
 
 # Same identity as create_device_for_tooltest / pairing bypass.
 MQTT_DEVICE_ID = "S3073a30b-e5c0-4370-a186-643ed93efb09"
-MQTT_TOKEN = os.environ.get("SMARTLOCK_MQTT_TOKEN", "")
+# Tự nhập token MQTT test vào chuỗi rỗng bên dưới trước khi chạy simulator.
+MQTT_TOKEN = ""
 SMARTLOCK_AE_ID = "S0a92253e-6f4b-472e-86a8-e25a3853cd11"
 SMARTLOCK_DEVICE_ID = MQTT_DEVICE_ID
 SMARTLOCK_DEVICE_NAME = "SMARTLOCK_device_55132471"

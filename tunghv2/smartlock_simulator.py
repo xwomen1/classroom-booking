@@ -155,7 +155,7 @@ class OneIoTBridge:
     def start(self):
         if not cfg.MQTT_TOKEN:
             self.log(
-                "Thiếu SMARTLOCK_MQTT_TOKEN. Hãy cấu hình biến môi trường trước khi chạy."
+                "Thiếu MQTT_TOKEN. Hãy nhập token trong simulator_config.py trước khi chạy."
             )
             self.emit("cloud", False)
             return

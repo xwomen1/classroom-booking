@@ -70,6 +70,8 @@ export type Booking = {
   startTime: string;
   endTime: string;
   purpose: string;
+  repeatWeekly?: boolean;
+  repeatWeeks?: number;
   status: BookingStatus;
   createdAt: string;
   reviewedAt?: string;
@@ -88,4 +90,7 @@ export type Booking = {
 export type CreateBookingInput = Pick<
   Booking,
   'requesterUsername' | 'roomId' | 'date' | 'startTime' | 'endTime' | 'purpose'
->;
+> & {
+  repeatWeekly?: boolean;
+  repeatWeeks?: number;
+};

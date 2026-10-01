@@ -100,6 +100,28 @@ describe('local booking and temporary PIN flow', () => {
     ).rejects.toThrow('Phòng chưa được gắn với SmartLock');
   });
 
+  test('creates weekly recurring bookings when repeatWeekly is enabled', async () => {
+    const firstDate = dateAfter(1);
+    await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: firstDate,
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+
+    const bookings = await getBookingsForUser('user');
+    expect(bookings.filter(item => item.roomId === 'room-a101')).toHaveLength(3);
+    expect(bookings.map(item => item.date).sort()).toEqual([
+      firstDate,
+      dateAfter(8),
+      dateAfter(15),
+    ]);
+  });
+
   test('rejects a room collision and dates outside the one-to-three-day window', async () => {
     await registerAccount({ username: 'teacher02', password: '1234' });
     const date = dateAfter(1);

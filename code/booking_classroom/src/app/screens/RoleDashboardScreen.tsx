@@ -53,7 +53,7 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
   },
   {
     title: 'Lịch phòng và bảo trì',
-    description: 'Lịch sử dụng phòng và lịch bảo trì',
+    description: 'Lịch sử dụng, lịch bảo trì và yêu cầu báo sự cố',
   },
   {
     title: 'Quy định đặt phòng',
@@ -72,7 +72,7 @@ const USER_FEATURES: readonly FeatureItem[] = [
   },
   {
     title: 'Đặt phòng của tôi',
-    description: 'Xem trạng thái, hủy và ủy quyền nhận khóa',
+    description: 'Trạng thái, nhận khóa, check in và báo sự cố',
   },
 ];
 
@@ -114,6 +114,8 @@ export function RoleDashboardScreen({
     return subscribePriorityBannerOpen(banner => {
       if (session.role === 'admin' && banner.title === 'Có yêu cầu đặt phòng mới') {
         setActiveScreen('Yêu cầu đặt phòng');
+      } else if (session.role === 'admin' && banner.title === 'Có yêu cầu bảo trì mới') {
+        setActiveScreen('Lịch phòng và bảo trì');
       }
     });
   }, [session.role]);
@@ -181,6 +183,11 @@ export function RoleDashboardScreen({
             notification.title === 'Có yêu cầu đặt phòng mới'
           ) {
             setActiveScreen('Yêu cầu đặt phòng');
+          } else if (
+            session.role === 'admin' &&
+            notification.title === 'Có yêu cầu bảo trì mới'
+          ) {
+            setActiveScreen('Lịch phòng và bảo trì');
           }
         }}
       />

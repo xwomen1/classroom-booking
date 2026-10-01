@@ -3,14 +3,25 @@ import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import type { MaintenanceRecord } from '../model/maintenance';
 import { assertAccountRole } from '../../auth/services/accountRepository';
+import { addNotification } from '../../notifications';
+import type { Booking } from '../../booking/model/booking';
+import type { MaintenanceRequest } from '../model/maintenance';
 
 const MAINTENANCE_KEY = 'maintenance.records';
+const MAINTENANCE_REQUEST_KEY = 'maintenance.requests';
 
 export async function getMaintenanceRecords(): Promise<MaintenanceRecord[]> {
   if (isRemoteApiEnabled()) {
     return apiRequest<MaintenanceRecord[]>('/api/maintenance');
   }
   return readJson<MaintenanceRecord[]>(MAINTENANCE_KEY, []);
+}
+
+export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<MaintenanceRequest[]>('/api/maintenance/requests');
+  }
+  return readJson<MaintenanceRequest[]>(MAINTENANCE_REQUEST_KEY, []);
 }
 
 export function periodsOverlap(
@@ -65,4 +76,105 @@ export async function cancelMaintenance(id: string, adminUsername: string): Prom
   const next = [...records];
   next[index] = { ...next[index], cancelledAt: new Date().toISOString() };
   await writeJson(MAINTENANCE_KEY, next);
+}
+
+export async function requestRoomMaintenance(
+  bookingId: string,
+  username: string,
+  reason: string,
+  now = new Date(),
+): Promise<MaintenanceRequest> {
+  await assertAccountRole(username, 'user');
+  if (!reason.trim()) throw new Error('Vui lòng nhập lý do yêu cầu bảo trì.');
+  const bookings = await readJson<Booking[]>('booking.records', []);
+  const booking = bookings.find(item => item.id === bookingId);
+  if (!booking || booking.requesterUsername !== username) {
+    throw new Error('Bạn không có quyền báo sự cố cho lượt đặt phòng này.');
+  }
+  if (booking.status !== 'APPROVED') throw new Error('Phòng phải được duyệt trước khi báo sự cố.');
+  const start = new Date(`${booking.date}T${booking.startTime}:00`);
+  const end = new Date(`${booking.date}T${booking.endTime}:00`);
+  if (now < start || now > end) {
+    throw new Error('Chỉ gửi yêu cầu bảo trì khi bạn đang trong thời gian sử dụng phòng.');
+  }
+  const requests = await getMaintenanceRequests();
+  if (requests.some(item => item.bookingId === bookingId && item.status === 'PENDING')) {
+    throw new Error('Lượt sử dụng này đã có yêu cầu bảo trì đang chờ xử lý.');
+  }
+  const request: MaintenanceRequest = {
+    id: `maintenance-request-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    bookingId,
+    roomId: booking.roomId,
+    requesterUsername: username,
+    reason: reason.trim(),
+    requestedAt: now.toISOString(),
+    status: 'PENDING',
+  };
+  await writeJson(MAINTENANCE_REQUEST_KEY, [request, ...requests]);
+  const room = await getRoomById(booking.roomId);
+  await addNotification('admin', 'Có yêu cầu bảo trì mới',
+    `${username} báo sự cố tại phòng ${room?.name ?? booking.roomId}: ${request.reason}`);
+  return request;
+}
+
+async function updateMaintenanceRequest(
+  id: string,
+  update: (request: MaintenanceRequest) => MaintenanceRequest,
+): Promise<MaintenanceRequest> {
+  const requests = await getMaintenanceRequests();
+  const index = requests.findIndex(item => item.id === id);
+  if (index < 0) throw new Error('Không tìm thấy yêu cầu bảo trì.');
+  const updated = update(requests[index]);
+  const next = [...requests];
+  next[index] = updated;
+  await writeJson(MAINTENANCE_REQUEST_KEY, next);
+  return updated;
+}
+
+export async function scheduleMaintenanceFromRequest(
+  requestId: string,
+  input: {
+    roomId: string; date: string; startTime: string; endTime: string;
+    reason: string; createdBy: string;
+  },
+): Promise<MaintenanceRecord> {
+  await assertAccountRole(input.createdBy, 'admin');
+  const request = (await getMaintenanceRequests()).find(item => item.id === requestId);
+  if (!request || request.status !== 'PENDING') throw new Error('Yêu cầu bảo trì đã được xử lý.');
+  if (request.roomId !== input.roomId) throw new Error('Lịch bảo trì phải áp dụng cho đúng phòng được báo sự cố.');
+  const record = await createMaintenance(input);
+  const reviewedAt = new Date().toISOString();
+  await updateMaintenanceRequest(requestId, current => ({
+    ...current,
+    status: 'SCHEDULED',
+    reviewedAt,
+    reviewedBy: input.createdBy,
+    maintenanceRecordId: record.id,
+  }));
+  const room = await getRoomById(request.roomId);
+  await addNotification(request.requesterUsername, 'Yêu cầu bảo trì đã được tiếp nhận',
+    `Phòng ${room?.name ?? request.roomId} được lên lịch bảo trì ${record.date} ${record.startTime}–${record.endTime}.`);
+  return record;
+}
+
+export async function rejectMaintenanceRequest(
+  requestId: string,
+  adminUsername: string,
+  note = '',
+): Promise<MaintenanceRequest> {
+  await assertAccountRole(adminUsername, 'admin');
+  const updated = await updateMaintenanceRequest(requestId, current => {
+    if (current.status !== 'PENDING') throw new Error('Yêu cầu bảo trì đã được xử lý.');
+    return {
+      ...current,
+      status: 'REJECTED',
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: adminUsername,
+      adminNote: note.trim() || undefined,
+    };
+  });
+  const room = await getRoomById(updated.roomId);
+  await addNotification(updated.requesterUsername, 'Yêu cầu bảo trì chưa được tiếp nhận',
+    `Phòng ${room?.name ?? updated.roomId}.${updated.adminNote ? ` Ghi chú: ${updated.adminNote}` : ''}`);
+  return updated;
 }

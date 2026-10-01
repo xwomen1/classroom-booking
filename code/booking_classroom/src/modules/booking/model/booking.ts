@@ -18,6 +18,34 @@ export type KeyPickupAppointment = {
   location: string;
   createdAt: string;
   createdBy: string;
+  agreedAt?: string;
+  agreedBy?: string;
+};
+
+export type KeyPickupProposal = {
+  id: string;
+  date: string;
+  time: string;
+  location?: string;
+  proposedAt: string;
+  proposedBy: string;
+  proposedByRole: 'admin' | 'user';
+};
+
+export type KeyPickupNegotiation = {
+  status: 'WAITING_ADMIN' | 'WAITING_USER' | 'AGREED';
+  currentProposal: KeyPickupProposal;
+  history: KeyPickupProposal[];
+  agreedAt?: string;
+  agreedBy?: string;
+};
+
+export type SmartLockAccessEvent = {
+  type: 'CHECK_IN' | 'CHECK_OUT';
+  occurredAt: string;
+  trait: string;
+  deviceId?: string;
+  topic?: string;
 };
 
 export type PickupDelegate = {
@@ -49,8 +77,12 @@ export type Booking = {
   userCanGeneratePin?: boolean;
   temporaryPin?: TemporaryPin;
   keyPickupAppointment?: KeyPickupAppointment;
+  keyPickupNegotiation?: KeyPickupNegotiation;
   pickupDelegate?: PickupDelegate;
   roomChanges?: RoomChange[];
+  smartLockAccessEvents?: SmartLockAccessEvent[];
+  checkedInAt?: string;
+  checkedOutAt?: string;
 };
 
 export type CreateBookingInput = Pick<

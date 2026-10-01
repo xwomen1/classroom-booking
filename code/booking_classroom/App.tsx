@@ -9,13 +9,20 @@ import {
   PriorityBannerHost,
   requestPriorityNotificationPermission,
 } from './src/modules/notifications';
-import { disconnectOneIoT } from './src/modules/smart_lock';
+import {
+  disconnectOneIoT,
+  startSmartLockAccessEventIntegration,
+} from './src/modules/smart_lock';
 
 function App() {
   const [session, setSession] = useState<AuthenticatedUser | null>(null);
 
   useEffect(() => {
     requestPriorityNotificationPermission().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return startSmartLockAccessEventIntegration();
   }, []);
 
   useEffect(() => {

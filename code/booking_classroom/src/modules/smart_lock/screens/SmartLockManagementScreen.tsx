@@ -147,7 +147,7 @@ export function SmartLockManagementScreen({
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Kết nối Tools với OneIoT</Text>
           <Text style={styles.helpText}>
-            Dán token tương ứng với Tools Device ID ở trên. Token chỉ được giữ trong bộ nhớ của phiên app, không lưu vào dữ liệu local hay source code.
+            Dán token tương ứng với Tools Device ID ở trên. Token chỉ được giữ trong bộ nhớ của phiên app, không lưu vào dữ liệu local hay source code. Sau khi kết nối, app đồng thời nghe bản tin mở/khóa từ SmartLock để ghi nhận check in và check out.
           </Text>
           <TextInput
             autoCapitalize="none"

@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 import java.io.ByteArrayInputStream
@@ -74,14 +75,32 @@ class OneIoTMqttModule(
   override fun getName(): String = NAME
 
   @ReactMethod
-  fun connect(broker: String, port: Double, toolDeviceId: String, token: String, promise: Promise) {
+  fun connect(
+      broker: String,
+      port: Double,
+      toolDeviceId: String,
+      token: String,
+      smartLockAeId: String,
+      cseId: String,
+      promise: Promise,
+  ) {
     executor.execute {
       try {
         require(broker.isNotBlank()) { "Broker OneIoT không được để trống." }
         require(toolDeviceId.isNotBlank()) { "Tools Device ID không được để trống." }
         require(token.isNotBlank()) { "Token OneIoT không được để trống." }
         closeSession()
-        val candidate = SimpleMqttClient(broker.trim(), port.toInt(), toolDeviceId.trim(), token.trim())
+        require(smartLockAeId.isNotBlank()) { "SmartLock AE ID không được để trống." }
+        require(cseId.isNotBlank()) { "OneIoT CSE ID không được để trống." }
+        val candidate =
+            SimpleMqttClient(
+                broker.trim(),
+                port.toInt(),
+                toolDeviceId.trim(),
+                token.trim(),
+                smartLockAeId.trim(),
+                cseId.trim(),
+            ) { topic, payload -> emitSmartLockMessage(topic, payload) }
         candidate.connect()
         mqttClient = candidate
         sessionToken = token.trim()
@@ -105,6 +124,12 @@ class OneIoTMqttModule(
   fun getStatus(promise: Promise) {
     promise.resolve(connectionStatus(mqttClient))
   }
+
+  @ReactMethod
+  fun addListener(eventName: String) = Unit
+
+  @ReactMethod
+  fun removeListeners(count: Double) = Unit
 
   @ReactMethod
   fun createTemporaryPassword(
@@ -188,6 +213,21 @@ class OneIoTMqttModule(
         }
       }
 
+  private fun emitSmartLockMessage(topic: String, payload: String) {
+    val event = Arguments.createMap().apply {
+      putString("topic", topic)
+      putString("payload", payload)
+      putString("receivedAt", Instant.now().toString())
+    }
+    try {
+      reactApplicationContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit(SMART_LOCK_EVENT, event)
+    } catch (_: Exception) {
+      // React context can disappear while Android is closing the app.
+    }
+  }
+
   @Synchronized
   private fun closeSession() {
     mqttClient?.disconnect()
@@ -197,6 +237,7 @@ class OneIoTMqttModule(
 
   companion object {
     const val NAME = "OneIoTMqtt"
+    const val SMART_LOCK_EVENT = "OneIoTSmartLockEvent"
     private const val TEMP_PASSWORD_TRAIT = "traitCreateTmpPasswordLock"
   }
 }
@@ -307,11 +348,15 @@ private class SimpleMqttClient(
     private val port: Int,
     val clientId: String,
     private val token: String,
+    private val smartLockAeId: String,
+    private val cseId: String,
+    private val onMessage: (String, String) -> Unit,
 ) {
   private val connected = AtomicBoolean(false)
   private val packetId = AtomicInteger(1)
   private val writerLock = Any()
   private val pendingPublish = ConcurrentHashMap<Int, CompletableFuture<Unit>>()
+  private val pendingSubscribe = ConcurrentHashMap<Int, CompletableFuture<Unit>>()
   private var socket: Socket? = null
   private var input: InputStream? = null
   private var output: OutputStream? = null
@@ -340,7 +385,40 @@ private class SimpleMqttClient(
     sslSocket.soTimeout = 0
     connected.set(true)
     startReader()
+    subscribe(smartLockTopics())
     startHeartbeat()
+  }
+
+  private fun smartLockTopics(): List<String> {
+    val cse = cseId.trim('/')
+    return listOf(
+        "/oneM2M/req/$smartLockAeId/$cse/json",
+        "/oneM2M/req/$cse/$smartLockAeId/json",
+        "/oneM2M/resp/$smartLockAeId/$cse/json",
+        "/oneM2M/resp/$cse/$smartLockAeId/json",
+    )
+  }
+
+  private fun subscribe(topics: List<String>) {
+    check(isConnected) { "Kết nối OneIoT đã bị ngắt." }
+    val id = nextPacketId()
+    val body = ByteArrayOutputStream()
+    body.write((id shr 8) and 0xFF)
+    body.write(id and 0xFF)
+    topics.distinct().forEach { topic ->
+      writeMqttString(body, topic)
+      body.write(1)
+    }
+    val acknowledged = CompletableFuture<Unit>()
+    pendingSubscribe[id] = acknowledged
+    try {
+      sendPacket(0x82, body.toByteArray())
+      acknowledged.get(8, TimeUnit.SECONDS)
+    } catch (error: TimeoutException) {
+      throw IllegalStateException("OneIoT không xác nhận đăng ký nhận bản tin SmartLock.", error)
+    } finally {
+      pendingSubscribe.remove(id)
+    }
   }
 
   fun publish(topic: String, payload: ByteArray) {
@@ -386,6 +464,10 @@ private class SimpleMqttClient(
       it.completeExceptionally(IllegalStateException("Kết nối OneIoT đã bị ngắt."))
     }
     pendingPublish.clear()
+    pendingSubscribe.values.forEach {
+      it.completeExceptionally(IllegalStateException("Kết nối OneIoT đã bị ngắt."))
+    }
+    pendingSubscribe.clear()
   }
 
   private fun startReader() {
@@ -395,11 +477,20 @@ private class SimpleMqttClient(
                   try {
                     while (connected.get()) {
                       val packet = readPacket(input ?: break)
-                      if (packet.type == 4 && packet.body.size >= 2) {
-                        val id =
-                            ((packet.body[0].toInt() and 0xFF) shl 8) or
-                                (packet.body[1].toInt() and 0xFF)
-                        pendingPublish.remove(id)?.complete(Unit)
+                      when (packet.type) {
+                        3 -> handleIncomingPublish(packet)
+                        4 -> if (packet.body.size >= 2) {
+                          val id = packetIdentifier(packet.body)
+                          pendingPublish.remove(id)?.complete(Unit)
+                        }
+                        9 -> if (packet.body.size >= 3) {
+                          val id = packetIdentifier(packet.body)
+                          val denied = packet.body.drop(2).any { (it.toInt() and 0xFF) == 0x80 }
+                          val pending = pendingSubscribe.remove(id)
+                          if (denied) pending?.completeExceptionally(
+                              IllegalStateException("OneIoT từ chối quyền nghe bản tin SmartLock."),
+                          ) else pending?.complete(Unit)
+                        }
                       }
                     }
                   } catch (_: Exception) {
@@ -413,6 +504,37 @@ private class SimpleMqttClient(
               start()
             }
   }
+
+  private fun handleIncomingPublish(packet: MqttPacket) {
+    if (packet.body.size < 2) return
+    val topicLength = ((packet.body[0].toInt() and 0xFF) shl 8) or (packet.body[1].toInt() and 0xFF)
+    if (topicLength <= 0 || packet.body.size < 2 + topicLength) return
+    var offset = 2
+    val topic = String(packet.body, offset, topicLength, StandardCharsets.UTF_8)
+    offset += topicLength
+    val qos = (packet.header shr 1) and 0x03
+    var incomingPacketId: Int? = null
+    if (qos > 0) {
+      if (packet.body.size < offset + 2) return
+      incomingPacketId = ((packet.body[offset].toInt() and 0xFF) shl 8) or
+          (packet.body[offset + 1].toInt() and 0xFF)
+      offset += 2
+    }
+    val payload = String(packet.body, offset, packet.body.size - offset, StandardCharsets.UTF_8)
+    onMessage(topic, payload)
+    if (qos == 1 && incomingPacketId != null) {
+      sendPacket(
+          0x40,
+          byteArrayOf(
+              ((incomingPacketId shr 8) and 0xFF).toByte(),
+              (incomingPacketId and 0xFF).toByte(),
+          ),
+      )
+    }
+  }
+
+  private fun packetIdentifier(body: ByteArray): Int =
+      ((body[0].toInt() and 0xFF) shl 8) or (body[1].toInt() and 0xFF)
 
   private fun startHeartbeat() {
     heartbeat =
@@ -517,9 +639,9 @@ private class SimpleMqttClient(
       } while ((digit and 0x80) != 0)
       val body = ByteArray(remaining)
       DataInputStream(input).readFully(body)
-      return MqttPacket(header shr 4, body)
+      return MqttPacket(header, header shr 4, body)
     }
   }
 }
 
-private data class MqttPacket(val type: Int, val body: ByteArray)
+private data class MqttPacket(val header: Int, val type: Int, val body: ByteArray)

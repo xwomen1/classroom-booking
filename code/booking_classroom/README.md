@@ -1,57 +1,34 @@
 # booking_classroom
 
-Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp, phân quyền Admin/User, lưu dữ liệu local và kết nối trực tiếp OneIoT khi cần gửi lệnh xuống khóa.
+Ứng dụng React Native đặt phòng học/phòng họp. Bản hiện tại chạy toàn bộ nghiệp vụ trên một thiết bị bằng Async Storage; kết nối OneIoT chỉ dùng cho giao tiếp SmartLock.
 
-README này dành cho thành viên phát triển: mô tả phần đã có, cách sửa/chạy kiểm tra code, cách xử lý lỗi môi trường và cách chia module. Hướng dẫn cài APK nhanh cho người chỉ cần sử dụng nằm tại [`../../README.md`](../../README.md).
+## Chức năng đã triển khai
 
-## Chức năng đã có
+- Tài khoản demo `admin/1`, `user/2`; đăng ký, đăng nhập/đăng xuất, đổi/khôi phục mật khẩu, hồ sơ và thông báo.
+- Tìm và đặt phòng trong một màn hình theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
+- Kiểm tra trùng phòng, trùng lịch User, thời gian bảo trì, thời hạn đặt trước và giới hạn booking.
+- Admin duyệt/từ chối, đổi sang phòng đáp ứng tối thiểu loại khóa, sức chứa, thiết bị và thời gian.
+- Lịch đặt phòng là màn chỉ đọc; thao tác hủy, truy cập và nhận khóa nằm trong Quản lý đặt phòng.
+- User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do. Admin nhận thông báo; tầng có yêu cầu tự mở, phòng và tầng được tô vàng; Admin có thể lên lịch xử lý hoặc từ chối.
+- Với khóa cơ/thẻ từ, User đề xuất thời gian nhận trước. Admin chấp nhận hoặc đề xuất thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại đến khi thống nhất.
+- Với khóa số, booking đã duyệt cấp quyền tạo mã theo đúng cặp User–phòng. Admin có thể tạo mã hộ hoặc thu hồi quyền.
+- Admin gắn một SmartLock vào một phòng khóa số, dán token trong phiên và kiểm tra kết nối OneIoT.
+- Module Android MQTT TLS dùng Tools Device ID làm danh tính kết nối, gửi `traitCreateTmpPasswordLock` tới SmartLock và lắng nghe bản tin SmartLock để ghi nhận check-in/check-out cho booking phù hợp.
 
-- `Tìm và đặt phòng` là một luồng liền mạch: sơ đồ chữ U theo tầng 1–8, bộ chọn ngày/giờ cuộn dọc và màu trạng thái phòng theo khung giờ.
-- User chọn phòng trên sơ đồ hoặc nhập nhanh tên phòng, nhập mục đích rồi gửi yêu cầu ngay trên cùng màn hình; không còn bước lưu đánh dấu và chuyển sang màn Đặt phòng riêng.
-- Duyệt booking phòng khóa số tự cấp quyền `User + phòng`: User chỉ được tự tạo mật khẩu ở đúng phòng đã duyệt. Quản lý user chỉ thu hồi quyền theo phòng, không nâng User thành Admin toàn hệ thống.
+Token OneIoT chỉ tồn tại trong RAM. App ngắt MQTT khi đăng xuất, chuyển nền hoặc đóng. Token không được lưu trong Async Storage hay repository.
 
-- Tài khoản demo: Admin `admin/1`, User `user/2`; đăng ký, đăng nhập/đăng xuất, đổi và khôi phục mật khẩu bằng mã cục bộ, hồ sơ cá nhân và thông báo.
-- Admin quản lý tài khoản: tìm kiếm, thêm User, khóa/mở, đặt lại mật khẩu, xóa và thu hồi quyền tự tạo mật khẩu theo từng phòng.
-- Admin quản lý phòng: tìm kiếm, thêm/sửa/xóa, sức chứa, thiết bị, trạng thái và loại khóa.
-- User tìm và đặt phòng trực tiếp theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa; sơ đồ giữ vị trí phòng và hiển thị cả trạng thái trùng booking hoặc bảo trì.
-- Khi gửi yêu cầu ngay tại phòng đã chọn, tầng dịch vụ kiểm tra ngày/giờ hợp lệ, khoảng đặt trước, phòng bảo trì, trùng phòng, trùng lịch User và giới hạn booking đang hoạt động.
-- Admin duyệt/từ chối, đổi sang phòng khả dụng trước hạn và nhận thông báo thay đổi.
-- `Lịch đặt phòng` chỉ đọc và phân nhóm sắp tới/đã dùng/đã đóng. `Quản lý đặt phòng` mới chứa thao tác rút/hủy, mã truy cập và ủy quyền nhận khóa.
-- Phòng khóa mã số: duyệt booking tự cấp quyền cho User tại đúng phòng; Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
-- Admin có màn **Quản lý khóa**: hệ thống hiện quản lý một SmartLock, cho phép gắn/tháo/chuyển khóa giữa các phòng khóa số, dán token của Tools và kiểm tra kết nối OneIoT.
-- App tích hợp phần giao tiếp của Tools bằng module Android MQTT TLS. Tools Device ID là danh tính gửi lệnh; Device ID/Device name của SmartLock là thiết bị đích và không bị trộn với nhau.
-- Khi tạo mật khẩu, app chỉ gửi lệnh nếu phòng của booking trùng phòng đang gắn khóa. App mã hóa mật khẩu theo cơ chế của Tools và phát `traitCreateTmpPasswordLock` trực tiếp tới OneIoT, không cần địa chỉ IP hoặc gateway trên máy tính.
-- Phòng khóa cơ/thẻ: Admin tạo lịch hẹn nhận khóa; User khai báo người nhận hộ và mã sinh viên/cán bộ.
-- Admin xem lịch sử dụng, tạo/hủy lịch bảo trì và sửa các tham số đặt trước, giới hạn, hạn hủy, hạn đổi phòng, thời gian mã và thông báo.
-- Toàn bộ dữ liệu trên được lưu bằng Async Storage và tiếp tục tồn tại sau khi tắt/mở ứng dụng.
+## Chế độ local và server
 
-Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
-
-Hai tài khoản demo là `admin/1` và `user/2`. Tài khoản, phòng, booking, quyền, thông báo và liên kết SmartLock--phòng được giữ trên thiết bị bằng Async Storage. Token OneIoT không được ghi vào Async Storage hoặc repository; token chỉ tồn tại trong RAM sau khi người dùng dán và bấm **Kiểm tra kết nối**. App ngắt MQTT khi đăng xuất, chuyển sang nền hoặc bị đóng.
-
-## Chọn chế độ local hoặc đồng bộ server
-
-Công tắc duy nhất nằm tại `src/core/config/runtimeFlags.ts`:
+Công tắc nằm tại `src/core/config/runtimeFlags.ts`:
 
 ```ts
 export const ENABLE_REMOTE_SYNC = false;
 ```
 
-- `false`: app dùng toàn bộ repository local và đăng nhập được bằng `admin/1`, `user/2` mà không cần booking server.
-- `true`: app gọi REST API. Trước khi bật, sửa `REMOTE_API_BASE_URL` trong cùng file thành địa chỉ LAN của máy chạy `../../booking-server`.
+- `false`: toàn bộ nghiệp vụ và đăng nhập chạy local, không cần booking server.
+- `true`: bật nhánh REST API. Chỉ dùng khi nhóm hoàn thiện `../booking-server` và cấu hình `REMOTE_API_BASE_URL`.
 
-Source server và các nhánh gọi API vẫn được giữ để merge tiếp với branch `syncdata`. Kết nối OneIoT của SmartLock hoạt động độc lập với cờ này; `../../tunghv3` chỉ còn là mã gateway tham khảo và app không gọi tới nó.
-
-## Công nghệ và môi trường đã kiểm tra
-
-- React Native `0.86.2`
-- React `19.2.3`
-- TypeScript `5.8.x`
-- React Native Community CLI `20.1.0`
-- Async Storage `3.1.1`
-- Node.js `22.23.2`
-- Microsoft OpenJDK `17.0.20`
-- Android SDK/Platform Tools và smartphone Android thật
+Kết nối OneIoT độc lập với công tắc này. `../../tunghv3` là gateway tham khảo cũ và app không gọi tới gateway đó.
 
 ## Clone và cài dependency
 
@@ -61,19 +38,19 @@ cd <THU_MUC_REPOSITORY>\code\booking_classroom
 npm ci
 ```
 
-Nếu repository chỉ chứa riêng source ứng dụng, vào trực tiếp thư mục vừa clone rồi chạy `npm ci`.
+Repository không chứa APK, cache, `node_modules` hoặc kết quả build.
 
-## Chuẩn bị điện thoại Android
+## Chạy Debug trên điện thoại Android
 
-1. Bật **Developer options** và **USB debugging** trên điện thoại.
-2. Cắm cáp có truyền dữ liệu, mở khóa điện thoại và chấp nhận **Allow USB debugging**.
-3. Kiểm tra kết nối:
+1. Bật **Developer options** và **USB debugging**.
+2. Cắm cáp dữ liệu, mở khóa điện thoại và chọn **Allow USB debugging**.
+3. Kiểm tra thiết bị:
 
 ```powershell
 adb devices -l
 ```
 
-Thiết bị phải có trạng thái `device`. Nếu hiện `unauthorized`, rút/cắm lại cáp hoặc chạy:
+Nếu hiện `unauthorized`, chạy:
 
 ```powershell
 adb kill-server
@@ -81,30 +58,26 @@ adb start-server
 adb devices -l
 ```
 
-Sau đó chấp nhận lại hộp thoại cấp quyền trên điện thoại.
+Sau đó chấp nhận lại hộp thoại trên điện thoại.
 
-## Chạy bản Debug trên điện thoại
-
-Mở PowerShell thứ nhất tại thư mục dự án:
+Mở Metro ở cửa sổ PowerShell thứ nhất:
 
 ```powershell
 npm start
 ```
 
-Giữ Metro hoạt động. Mở PowerShell thứ hai tại cùng thư mục:
+Ở cửa sổ thứ hai:
 
 ```powershell
 adb reverse tcp:8081 tcp:8081
 npm run android
 ```
 
-Bản Debug cần kết nối Metro để tải JavaScript. Sau khi rút và cắm lại cáp, chạy lại `adb reverse tcp:8081 tcp:8081` nếu ứng dụng không kết nối được Metro.
+Bản Debug tải JavaScript từ Metro. Sau khi rút/cắm lại cáp, chạy lại `adb reverse tcp:8081 tcp:8081` nếu app không tìm thấy Metro.
 
-Nếu `npm run android` lỗi do đường dẫn có ký tự tiếng Việt, dùng quy trình build và nạp thủ công ở mục kế tiếp.
+## Build APK Debug
 
-## Build và nạp APK Debug thủ công
-
-Vì đường dẫn workspace hiện có ký tự tiếng Việt, hãy dùng script kèm dự án. Script ánh xạ tạm một ổ đĩa không dấu, build xong rồi tự gỡ ánh xạ:
+Workspace có ký tự Unicode nên dùng script của dự án:
 
 ```powershell
 npm run build:android:debug
@@ -112,54 +85,16 @@ adb install -r .\android\app\build\outputs\apk\debug\app-debug.apk
 adb reverse tcp:8081 tcp:8081
 ```
 
-Nếu clone dự án vào đường dẫn chỉ có ký tự ASCII, có thể build trực tiếp:
+APK được tạo tại `android/app/build/outputs/apk/debug/app-debug.apk` và bị Git bỏ qua.
 
-```powershell
-cd android
-.\gradlew.bat assembleDebug
-cd ..
-```
-
-APK được tạo tại:
-
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-## Build APK chạy độc lập và cài sang máy khác
-
-Bản Release đóng gói JavaScript trong APK nên không cần Metro, cáp USB hoặc máy tính sau khi đã cài đặt:
+## Build APK Release chạy độc lập
 
 ```powershell
 npm run build:android:release
 adb install -r .\android\app\build\outputs\apk\release\app-release.apk
 ```
 
-APK độc lập được tạo tại:
-
-```text
-android/app/build/outputs/apk/release/app-release.apk
-```
-
-Một bản đã build sẵn nằm tại:
-
-```text
-release/booking_classroom-v1.0.apk
-```
-
-SHA-256 của bản hiện tại: `C5AE6A5ED734BC9E217F77FE5FED8751FDFF6DA0966B6C1AECD3CE9F6B7B4DFD`.
-
-Cài bản có sẵn qua ADB:
-
-```powershell
-adb install -r .\release\booking_classroom-v1.0.apk
-```
-
-Để cài trên điện thoại khác, gửi tệp `release/booking_classroom-v1.0.apk` sang máy đó, cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu, rồi mở APK để cài. Hai tài khoản demo và toàn bộ nghiệp vụ đặt phòng hoạt động cục bộ, không cần booking server. Mạng chỉ cần khi app kết nối OneIoT để gửi lệnh tới SmartLock.
-
-Bản Release đã được kiểm tra bằng cách xóa `adb reverse`, tắt hẳn ứng dụng rồi mở lại trên Samsung M21. Cả hai chế độ `admin/1` và `user/2` hoạt động khi Metro không chạy.
-
-Bản Release hiện được ký bằng khóa demo của dự án để phục vụ kiểm thử môn học. Trước khi phát hành công khai hoặc đưa lên cửa hàng ứng dụng cần tạo khóa ký riêng và giữ khóa đó để ký các bản cập nhật sau.
+Bản Release chứa sẵn JavaScript nên sau khi cài không cần Metro, cáp USB hoặc máy tính. Có thể chép `app-release.apk` sang điện thoại Android khác để cài. Booking local không cần mạng; chức năng SmartLock cần Internet, token hợp lệ và phiên OneIoT đang kết nối.
 
 ## Kiểm tra source
 
@@ -169,33 +104,35 @@ npm run lint
 npx tsc --noEmit
 ```
 
-## Cấu trúc chính
+## Cấu trúc
 
 ```text
 booking_classroom/
-├── App.tsx                  # Ghép luồng màn hình cấp ứng dụng
-├── src/app/                 # App shell và dashboard demo hiện tại
-├── src/core/                # Kiểu dữ liệu, hợp đồng dùng chung
-├── src/shared/              # Thành phần dùng lại giữa nhiều module
-├── src/modules/             # Các module nghiệp vụ độc lập
-│   ├── auth/                # Xác thực; phần đăng nhập demo đã có
-│   ├── account_management/  # Quản lý tài khoản và phân quyền
-│   ├── room_management/     # Dữ liệu phòng mẫu và loại khóa
-│   ├── booking/             # Tạo, duyệt, từ chối, xem và hủy booking
-│   ├── access_control/      # Sinh và tính hiệu lực mã số tạm thời
-│   ├── smart_lock/          # Gắn khóa vào phòng và giao tiếp trực tiếp OneIoT
-│   ├── schedule_maintenance/# Lịch sử dụng và lịch bảo trì
-│   ├── profile/             # Thông tin cá nhân
-│   ├── notifications/       # Thông báo nghiệp vụ
-│   └── configuration/       # Tham số và chính sách hệ thống
-├── __tests__/auth.test.ts   # Kiểm tra đăng nhập, đăng ký và đổi mật khẩu
-├── __tests__/booking.test.ts # Kiểm tra booking, phê duyệt và tạo mã
-├── __tests__/businessRules.test.ts # Kiểm tra phân quyền và quy tắc liên module
-├── scripts/build-debug.ps1  # Build khi đường dẫn Windows có ký tự Unicode
-├── scripts/build-release.ps1 # Build APK độc lập khi đường dẫn có Unicode
-├── evidence/                # Ảnh và kết quả kiểm tra trên Samsung M21
-├── release/                 # APK độc lập đã build và mã SHA-256
-└── android/                 # Dự án Android native do React Native tạo
+├── App.tsx
+├── src/app/                    # App shell và dashboard
+├── src/core/                   # Cấu hình, kiểu và hợp đồng dùng chung
+├── src/shared/                 # Thành phần dùng lại
+├── src/modules/
+│   ├── auth/                   # Xác thực local/remote
+│   ├── account_management/     # Quản lý tài khoản và quyền theo phòng
+│   ├── room_management/        # Phòng, tầng, thiết bị và loại khóa
+│   ├── booking/                # Tạo/duyệt/hủy/đổi phòng, nhận khóa, check-in/out
+│   ├── access_control/         # Mật khẩu tạm thời và quyền vào phòng
+│   ├── smart_lock/             # Gắn khóa và giao tiếp OneIoT
+│   ├── schedule_maintenance/   # Yêu cầu, lịch và xử lý bảo trì
+│   ├── profile/
+│   ├── notifications/
+│   └── configuration/
+├── __tests__/                  # Kiểm thử nghiệp vụ
+├── scripts/                    # Script build Windows Unicode
+├── evidence/                   # Minh chứng đã kiểm tra trên thiết bị
+└── android/                    # Dự án Android native
 ```
 
-Mỗi module có `README.md` ghi chức năng con, business rules, ranh giới và trạng thái. Thành viên chỉ nhận module được phân công; các phần dùng chung đưa vào `core` hoặc `shared`. Bảng phân công và cấu trúc con chuẩn nằm tại [`src/modules/README.md`](src/modules/README.md).
+Phạm vi và quy tắc của từng module nằm trong `src/modules/README.md` và README của từng module.
+
+## Giới hạn hiện tại
+
+- Dữ liệu chưa đồng bộ giữa nhiều điện thoại.
+- Check-in/check-out đã tích hợp theo bản tin OneIoT nhưng chưa được xác nhận đầu cuối bằng token và khóa thật.
+- Bản Release dùng khóa ký demo của dự án; cần khóa ký riêng trước khi phát hành công khai.

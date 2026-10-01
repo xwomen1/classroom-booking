@@ -1,63 +1,59 @@
 # Booking Classroom — Final Project
 
-Thư mục này chứa tài liệu và source của một Booking App tích hợp cho đề tài đặt phòng học/phòng họp.
+Ứng dụng đặt phòng học/phòng họp, chạy local trên một điện thoại và có phần giao tiếp trực tiếp với SmartLock qua OneIoT.
 
-## Nội dung
+## Thành phần
 
-- `du_an_dat_phong.tex/.pdf`: đề xuất dự án và phạm vi MVP.
-- `workflow_booking_app.tex/.pdf`: kiến trúc, workflow và vòng đời booking.
-- `hien_trang_trien_khai.tex/.pdf`: ghi nhận ngắn gọn những phần đã triển khai thực tế.
-- `code/booking_classroom`: source React Native của ứng dụng.
-- `code/booking-server`: source Java/Spring Boot được giữ lại cho giai đoạn đồng bộ sau; bản hiện tại đang tắt kết nối bằng cờ cấu hình.
-- `tunghv2`: chương trình giả lập SmartLock để demo khi chưa dùng khóa thật.
-- `tunghv3`: gateway HTTP--MQTT cũ được giữ làm mã tham khảo; app hiện không cần chạy gateway này.
-- `code/booking_classroom/src/modules`: các module nghiệp vụ để phân công riêng cho từng thành viên.
+- `code/booking_classroom`: ứng dụng React Native Android.
+- `code/booking-server`: mã Java/Spring Boot dành cho giai đoạn đồng bộ sau; mặc định app không dùng server.
+- `tunghv2`: chương trình giả lập SmartLock.
+- `tunghv3`: gateway HTTP–MQTT cũ được giữ để tham khảo; app hiện kết nối OneIoT trực tiếp.
+- `du_an_dat_phong.tex/.pdf`: đề xuất dự án.
+- `workflow_booking_app.tex/.pdf`: workflow nghiệp vụ.
+- `hien_trang_trien_khai.tex/.pdf`: hiện trạng triển khai đã kiểm tra.
 
-Danh sách module, phạm vi và ô người phụ trách được ghi tại [`code/booking_classroom/src/modules/README.md`](code/booking_classroom/src/modules/README.md).
+Sơ đồ module và phạm vi từng phần nằm tại [`code/booking_classroom/src/modules/README.md`](code/booking_classroom/src/modules/README.md).
 
-## Clone và cài bản dùng ngay
+## Clone, build và cài ứng dụng
+
+Repository chỉ lưu source cần thiết. APK, cache và thư mục build không được đưa lên Git; mỗi thành viên tự build sau khi clone.
 
 ```powershell
 git clone https://github.com/xwomen1/classroom-booking.git
-cd classroom-booking
+cd classroom-booking\code\booking_classroom
+npm ci
+npm run build:android:release
 adb devices -l
-adb install -r .\code\booking_classroom\release\booking_classroom-v1.0.apk
+adb install -r .\android\app\build\outputs\apk\release\app-release.apk
 ```
 
-Sau khi lệnh cài báo `Success`, có thể mở `booking_classroom` trên điện thoại. Bản Release không cần Metro, cáp USB hoặc booking server. Tài khoản, phòng và booking được lưu local trên điện thoại; chức năng gửi mật khẩu xuống khóa cần điện thoại có Internet và một phiên kết nối OneIoT đang hoạt động.
-
-Công tắc đồng bộ nằm tại `code/booking_classroom/src/core/config/runtimeFlags.ts`. Giữ `ENABLE_REMOTE_SYNC = false` để chạy local; chỉ đổi thành `true` và sửa `REMOTE_API_BASE_URL` khi nhóm bắt đầu triển khai booking server.
-
-Nếu không dùng ADB, gửi tệp `code/booking_classroom/release/booking_classroom-v1.0.apk` sang điện thoại, mở tệp và cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu.
+Bản Release chạy độc lập sau khi cài, không cần Metro, cáp USB hoặc booking server. Có thể chép `app-release.apk` sang một máy Android khác và mở tệp để cài.
 
 Tài khoản demo:
 
 - Quản trị viên: `admin` / `1`
 - Người dùng: `user` / `2`
 
-Ứng dụng có luồng hai vai trò: quản lý tài khoản, phòng, lịch bảo trì và cấu hình; tìm và đặt phòng; duyệt, từ chối, đổi phòng; lịch xem riêng với màn quản lý booking; hẹn/ủy quyền nhận khóa; tạo mật khẩu tạm thời và thông báo.
+Dữ liệu tài khoản, phòng, booking, bảo trì và cấu hình được lưu local bằng Async Storage. Token OneIoT chỉ giữ trong RAM của phiên kết nối và không được lưu vào Git hoặc bộ nhớ ứng dụng.
 
-Bản hiện tại có chức năng gộp \"Tìm và đặt phòng\": sơ đồ chữ U cho tầng 1–8 hiển thị phòng trống/đã đặt/bảo trì theo khoảng thời gian; User chọn phòng, nhập mục đích và gửi yêu cầu ngay trên cùng màn hình. Khi Admin duyệt booking của phòng khóa số, User được cấp quyền tự tạo mật khẩu riêng cho đúng phòng đó; Admin có thể thu hồi quyền theo từng phòng trong Quản lý user.
+## Chức năng chính
 
-Admin có thêm **Quản lý khóa** để gắn một SmartLock duy nhất vào một phòng khóa số. Tại đây, Admin dán token tương ứng với Tools Device ID và bấm **Kiểm tra kết nối**. App kết nối trực tiếp OneIoT bằng MQTT TLS rồi gửi `traitCreateTmpPasswordLock` tới SmartLock đích; không cần nhập IP máy tính. Token chỉ nằm trong bộ nhớ của phiên chạy và kết nối tự ngắt khi đăng xuất, chuyển app sang nền hoặc đóng app.
+- Đăng ký, đăng nhập, hồ sơ, đổi/khôi phục mật khẩu và thông báo.
+- Tìm và đặt phòng theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
+- Admin duyệt/từ chối, đổi phòng phù hợp, quản lý phòng, tài khoản, lịch và bảo trì.
+- User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do; Admin nhận thông báo, thấy tầng/phòng được đánh dấu vàng và xử lý yêu cầu.
+- Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa; Admin chấp nhận hoặc đề xuất giờ khác; hai bên trao đổi đến khi thống nhất.
+- Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời.
+- Admin gắn một SmartLock vào phòng, nhập token trong phiên và kết nối trực tiếp tới OneIoT bằng MQTT TLS. App gửi lệnh tạo mật khẩu và nhận bản tin SmartLock để ghi nhận check-in/check-out.
 
-## Dành cho thành viên phát triển
+Chế độ local được điều khiển tại `code/booking_classroom/src/core/config/runtimeFlags.ts`:
 
-Hướng dẫn cài dependency, chạy Debug, xử lý lỗi ADB/Metro, build khi đường dẫn có ký tự tiếng Việt, kiểm tra source và sơ đồ module nằm tại [`code/booking_classroom/README.md`](code/booking_classroom/README.md).
-
-Quy trình bắt đầu nhanh:
-
-```powershell
-cd code\booking_classroom
-npm ci
-npm start
+```ts
+export const ENABLE_REMOTE_SYNC = false;
 ```
 
-Trong PowerShell khác:
+Giữ giá trị `false` để dùng app mà không cần booking server.
 
-```powershell
-adb reverse tcp:8081 tcp:8081
-npm run android
-```
+## Phát triển và kiểm tra
 
-Bản Release hiện tại đã được kiểm tra độc lập trên Samsung M21 khi Metro không chạy và không có `adb reverse`.
+Hướng dẫn Debug, ADB/Metro, build trên đường dẫn Windows có Unicode và các lệnh kiểm tra source nằm tại [`code/booking_classroom/README.md`](code/booking_classroom/README.md).

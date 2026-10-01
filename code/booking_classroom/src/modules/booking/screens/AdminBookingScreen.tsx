@@ -7,7 +7,14 @@ import type { MaintenanceRecord } from '../../schedule_maintenance/model/mainten
 import { getMaintenanceRecords, periodsOverlap } from '../../schedule_maintenance/services/maintenanceRepository';
 import { BookingInfo } from '../components/BookingInfo';
 import type { Booking } from '../model/booking';
-import { changeBookingRoom, getBookings, meetsReplacementRoomRequirements, reviewBooking, scheduleKeyPickup } from '../services/bookingRepository';
+import {
+  acceptKeyPickupProposal,
+  changeBookingRoom,
+  getBookings,
+  meetsReplacementRoomRequirements,
+  proposeKeyPickup,
+  reviewBooking,
+} from '../services/bookingRepository';
 
 type PickupDraft = { date: string; time: string; location: string };
 type ChangeDraft = { roomId: string; reason: string };
@@ -37,7 +44,19 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
         {booking.status === 'PENDING' ? <View style={styles.row}><Button label="Duyệt" primary onPress={() => action(() => reviewBooking(booking.id, 'APPROVED', username), 'Đã duyệt yêu cầu.')} /><Button label="Từ chối" onPress={() => action(() => reviewBooking(booking.id, 'REJECTED', username), 'Đã từ chối yêu cầu.')} /></View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !activePin ? <View style={styles.section}><Text style={styles.sectionTitle}>Mã mở cửa</Text><Text style={styles.detail}>Người đặt đã được quyền tự tạo mã cho phòng này. Bạn cũng có thể tạo mã thay.</Text><Pressable style={styles.purple} onPress={() => action(() => createTemporaryPin(booking.id, username, 'admin'), 'Đã tạo mã tạm thời.')}><Text style={styles.white}>Tạo mã thay</Text></Pressable></View> : null}
         {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text></View> : null}
-        {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.section}><Text style={styles.sectionTitle}>Hẹn nhận khóa / thẻ</Text><Input placeholder="Ngày YYYY-MM-DD" value={pickup.date} onChangeText={value => setPickup(booking.id, 'date', value)} /><Input placeholder="Giờ HH:mm" value={pickup.time} onChangeText={value => setPickup(booking.id, 'time', value)} /><Input placeholder="Địa điểm nhận khóa" value={pickup.location} onChangeText={value => setPickup(booking.id, 'location', value)} /><Pressable style={styles.outlineBlue} onPress={() => action(() => scheduleKeyPickup(booking.id, username, pickup.date, pickup.time, pickup.location), 'Đã tạo lịch hẹn nhận khóa.')}><Text style={styles.blueText}>Lưu lịch hẹn</Text></Pressable></View> : null}
+        {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Thỏa thuận nhận khóa / thẻ</Text>
+          {booking.keyPickupAppointment ? <View style={styles.pickupAgreed}><Text style={styles.pickupAgreedTitle}>Đã thống nhất</Text><Text style={styles.detail}>{booking.keyPickupAppointment.date} · {booking.keyPickupAppointment.time} · {booking.keyPickupAppointment.location}</Text></View> : null}
+          {!booking.keyPickupNegotiation ? <Text style={styles.detail}>Đang chờ người dùng gửi đề xuất thời gian nhận khóa.</Text> : null}
+          {booking.keyPickupNegotiation?.status === 'WAITING_ADMIN' ? <>
+            <View style={styles.pickupProposal}><Text style={styles.sectionTitle}>Người dùng đề xuất</Text><Text style={styles.detail}>{booking.keyPickupNegotiation.currentProposal.date} · {booking.keyPickupNegotiation.currentProposal.time}</Text></View>
+            <Input placeholder="Địa điểm nhận khóa khi duyệt" value={pickup.location} onChangeText={value => setPickup(booking.id, 'location', value)} />
+            <Pressable style={styles.outlineBlue} onPress={() => action(() => acceptKeyPickupProposal(booking.id, username, 'admin', pickup.location), 'Đã duyệt thời gian nhận khóa.')}><Text style={styles.blueText}>Đồng ý thời gian người dùng</Text></Pressable>
+            <Text style={styles.counterLabel}>Hoặc từ chối thời gian trên và đề xuất thời gian khác</Text>
+            <Input placeholder="Ngày YYYY-MM-DD" value={pickup.date} onChangeText={value => setPickup(booking.id, 'date', value)} /><Input placeholder="Giờ HH:mm" value={pickup.time} onChangeText={value => setPickup(booking.id, 'time', value)} /><Input placeholder="Địa điểm nhận khóa" value={pickup.location} onChangeText={value => setPickup(booking.id, 'location', value)} /><Pressable style={styles.outlineBlue} onPress={() => action(() => proposeKeyPickup(booking.id, username, 'admin', pickup.date, pickup.time, pickup.location), 'Đã gửi đề xuất thời gian khác.')}><Text style={styles.blueText}>Gửi thời gian khác</Text></Pressable>
+          </> : null}
+          {booking.keyPickupNegotiation?.status === 'WAITING_USER' ? <Text style={styles.waitingPickup}>Đã đề xuất {booking.keyPickupNegotiation.currentProposal.date} lúc {booking.keyPickupNegotiation.currentProposal.time} tại {booking.keyPickupNegotiation.currentProposal.location}. Đang chờ người dùng phản hồi.</Text> : null}
+        </View> : null}
         {booking.status === 'APPROVED' && room ? <View style={styles.section}>
           <Text style={styles.sectionTitle}>Đổi phòng khi có việc cấp thiết</Text>
           <Text style={styles.replacementRule}>Chỉ hiện phòng cùng loại khóa, đủ sức chứa, đủ thiết bị và không trùng lịch.</Text>
@@ -220,6 +239,11 @@ const styles = StyleSheet.create({
   pinLabel: { color: '#5C4778', fontWeight: '800' },
   pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 5 },
   detail: { color: '#657084', fontSize: 12, marginTop: 5 },
+  pickupAgreed: { backgroundColor: '#E9F7EF', borderRadius: 8, marginBottom: 8, padding: 10 },
+  pickupAgreedTitle: { color: '#17613A', fontWeight: '800' },
+  pickupProposal: { backgroundColor: '#FFF7E7', borderRadius: 8, marginBottom: 8, padding: 10 },
+  counterLabel: { color: '#657084', fontSize: 12, lineHeight: 17, marginBottom: 7, marginTop: 11 },
+  waitingPickup: { backgroundColor: '#EDF5FF', borderRadius: 8, color: '#315A86', lineHeight: 18, padding: 10 },
   input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', marginBottom: 7, paddingHorizontal: 10, paddingVertical: 9 },
   outlineBlue: { alignItems: 'center', borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, paddingVertical: 9 },
   blueText: { color: '#315A86', fontWeight: '800' },

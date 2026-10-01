@@ -4,33 +4,34 @@ Device: Samsung SM-M215F (Samsung M21)
 ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
-Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 58020098 bytes
-Release APK SHA256: A5FE8D57BE4B5D47FAC9D58C548D78139B8E9BF678213A310A4F9E0394A72818
-Release package debuggable flag: false
-Metro process required: no
-adb reverse rules during verification: none
+Installed APK: android/app/build/outputs/apk/release/app-release.apk
+Installed APK size: 58045530 bytes
+APK tracked in Git: no
+Metro required: no
+adb reverse required: no
+
+Release build from current source: PASS
+ADB streamed install with -r: PASS
 Force-stop and cold relaunch without Metro: PASS
-Admin login without Wi-Fi or booking server: PASS
-User/2 login and role routing without Wi-Fi or booking server: PASS
-SmartLock management screen on device: PASS
-Account management, status/password and room permission revocation logic: PASS
-Room CRUD form and 8-floor accordion room list rendered: PASS
-Booking review and access-control screen rendered: PASS
-Usage and maintenance schedule with 8-floor room selector rendered: PASS
-Business configuration screen rendered: PASS
-Floor 1-8 availability view rendered without implementation/demo wording: PASS
-Vertical date/time pickers rendered: PASS
-Room selection -> purpose input -> direct booking form on one screen: PASS
-Booking calendar has separate read-only tabs: PASS
-Booking management is a separate action screen: PASS
-Admin-created temporary PIN flow with mocked native bridge: PASS
-Booking approval -> room-scoped User PIN permission flow: PASS
-Room permission revocation blocks User PIN generation: PASS
-SmartLock room binding and wrong-room rejection: PASS
-OneIoT MQTT payload construction without real token: PASS
-Real OneIoT publish: NOT TESTED (token intentionally blank)
-Source tests: 14/14 PASS
-TypeScript and ESLint: PASS
-Fatal or Metro connection errors in checked logcat: 0
-Current regression screenshots: evidence/18-admin-room-floors.png, evidence/19-maintenance-room-floors.png, evidence/20-login-demo-accounts.png, evidence/21-smartlock-management.png
+Admin/1 login and role routing: PASS
+User/2 login and role routing: PASS
+Admin dashboard and maintenance screen rendered: PASS
+Eight-floor maintenance selector rendered: PASS
+SmartLock management and runtime token input rendered: PASS
+User booking-management screen rendered: PASS
+App remained resumed after navigation: PASS
+Fatal AndroidRuntime/ReactNative/ReactNativeJS errors in checked logcat: 0
+
+Maintenance request, key-pickup negotiation and SmartLock event parsing: 17/17 source tests PASS
+TypeScript: PASS
+ESLint: PASS
+Android Debug build: PASS
+Android Release build: PASS
+
+Real OneIoT connect/publish/check-in/check-out: NOT TESTED
+Reason: token intentionally left blank; user will verify with the valid Tools and SmartLock credentials.
+
+Current screenshots:
+- evidence/19-maintenance-room-floors.png
+- evidence/20-login-demo-accounts.png
+- evidence/21-smartlock-management.png

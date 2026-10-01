@@ -2,27 +2,31 @@
 
 **Người dùng:** Admin và User.
 
-## Chức năng con của User
+## Chức năng của User
 
-- Tìm phòng trên sơ đồ chữ U theo tầng, ngày, khung giờ, sức chứa và thiết bị.
-- Chọn phòng trên sơ đồ hoặc nhập tên phòng, nhập mục đích và gửi yêu cầu ngay trong cùng màn hình.
-- Xem lịch sắp tới, đã sử dụng và đã hủy.
-- Xem trạng thái, hủy yêu cầu và ủy quyền người lấy thẻ hộ.
+- Tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa.
+- Xem lịch đặt phòng và quản lý yêu cầu đang hoạt động.
+- Hủy yêu cầu theo chính sách.
+- Với khóa cơ/thẻ từ: đề xuất giờ nhận khóa, chấp nhận đề xuất của Admin hoặc gửi lại một thời gian khác; có thể ủy quyền người nhận hộ.
+- Với khóa số: tạo mật khẩu khi có quyền trên đúng phòng.
+- Khi đang sử dụng phòng: gửi yêu cầu bảo trì kèm lý do.
+- Xem thời điểm check-in/check-out do bản tin SmartLock ghi nhận.
 
-## Chức năng con của Admin
+## Chức năng của Admin
 
-- Duyệt hoặc từ chối yêu cầu mượn phòng.
-- Đổi phòng khi phòng đã đặt cần dùng cho mục đích cấp thiết hơn.
-- Chuyển yêu cầu đã duyệt sang quy trình cấp quyền vào phòng của module `access_control`.
+- Duyệt hoặc từ chối yêu cầu.
+- Đổi sang phòng khả dụng đáp ứng tối thiểu loại khóa, sức chứa và thiết bị.
+- Với khóa cơ/thẻ từ: chấp nhận thời gian User đề xuất hoặc gửi thời gian/địa điểm khác.
+- Tạo mật khẩu hộ cho phòng khóa số và xử lý quyền theo phòng.
+- Nhận thông báo yêu cầu bảo trì.
 
 ## Business rules
 
-- Không cho đặt nếu trùng thời gian hoặc phòng đang bảo trì.
-- Chỉ đặt trước ít nhất 1 ngày và không quá 3 ngày.
-- Một User không được đặt hai phòng có thời gian chồng lấn.
-- Tổng số yêu cầu đang chờ và phòng sắp sử dụng của một User không vượt quá 2.
-- Khi User A đang thao tác đặt phòng X, User B không được đồng thời thao tác phòng đó trong cùng phiên giữ chỗ.
-- Admin chỉ được đổi phòng trước thời điểm bắt đầu ít nhất 30 phút.
-- User được phép hủy phòng theo chính sách cấu hình.
+- Không đặt khi trùng thời gian hoặc phòng đang bảo trì.
+- Chỉ đặt trong khoảng thời gian cấu hình; mặc định trước ít nhất 1 ngày và không quá 3 ngày.
+- Một User không có hai booking chồng lấn; tổng yêu cầu chờ và phòng sắp sử dụng không vượt quá giới hạn cấu hình.
+- Admin chỉ đổi phòng trước thời điểm bắt đầu ít nhất số phút đã cấu hình.
+- Trao đổi nhận khóa dừng khi một bên chấp nhận đề xuất của bên kia.
+- Check-in/check-out chỉ gắn vào booking đã duyệt, đúng phòng đang gắn SmartLock và nằm trong cửa sổ thời gian truy cập.
 
-**Hiện trạng:** đã có luồng local tạo, duyệt/từ chối, hủy theo hạn cấu hình, đổi phòng, lịch chỉ đọc, màn quản lý thao tác riêng, chống trùng phòng/User/bảo trì và giới hạn booking. Một thiết bị xử lý tuần tự; khóa đồng thời nhiều thiết bị cần server ở giai đoạn sau.
+**Hiện trạng:** các luồng trên chạy local. Đồng bộ nhiều thiết bị cần server ở giai đoạn sau; bản tin SmartLock thật cần người dùng kiểm tra với token và thiết bị hợp lệ.

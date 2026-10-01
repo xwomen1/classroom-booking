@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import type {
   ManagedSmartLock,
   OneIoTConnectionStatus,
@@ -12,6 +12,8 @@ type OneIoTMqttNativeModule = {
     port: number,
     toolDeviceId: string,
     token: string,
+    smartLockAeId: string,
+    cseId: string,
   ): Promise<OneIoTConnectionStatus>;
   disconnect(): Promise<void>;
   getStatus(): Promise<OneIoTConnectionStatus>;
@@ -26,6 +28,12 @@ type OneIoTMqttNativeModule = {
     startTime: number,
     endTime: number,
   ): Promise<TemporaryPasswordCommandResult>;
+};
+
+export type OneIoTSmartLockMessage = {
+  topic: string;
+  payload: string;
+  receivedAt: string;
 };
 
 function isTestEnvironment(): boolean {
@@ -65,10 +73,23 @@ export async function connectOneIoT(
       lock.oneIotPort,
       lock.toolDeviceId,
       normalizedToken,
+      lock.smartLockAeId,
+      lock.oneIotCseId,
     );
   } catch (error) {
     throw explainConnectionError(error);
   }
+}
+
+export function subscribeOneIoTSmartLockMessages(
+  listener: (message: OneIoTSmartLockMessage) => void,
+): () => void {
+  if (isTestEnvironment() || Platform.OS !== 'android' || !NativeModules.OneIoTMqtt) {
+    return () => {};
+  }
+  const emitter = new NativeEventEmitter(NativeModules.OneIoTMqtt);
+  const subscription = emitter.addListener('OneIoTSmartLockEvent', listener);
+  return () => subscription.remove();
 }
 
 export async function disconnectOneIoT(): Promise<void> {

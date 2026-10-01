@@ -27,30 +27,27 @@
   {\small Cập nhật: 01/10/2026}
 \end{center}
 
-\textbf{Nguyên tắc ghi chép:} tài liệu này chỉ ghi chức năng đã được lập trình và chạy thử có minh chứng. Ý tưởng hoặc thiết kế dự kiến nằm trong các báo cáo khác và không được tính là đã triển khai.
+\textbf{Nguyên tắc:} chỉ ghi chức năng đã có trong source và đã qua kiểm tra tự động; phần cần token hoặc khóa thật được ghi rõ là chưa kiểm thử đầu cuối.
 
 \textbf{Hiện trạng: ĐÃ CÓ BẢN NGHIỆP VỤ LOCAL TRÊN MỘT THIẾT BỊ.}
 
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
-  \item Source: \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript.
-  \item Source đồng bộ Java/Spring Boot vẫn được giữ tại \path{final_project/code/booking-server}, nhưng bản app hiện tại đặt \texttt{ENABLE\_REMOTE\_SYNC = false} trong \path{src/core/config/runtimeFlags.ts} để toàn bộ nghiệp vụ chạy local.
-  \item Xác thực local đã có đăng ký, đăng nhập/đăng xuất theo vai trò, đổi/khôi phục mật khẩu, hồ sơ và thông báo. Form đăng ký chỉ bắt buộc tên đăng nhập, mật khẩu và nhập lại mật khẩu; các trường bổ sung là tùy chọn.
-  \item Admin quản lý tài khoản User, khóa/mở, đặt lại mật khẩu và thu hồi quyền tự tạo mã theo từng phòng; quyền phòng không làm User trở thành Admin toàn hệ thống.
-  \item Dữ liệu mẫu có 8 tầng, mỗi tầng 7 phòng. Giảng viên chọn tầng, lọc theo ngày/giờ, sức chứa, thiết bị, loại khóa và thấy trực tiếp trạng thái trống/đã đặt/bảo trì.
-  \item Chức năng \textit{Tìm và đặt phòng} đã được gộp: giảng viên chọn hoặc nhập tên phòng, nhập mục đích và gửi yêu cầu ngay trên cùng màn hình.
-  \item Quản lý phòng và chọn phòng bảo trì hiển thị thành 8 thanh tầng; chỉ mở danh sách phòng của tầng đang chọn.
-  \item Admin duyệt/từ chối, xem lịch sử dụng, tạo/hủy bảo trì và chỉnh các tham số nghiệp vụ. Khi đổi phòng, ứng dụng chỉ đề xuất phòng cùng loại khóa, đủ sức chứa, đủ thiết bị và không trùng lịch.
-  \item \textit{Lịch đặt phòng} là màn chỉ đọc, phân nhóm sắp tới/đã dùng/đã đóng; thao tác hủy, mã truy cập và ủy quyền nằm riêng trong \textit{Quản lý đặt phòng}.
-  \item Khi Admin duyệt booking phòng khóa số, hệ thống tự cấp quyền cho User tự tạo mật khẩu tại đúng phòng đó. Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user. Khóa cơ/thẻ hỗ trợ lịch hẹn và người nhận hộ.
-  \item Admin có màn \textit{Quản lý khóa} để gắn một SmartLock duy nhất vào một phòng khóa số. Khi tạo mã, app chỉ gửi lệnh cho booking của phòng đang gắn khóa.
-  \item App đã tích hợp trực tiếp cơ chế giao tiếp của Tools bằng module Android MQTT TLS: Tools Device ID là danh tính kết nối, còn Device ID/Device name của SmartLock là thiết bị đích. App không cần IP máy tính hoặc gateway \path{tunghv3} để gửi trait \texttt{traitCreateTmpPasswordLock}.
-  \item Màn \textit{Quản lý khóa} có ô dán token và nút kiểm tra kết nối OneIoT. Token chỉ giữ trong RAM, không lưu vào Async Storage hoặc repository; MQTT tự ngắt khi đăng xuất, app chuyển nền hoặc bị đóng.
-  \item Kiểm tra source đạt: Jest 14/14 ca, ESLint, TypeScript và Android Debug build không báo lỗi từ phần tích hợp mới.
-  \item APK Release nằm tại \path{code/booking_classroom/release/booking_classroom-v1.0.apk}, dung lượng 58.020.098 byte; SHA-256: \path{A5FE8D57BE4B5D47FAC9D58C548D78139B8E9BF678213A310A4F9E0394A72818}.
-  \item Đã cài lại trên Samsung M21 và đăng nhập được cả \texttt{admin/1}, \texttt{user/2} khi Wi-Fi ngắt, không có booking server, \texttt{adb reverse} hoặc Metro. Màn Quản lý khóa cũng đã mở được trên thiết bị.
-  \item Minh chứng thiết bị nằm trong \path{code/booking_classroom/evidence}.
+  \item Source app nằm tại \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript. \texttt{ENABLE\_REMOTE\_SYNC = false} để app hoạt động không cần booking server.
+  \item Có xác thực local, đăng ký, hồ sơ, đổi/khôi phục mật khẩu, thông báo và hai tài khoản demo \texttt{admin/1}, \texttt{user/2}.
+  \item User tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa. Hệ thống kiểm tra thời hạn đặt, trùng phòng, trùng lịch User, bảo trì và giới hạn booking.
+  \item Admin quản lý tài khoản, phòng, booking, lịch và cấu hình; có thể duyệt/từ chối hoặc đổi sang phòng đáp ứng các điều kiện cần thiết.
+  \item User đang sử dụng một phòng được gửi yêu cầu bảo trì kèm lý do. Admin nhận thông báo; tầng có yêu cầu tự mở và được tô vàng, phòng liên quan cũng được tô vàng. Admin có thể lên lịch xử lý hoặc từ chối.
+  \item Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa trước. Admin chấp nhận hoặc gửi thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại cho đến khi hai bên thống nhất.
+  \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền.
+  \item Admin có thể gắn một SmartLock vào một phòng khóa số. App tích hợp trực tiếp cơ chế Tools qua MQTT TLS OneIoT để gửi \texttt{traitCreateTmpPasswordLock}, không cần IP máy tính hoặc gateway.
+  \item App đã đăng ký topic OneM2M theo Tools và phân tích bản tin SmartLock để ghi nhận check-in/check-out vào booking đúng phòng, đúng khoảng thời gian. Phần này chưa được kiểm thử đầu cuối với token và khóa thật.
+  \item Token OneIoT chỉ giữ trong RAM; không lưu vào Async Storage hoặc repository. Kết nối tự ngắt khi đăng xuất, app chuyển nền hoặc bị đóng.
+  \item Kiểm tra source đạt: Jest 17/17 ca, ESLint, TypeScript và Android Debug build.
+  \item APK, cache, \path{node_modules} và thư mục build không được đưa lên Git. Thành viên clone source rồi tự build Debug hoặc Release theo README.
 \end{itemize}
 
-\textbf{Chưa hoàn thành:} đồng bộ dữ liệu nhiều thiết bị, cơ sở dữ liệu máy chủ và kiểm thử đầu cuối với khóa thật/OneIoT có token hợp lệ.
+\textbf{Kiểm tra thiết bị:} bản Release mới đã được build, cài lại và mở trực tiếp trên Samsung M21 không cần Metro hoặc 	exttt{adb reverse}. Đăng nhập 	exttt{admin/1}, 	exttt{user/2}, màn lịch và bảo trì, quản lý khóa và quản lý booking đều hiển thị bình thường; log kiểm tra không có lỗi nghiêm trọng của Android Runtime hoặc React Native.
+
+\textbf{Chưa hoàn thành:} đồng bộ dữ liệu nhiều thiết bị, cơ sở dữ liệu máy chủ và kiểm thử đầu cuối OneIoT bằng token/SmartLock thật.
 
 \end{document}

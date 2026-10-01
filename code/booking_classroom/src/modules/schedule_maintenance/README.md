@@ -1,12 +1,15 @@
 # Module: Schedule & Maintenance
 
-**Người dùng chính:** Admin.
+**Người dùng:** Admin và User.
 
-## Chức năng con
+## Chức năng
 
-- Xem lịch sử dụng phòng.
-- Tạo, sửa và theo dõi lịch bảo trì.
-- Đánh dấu phòng không thể đặt trong thời gian bảo trì.
-- Cung cấp dữ liệu lịch cho kiểm tra xung đột của module `booking`.
+- User đang trong thời gian sử dụng một booking đã duyệt được gửi yêu cầu bảo trì cho chính phòng đó và phải nhập lý do.
+- Mỗi booking chỉ có một yêu cầu bảo trì đang chờ.
+- Admin nhận thông báo khi có yêu cầu mới.
+- Tầng có yêu cầu đang chờ được tự động mở và tô vàng; phòng liên quan cũng được tô vàng.
+- Admin có thể chọn yêu cầu để điền sẵn phòng/lý do, lên lịch bảo trì hoặc từ chối.
+- Khi lên lịch xử lý hoặc từ chối, yêu cầu được đóng và User nhận thông báo.
+- Lịch bảo trì chặn booking mới bị trùng; không cho tạo lịch đè lên booking đã duyệt.
 
-**Hiện trạng:** đã xem lịch sử dụng được duyệt, tạo/hủy lịch bảo trì và chặn bảo trì trùng booking đã duyệt.
+**Hiện trạng:** đã có repository và giao diện local cho yêu cầu, thông báo, đánh dấu tầng/phòng, tạo/hủy lịch và xử lý yêu cầu.

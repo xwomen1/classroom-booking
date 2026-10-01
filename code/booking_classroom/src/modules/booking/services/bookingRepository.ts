@@ -8,6 +8,8 @@ import { hasMaintenanceConflict } from '../../schedule_maintenance/services/main
 import type { Booking, BookingStatus, CreateBookingInput } from '../model/booking';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { grantRoomPinPermission } from '../../access_control/services/roomPinPermissionRepository';
+import type { UserRole } from '../../../core/types/userRole';
+import type { SmartLockAccessEvent } from '../model/booking';
 
 const BOOKINGS_KEY = 'booking.records';
 const ACTIVE_STATUSES: readonly BookingStatus[] = ['PENDING', 'APPROVED'];
@@ -231,10 +233,179 @@ export async function scheduleKeyPickup(id: string, adminUsername: string, date:
     throw new Error('Lịch nhận khóa phải ở tương lai và trước giờ sử dụng phòng.');
   }
   if (!location.trim()) throw new Error('Vui lòng nhập địa điểm nhận khóa.');
-  const updated = await updateBooking(id, current => ({ ...current, keyPickupAppointment: {
-    date, time, location: location.trim(), createdAt: new Date().toISOString(), createdBy: adminUsername,
-  }}));
+  const now = new Date().toISOString();
+  const proposal = {
+    id: `pickup-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    date,
+    time,
+    location: location.trim(),
+    proposedAt: now,
+    proposedBy: adminUsername,
+    proposedByRole: 'admin' as const,
+  };
+  const updated = await updateBooking(id, current => ({ ...current,
+    keyPickupAppointment: {
+      date, time, location: location.trim(), createdAt: now, createdBy: adminUsername,
+      agreedAt: now, agreedBy: adminUsername,
+    },
+    keyPickupNegotiation: {
+      status: 'AGREED', currentProposal: proposal, history: [proposal], agreedAt: now, agreedBy: adminUsername,
+    },
+  }));
   await addNotification(updated.requesterUsername, 'Đã có lịch nhận khóa', `${date} ${time} tại ${location.trim()} cho phòng ${room.name}.`);
+  return updated;
+}
+
+function validateKeyPickupTime(booking: Booking, date: string, time: string) {
+  validateDateAndTime(date, time, '23:59');
+  const appointment = toLocalDateTime(date, time);
+  if (appointment <= new Date() || appointment >= toLocalDateTime(booking.date, booking.startTime)) {
+    throw new Error('Thời gian nhận khóa phải ở tương lai và trước giờ sử dụng phòng.');
+  }
+}
+
+export async function proposeKeyPickup(
+  id: string,
+  actorUsername: string,
+  actorRole: UserRole,
+  date: string,
+  time: string,
+  location = '',
+): Promise<Booking> {
+  await assertAccountRole(actorUsername, actorRole);
+  const booking = await getBookingById(id);
+  if (!booking || booking.status !== 'APPROVED') {
+    throw new Error('Chỉ thỏa thuận nhận khóa cho yêu cầu đã duyệt.');
+  }
+  const room = await getRoomById(booking.roomId);
+  if (room?.lockType !== 'PHYSICAL_KEY') throw new Error('Phòng này không dùng khóa cơ/thẻ.');
+  if (booking.keyPickupNegotiation?.status === 'AGREED') {
+    throw new Error('Hai bên đã thống nhất lịch nhận khóa.');
+  }
+  if (actorRole === 'user') {
+    if (booking.requesterUsername !== actorUsername) throw new Error('Bạn không có quyền sửa lịch nhận khóa này.');
+    if (booking.keyPickupNegotiation?.status === 'WAITING_ADMIN') {
+      throw new Error('Đang chờ quản trị viên phản hồi thời gian bạn đã gửi.');
+    }
+  } else if (!booking.keyPickupNegotiation || booking.keyPickupNegotiation.status !== 'WAITING_ADMIN') {
+    throw new Error('Cần có đề xuất thời gian từ người dùng trước.');
+  }
+  validateKeyPickupTime(booking, date, time);
+  if (actorRole === 'admin' && !location.trim()) {
+    throw new Error('Quản trị viên cần nhập địa điểm nhận khóa.');
+  }
+  const proposal = {
+    id: `pickup-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    date,
+    time,
+    location: actorRole === 'admin' ? location.trim() : undefined,
+    proposedAt: new Date().toISOString(),
+    proposedBy: actorUsername,
+    proposedByRole: actorRole,
+  };
+  const updated = await updateBooking(id, current => ({
+    ...current,
+    keyPickupAppointment: undefined,
+    keyPickupNegotiation: {
+      status: actorRole === 'user' ? 'WAITING_ADMIN' : 'WAITING_USER',
+      currentProposal: proposal,
+      history: [...(current.keyPickupNegotiation?.history ?? []), proposal],
+    },
+  }));
+  if (actorRole === 'user') {
+    await addNotification('admin', 'Có đề xuất thời gian nhận khóa',
+      `${actorUsername} đề xuất ${date} ${time} cho phòng ${room.name}.`);
+  } else {
+    await addNotification(updated.requesterUsername, 'Quản trị viên đề xuất thời gian nhận khóa khác',
+      `${date} ${time} tại ${location.trim()} cho phòng ${room.name}.`);
+  }
+  return updated;
+}
+
+export async function acceptKeyPickupProposal(
+  id: string,
+  actorUsername: string,
+  actorRole: UserRole,
+  location = '',
+): Promise<Booking> {
+  await assertAccountRole(actorUsername, actorRole);
+  const booking = await getBookingById(id);
+  if (!booking || booking.status !== 'APPROVED') throw new Error('Không tìm thấy yêu cầu đã duyệt.');
+  const negotiation = booking.keyPickupNegotiation;
+  if (!negotiation || negotiation.status === 'AGREED') throw new Error('Không có đề xuất đang chờ xác nhận.');
+  const proposal = negotiation.currentProposal;
+  if (proposal.proposedByRole === actorRole) throw new Error('Bên còn lại phải xác nhận đề xuất này.');
+  if (actorRole === 'user' && booking.requesterUsername !== actorUsername) {
+    throw new Error('Bạn không có quyền xác nhận lịch nhận khóa này.');
+  }
+  const agreedLocation = proposal.location?.trim() || location.trim();
+  if (!agreedLocation) throw new Error('Vui lòng nhập địa điểm nhận khóa trước khi duyệt.');
+  validateKeyPickupTime(booking, proposal.date, proposal.time);
+  const now = new Date().toISOString();
+  const updated = await updateBooking(id, current => ({
+    ...current,
+    keyPickupAppointment: {
+      date: proposal.date,
+      time: proposal.time,
+      location: agreedLocation,
+      createdAt: proposal.proposedAt,
+      createdBy: proposal.proposedBy,
+      agreedAt: now,
+      agreedBy: actorUsername,
+    },
+    keyPickupNegotiation: {
+      ...negotiation,
+      status: 'AGREED',
+      agreedAt: now,
+      agreedBy: actorUsername,
+    },
+  }));
+  const room = await getRoomById(updated.roomId);
+  const otherUsername = actorRole === 'admin' ? updated.requesterUsername : 'admin';
+  await addNotification(otherUsername, 'Đã thống nhất lịch nhận khóa',
+    `${proposal.date} ${proposal.time} tại ${agreedLocation} cho phòng ${room?.name ?? updated.roomId}.`);
+  return updated;
+}
+
+export async function recordSmartLockAccessEvent(
+  roomId: string,
+  event: SmartLockAccessEvent,
+): Promise<Booking | undefined> {
+  if (isRemoteApiEnabled()) return undefined;
+  const eventTime = new Date(event.occurredAt);
+  if (Number.isNaN(eventTime.getTime())) return undefined;
+  const configuration = await getConfiguration();
+  const bookings = await getBookings();
+  const candidates = bookings
+    .filter(item => item.roomId === roomId && item.status === 'APPROVED')
+    .filter(item => {
+      const start = toLocalDateTime(item.date, item.startTime).getTime() - configuration.pinGraceMinutes * 60_000;
+      const end = toLocalDateTime(item.date, item.endTime).getTime() + configuration.pinGraceMinutes * 60_000;
+      return eventTime.getTime() >= start && eventTime.getTime() <= end;
+    })
+    .sort((a, b) => Math.abs(toLocalDateTime(a.date, a.startTime).getTime() - eventTime.getTime()) -
+      Math.abs(toLocalDateTime(b.date, b.startTime).getTime() - eventTime.getTime()));
+  const target = event.type === 'CHECK_OUT'
+    ? candidates.find(item => item.checkedInAt && !item.checkedOutAt)
+    : candidates.find(item => !item.checkedInAt) ?? candidates[0];
+  if (!target) return undefined;
+  if (event.type === 'CHECK_IN' && target.checkedInAt) return target;
+  if (event.type === 'CHECK_OUT' && target.checkedOutAt) return target;
+  const index = bookings.findIndex(item => item.id === target.id);
+  const updated: Booking = {
+    ...target,
+    smartLockAccessEvents: [...(target.smartLockAccessEvents ?? []), event],
+    ...(event.type === 'CHECK_IN' ? { checkedInAt: event.occurredAt } : { checkedOutAt: event.occurredAt }),
+  };
+  const next = [...bookings];
+  next[index] = updated;
+  await writeJson(BOOKINGS_KEY, next);
+  const room = await getRoomById(roomId);
+  const action = event.type === 'CHECK_IN' ? 'check in' : 'check out';
+  await addNotification(updated.requesterUsername, `Đã ghi nhận ${action}`,
+    `SmartLock ghi nhận ${action} tại phòng ${room?.name ?? roomId}.`);
+  await addNotification('admin', `SmartLock: ${action}`,
+    `${updated.requesterUsername} · phòng ${room?.name ?? roomId} · ${new Date(event.occurredAt).toLocaleString('vi-VN')}.`);
   return updated;
 }
 
@@ -267,7 +438,8 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
     throw new Error('Phòng thay thế đã có yêu cầu chờ hoặc yêu cầu được duyệt trùng thời gian.');
   }
   const updated = await updateBooking(id, current => ({
-    ...current, roomId: newRoomId, userCanGeneratePin: false, keyPickupAppointment: undefined,
+    ...current, roomId: newRoomId, userCanGeneratePin: false,
+    keyPickupAppointment: undefined, keyPickupNegotiation: undefined,
     temporaryPin: current.temporaryPin ? { ...current.temporaryPin, revokedAt: new Date().toISOString() } : undefined,
     roomChanges: [...(current.roomChanges ?? []), { fromRoomId: current.roomId, toRoomId: newRoomId,
       changedAt: new Date().toISOString(), changedBy: adminUsername, reason: reason.trim() }],

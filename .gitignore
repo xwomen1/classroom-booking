@@ -10,3 +10,8 @@
 Thumbs.db
 .vscode/
 code/.tooling/
+
+# Generated Android packages
+code/booking_classroom/release/
+*.apk
+*.aab

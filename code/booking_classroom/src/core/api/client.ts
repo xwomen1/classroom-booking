@@ -1,13 +1,8 @@
 export const API_BASE_URL = 'http://192.168.121.22:8080';
+const USE_REMOTE_API = false;
 
 export function isRemoteApiEnabled(): boolean {
-  const nodeEnv = (
-    globalThis as typeof globalThis & {
-      process?: { env?: { NODE_ENV?: string } };
-    }
-  ).process?.env?.NODE_ENV;
-
-  return nodeEnv !== 'test';
+  return USE_REMOTE_API;
 }
 
 let token: string | null = null;

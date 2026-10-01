@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://192.168.121.22:8080';
+export const API_BASE_URL = 'https://dancing-shannon-johns-relaxation.trycloudflare.com';
 
 export function useRemoteApi(): boolean {
   return process.env.NODE_ENV !== 'test';
@@ -27,12 +27,13 @@ export async function apiRequest<T>(
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'X-Pinggy-No-Screen': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: options?.body === undefined ? undefined : JSON.stringify(options.body),
     });
   } catch {
-    throw new Error('Không kết nối được máy chủ đặt phòng. Hãy kiểm tra Wi-Fi và dịch vụ Java.');
+    throw new Error('Không kết nối được máy chủ đặt phòng. Hãy kiểm tra đường link public còn mở.');
   }
 
   if (response.status === 204) {

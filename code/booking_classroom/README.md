@@ -26,9 +26,11 @@ export const ENABLE_REMOTE_SYNC = false;
 ```
 
 - `false`: toàn bộ nghiệp vụ và đăng nhập chạy local, không cần booking server.
-- `true`: bật nhánh REST API. Chỉ dùng khi nhóm hoàn thiện `../booking-server` và cấu hình `REMOTE_API_BASE_URL`.
+- `true`: bật nhánh REST API và gọi `REMOTE_API_BASE_URL`. URL Cloudflare mới từ nhánh `syncdata` đã được giữ sẵn trong file cấu hình.
 
 Kết nối OneIoT độc lập với công tắc này. `../../tunghv3` là gateway tham khảo cũ và app không gọi tới gateway đó.
+
+Backend mặc định dùng cơ sở dữ liệu local. Chỉ khi chạy booking server với profile `remote` thì H2 SSL và truststore từ nhánh `syncdata` mới được kích hoạt; xem [hướng dẫn booking-server](../booking-server/README.md).
 
 ## Clone và cài dependency
 

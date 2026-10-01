@@ -38,12 +38,13 @@ export async function apiRequest<T>(
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        'X-Pinggy-No-Screen': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: options?.body === undefined ? undefined : JSON.stringify(options.body),
     });
   } catch {
-    throw new Error('Không kết nối được máy chủ đặt phòng. Hãy kiểm tra Wi-Fi và dịch vụ Java.');
+    throw new Error('Không kết nối được máy chủ đặt phòng. Hãy kiểm tra địa chỉ public và trạng thái server.');
   }
 
   if (response.status === 204) {

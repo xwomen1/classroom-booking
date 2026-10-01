@@ -15,6 +15,7 @@ import { AccountManagementScreen } from '../../modules/account_management';
 import {
   AdminBookingScreen,
   BookingScheduleScreen,
+  getBookings,
   MyBookingsScreen,
 } from '../../modules/booking';
 import { ConfigurationScreen } from '../../modules/configuration';
@@ -83,6 +84,7 @@ export function RoleDashboardScreen({
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pendingBookingCount, setPendingBookingCount] = useState(0);
   const isAdmin = session.role === 'admin';
   const roleFeatures = isAdmin ? ADMIN_FEATURES : USER_FEATURES;
 
@@ -90,7 +92,15 @@ export function RoleDashboardScreen({
     getUnreadCount(session.username).then(setUnreadCount);
   }, [session.username]);
 
+  const refreshPendingBookingCount = useCallback(() => {
+    if (!isAdmin) return;
+    getBookings()
+      .then(bookings => setPendingBookingCount(bookings.filter(item => item.status === 'PENDING').length))
+      .catch(() => {});
+  }, [isAdmin]);
+
   useEffect(refreshUnreadCount, [refreshUnreadCount]);
+  useEffect(refreshPendingBookingCount, [refreshPendingBookingCount]);
 
   useEffect(() => {
     let active = true;
@@ -134,15 +144,17 @@ export function RoleDashboardScreen({
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         openPendingScreen();
+        refreshPendingBookingCount();
       }
     });
     return () => subscription.remove();
-  }, [session.role]);
+  }, [session.role, refreshPendingBookingCount]);
 
   const closeChildScreen = useCallback(() => {
     setActiveScreen(null);
     refreshUnreadCount();
-  }, [refreshUnreadCount]);
+    refreshPendingBookingCount();
+  }, [refreshPendingBookingCount, refreshUnreadCount]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -297,7 +309,13 @@ export function RoleDashboardScreen({
         {roleFeatures.map(item => (
           <Pressable
             key={item.title}
+            testID={isAdmin && item.title === 'Yêu cầu đặt phòng' ? 'admin-booking-requests-card' : undefined}
             accessibilityRole="button"
+            accessibilityLabel={
+              isAdmin && item.title === 'Yêu cầu đặt phòng' && pendingBookingCount > 0
+                ? `${item.title}, ${pendingBookingCount} yêu cầu chờ duyệt`
+                : item.title
+            }
             onPress={() => setActiveScreen(item.title)}
             style={({ pressed }) => [
               styles.featureCard,
@@ -308,7 +326,16 @@ export function RoleDashboardScreen({
               <Text style={styles.featureTitle}>{item.title}</Text>
               <Text style={styles.featureDescription}>{item.description}</Text>
             </View>
-            <Text style={styles.chevron}>›</Text>
+            <View style={styles.featureTrailing}>
+              {isAdmin && item.title === 'Yêu cầu đặt phòng' && pendingBookingCount > 0 ? (
+                <View style={styles.pendingBookingBadge} testID="pending-booking-badge">
+                  <Text style={styles.pendingBookingBadgeText}>
+                    {pendingBookingCount > 9 ? '9+' : pendingBookingCount}
+                  </Text>
+                </View>
+              ) : null}
+              <Text style={styles.chevron}>›</Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -467,7 +494,10 @@ const styles = StyleSheet.create({
   featureText: { flex: 1 },
   featureTitle: { color: '#172033', fontSize: 16, fontWeight: '800' },
   featureDescription: { color: '#657084', fontSize: 14, marginTop: 4 },
-  chevron: { color: '#9AA4B2', fontSize: 30, marginLeft: 12 },
+  featureTrailing: { alignItems: 'center', flexDirection: 'row', marginLeft: 10 },
+  pendingBookingBadge: { alignItems: 'center', backgroundColor: '#B01432', borderRadius: 11, justifyContent: 'center', marginRight: 4, minHeight: 22, minWidth: 22, paddingHorizontal: 6 },
+  pendingBookingBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
+  chevron: { color: '#9AA4B2', fontSize: 30, marginLeft: 6 },
   modalOverlay: {
     alignItems: 'flex-end',
     backgroundColor: 'rgba(18, 27, 43, 0.28)',

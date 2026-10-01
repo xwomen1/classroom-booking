@@ -19,10 +19,17 @@ import {
 
 type PickupDraft = { date: string; time: string; location: string };
 type ChangeDraft = { roomId: string; reason: string };
+const BOOKING_STATUS_LABEL: Record<Booking['status'], string> = {
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+};
 const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 export function AdminBookingScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([]); const [message, setMessage] = useState(''); const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [pickups, setPickups] = useState<Record<string, PickupDraft>>({}); const [changes, setChanges] = useState<Record<string, ChangeDraft>>({}); const [expandedChangeFloors, setExpandedChangeFloors] = useState<Record<string, number | null>>({});
+  const [expandedBookings, setExpandedBookings] = useState<Record<string, boolean>>({});
   const load = useCallback(async () => { const [items, roomItems, maintenanceItems] = await Promise.all([getBookings(), getRooms(), getMaintenanceRecords()]); setBookings([...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))); setRooms(roomItems); setMaintenance(maintenanceItems); }, []);
   useEffect(() => { load(); }, [load]);
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể xử lý yêu cầu.'); } };
@@ -45,7 +52,30 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
       const replacementRooms = room ? getReplacementCandidates(room, booking, rooms, bookings, maintenance) : [];
       const replacementRoom = replacementRooms.find(item => item.id === change.roomId);
       const expandedChangeFloor = expandedChangeFloors[booking.id] ?? null;
-      return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+      const expanded = expandedBookings[booking.id] === true;
+      return <View key={booking.id} style={styles.card}>
+        <Pressable
+          testID={`admin-booking-summary-${booking.id}`}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          accessibilityLabel={`${room?.name ?? booking.roomId}, ${booking.date}, ${booking.startTime}-${booking.endTime}, ${BOOKING_STATUS_LABEL[booking.status]}, ${expanded ? 'thu gọn' : 'xem chi tiết'}`}
+          onPress={() => setExpandedBookings(current => ({ ...current, [booking.id]: !current[booking.id] }))}
+          style={styles.bookingSummary}
+        >
+          <View style={styles.bookingSummaryContent}>
+            <View style={styles.bookingSummaryHeading}>
+              <Text style={[styles.bookingSummaryStatus, styles[`summary${booking.status}`]]}>{BOOKING_STATUS_LABEL[booking.status]}</Text>
+              <Text numberOfLines={1} style={styles.bookingSummaryRoom}>{room?.name ?? booking.roomId} · {booking.date} · {booking.startTime}–{booking.endTime}</Text>
+            </View>
+            <Text numberOfLines={1} style={styles.bookingSummaryPurpose}>{booking.purpose}</Text>
+            <Text numberOfLines={1} style={styles.bookingSummaryMeta}>
+              Người đặt: {booking.requesterUsername}{booking.recurringSeriesId ? ` · Tuần ${(booking.recurringWeekIndex ?? 0) + 1}/${booking.repeatWeeks ?? seriesPending.length}` : ''}
+            </Text>
+          </View>
+          <Text style={styles.bookingSummaryChevron}>{expanded ? '⌃' : '⌄'}</Text>
+        </Pressable>
+        {expanded ? <View style={styles.expandedDetails}>
+        <BookingInfo booking={booking} />
         {booking.recurringSeriesId ? <Text style={styles.seriesOccurrence}>Chuỗi hàng tuần · Tuần {(booking.recurringWeekIndex ?? 0) + 1}/{booking.repeatWeeks ?? seriesPending.length}</Text> : null}
         {isSeriesReviewLead ? <View style={styles.seriesReviewBox}>
           <Text style={styles.seriesReviewTitle}>Chuỗi có {seriesPending.length} lượt đang chờ duyệt</Text>
@@ -116,7 +146,8 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
             <Text style={styles.blueText}>Xác nhận đổi phòng</Text>
           </Pressable>
         </View> : null}
-      </View>;
+          </View> : null}
+        </View>;
     })}
   </ScrollView></View>;
 }
@@ -258,6 +289,19 @@ const styles = StyleSheet.create({
   message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 },
   empty: { color: '#657084', marginTop: 40, textAlign: 'center' },
   card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 14, padding: 15 },
+  bookingSummary: { alignItems: 'center', flexDirection: 'row', minHeight: 54 },
+  bookingSummaryContent: { flex: 1, minWidth: 0 },
+  bookingSummaryHeading: { alignItems: 'center', flexDirection: 'row' },
+  bookingSummaryStatus: { borderRadius: 6, fontSize: 10, fontWeight: '800', marginRight: 7, overflow: 'hidden', paddingHorizontal: 7, paddingVertical: 4 },
+  summaryPENDING: { backgroundColor: '#FFF0CC', color: '#805B00' },
+  summaryAPPROVED: { backgroundColor: '#DDF4E7', color: '#17613A' },
+  summaryREJECTED: { backgroundColor: '#FBE1E4', color: '#9C273A' },
+  summaryCANCELLED: { backgroundColor: '#E8EBF0', color: '#566176' },
+  bookingSummaryRoom: { color: '#172033', flex: 1, fontSize: 12, fontWeight: '800' },
+  bookingSummaryPurpose: { color: '#344057', fontSize: 12, fontWeight: '700', marginTop: 5 },
+  bookingSummaryMeta: { color: '#7B8596', fontSize: 10, marginTop: 3 },
+  bookingSummaryChevron: { color: '#657084', fontSize: 20, marginLeft: 12, paddingHorizontal: 3 },
+  expandedDetails: { borderTopColor: '#E9EDF2', borderTopWidth: 1, marginTop: 10, paddingTop: 11 },
   seriesOccurrence: { alignSelf: 'flex-start', backgroundColor: '#EAF4FF', borderRadius: 6, color: '#24598F', fontSize: 11, fontWeight: '700', marginTop: 8, paddingHorizontal: 8, paddingVertical: 5 },
   seriesReviewBox: { backgroundColor: '#F4F8FC', borderColor: '#D5E1EC', borderRadius: 8, borderWidth: 1, marginTop: 10, padding: 10 },
   seriesReviewTitle: { color: '#26384D', fontSize: 13, fontWeight: '800' },

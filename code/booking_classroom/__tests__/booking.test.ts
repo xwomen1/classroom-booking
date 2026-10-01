@@ -7,9 +7,12 @@ import {
 } from '../src/modules/access_control';
 import {
   createBooking,
+  cancelFutureRecurringBookings,
   getBookingsForUser,
   reviewBooking,
+  reviewRecurringSeries,
   toLocalDateTime,
+  updatePendingRecurringBookings,
 } from '../src/modules/booking';
 import { registerAccount } from '../src/modules/auth';
 import { assignSmartLockToRoom } from '../src/modules/smart_lock';
@@ -114,12 +117,171 @@ describe('local booking and temporary PIN flow', () => {
     });
 
     const bookings = await getBookingsForUser('user');
-    expect(bookings.filter(item => item.roomId === 'room-a101')).toHaveLength(3);
-    expect(bookings.map(item => item.date).sort()).toEqual([
+    const recurring = bookings.filter(item => item.roomId === 'room-a101');
+    expect(recurring).toHaveLength(3);
+    expect(new Set(recurring.map(item => item.recurringSeriesId)).size).toBe(1);
+    expect(recurring.map(item => item.date).sort()).toEqual([
       firstDate,
       dateAfter(8),
       dateAfter(15),
     ]);
+    expect(recurring.map(item => item.recurringWeekIndex).sort()).toEqual([0, 1, 2]);
+  });
+
+  test('updates all future pending occurrences in a recurring series', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+
+    await expect(updatePendingRecurringBookings(booking.id, 'user', {
+      startTime: '10:00',
+      endTime: '11:00',
+      purpose: 'Đổi lịch học',
+    })).resolves.toBe(3);
+
+    const updated = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(updated).toHaveLength(3);
+    expect(updated.every(item => item.startTime === '10:00' && item.endTime === '11:00')).toBe(true);
+    expect(updated.every(item => item.purpose === 'Đổi lịch học')).toBe(true);
+  });
+
+  test('does not partially update a series when one future occurrence conflicts', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+    const storedBookings = JSON.parse((await storage.getItem('booking.records')) ?? '[]') as Array<Record<string, unknown>>;
+    storedBookings.push({
+      id: 'existing-future-booking',
+      requesterUsername: 'teacher03',
+      roomId: 'room-a101',
+      date: dateAfter(8),
+      startTime: '10:00',
+      endTime: '11:00',
+      purpose: 'Lịch khác',
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    });
+    await storage.setItem('booking.records', JSON.stringify(storedBookings));
+
+    await expect(updatePendingRecurringBookings(booking.id, 'user', {
+      startTime: '10:00',
+      endTime: '11:00',
+      purpose: 'Đổi lịch học',
+    })).rejects.toThrow('Phòng đã có yêu cầu khác');
+
+    const unchanged = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(unchanged.every(item => item.startTime === '08:00' && item.purpose === 'Lớp học lặp lại')).toBe(true);
+  });
+
+  test('cancels future occurrences together and revokes an issued PIN', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+    await reviewBooking(booking.id, 'APPROVED', 'admin');
+    await createTemporaryPin(booking.id, 'admin', 'admin');
+
+    await expect(cancelFutureRecurringBookings(booking.id, 'user')).resolves.toBe(3);
+
+    const cancelled = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(cancelled).toHaveLength(3);
+    expect(cancelled.every(item => item.status === 'CANCELLED')).toBe(true);
+    expect(cancelled.find(item => item.id === booking.id)?.temporaryPin?.revokedAt).toBeDefined();
+  });
+
+  test('admin can approve every pending occurrence in a series at once', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+
+    await expect(reviewRecurringSeries(booking.recurringSeriesId!, 'APPROVED', 'admin')).resolves.toBe(3);
+
+    const approved = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(approved.every(item => item.status === 'APPROVED' && item.reviewedBy === 'admin')).toBe(true);
+    await expect(hasRoomPinPermission('user', 'room-a101')).resolves.toBe(true);
+  });
+
+  test('admin can reject every pending occurrence in a series at once', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+
+    await expect(reviewRecurringSeries(booking.recurringSeriesId!, 'REJECTED', 'admin')).resolves.toBe(3);
+
+    const rejected = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(rejected.every(item => item.status === 'REJECTED' && item.reviewedBy === 'admin')).toBe(true);
+  });
+
+  test('does not approve any occurrence when one series date conflicts with an approved booking', async () => {
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: dateAfter(1),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học lặp lại',
+      repeatWeekly: true,
+      repeatWeeks: 3,
+    });
+    const storedBookings = JSON.parse((await storage.getItem('booking.records')) ?? '[]') as Array<Record<string, unknown>>;
+    storedBookings.push({
+      id: 'approved-future-booking',
+      requesterUsername: 'teacher04',
+      roomId: 'room-a101',
+      date: dateAfter(8),
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lịch đã duyệt',
+      status: 'APPROVED',
+      createdAt: new Date().toISOString(),
+    });
+    await storage.setItem('booking.records', JSON.stringify(storedBookings));
+
+    await expect(reviewRecurringSeries(booking.recurringSeriesId!, 'APPROVED', 'admin'))
+      .rejects.toThrow('trùng lịch đã duyệt; chưa lượt nào được duyệt');
+
+    const unchanged = (await getBookingsForUser('user'))
+      .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
+    expect(unchanged.every(item => item.status === 'PENDING')).toBe(true);
   });
 
   test('rejects a room collision and dates outside the one-to-three-day window', async () => {

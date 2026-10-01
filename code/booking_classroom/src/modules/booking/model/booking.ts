@@ -72,6 +72,8 @@ export type Booking = {
   purpose: string;
   repeatWeekly?: boolean;
   repeatWeeks?: number;
+  recurringSeriesId?: string;
+  recurringWeekIndex?: number;
   status: BookingStatus;
   createdAt: string;
   reviewedAt?: string;

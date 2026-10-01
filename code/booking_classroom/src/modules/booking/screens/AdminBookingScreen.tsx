@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
 import { createTemporaryPin } from '../../access_control';
 import { getRooms, type Room } from '../../room_management';
@@ -14,6 +14,7 @@ import {
   meetsReplacementRoomRequirements,
   proposeKeyPickup,
   reviewBooking,
+  reviewRecurringSeries,
 } from '../services/bookingRepository';
 
 type PickupDraft = { date: string; time: string; location: string };
@@ -37,10 +38,43 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
   return <View style={styles.page}><ScreenHeader title="Yêu cầu đặt phòng" onBack={onBack} /><View style={styles.tabs}><Tab label="Đang xử lý" on={filter === 'ACTIVE'} onPress={() => setFilter('ACTIVE')} /><Tab label="Đã đóng" on={filter === 'HISTORY'} onPress={() => setFilter('HISTORY')} /></View><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}{visible.length === 0 ? <Text style={styles.empty}>Không có yêu cầu trong nhóm này.</Text> : visible.map(booking => {
       const room = rooms.find(item => item.id === booking.roomId); const pickup = pickups[booking.id] ?? { date: booking.date, time: '', location: '' }; const change = changes[booking.id] ?? { roomId: '', reason: '' }; const activePin = booking.temporaryPin && !booking.temporaryPin.revokedAt;
+      const seriesPending = booking.recurringSeriesId ? visible
+        .filter(item => item.recurringSeriesId === booking.recurringSeriesId && item.status === 'PENDING')
+        .sort((left, right) => `${left.date}${left.startTime}`.localeCompare(`${right.date}${right.startTime}`)) : [];
+      const isSeriesReviewLead = booking.status === 'PENDING' && seriesPending[0]?.id === booking.id;
       const replacementRooms = room ? getReplacementCandidates(room, booking, rooms, bookings, maintenance) : [];
       const replacementRoom = replacementRooms.find(item => item.id === change.roomId);
       const expandedChangeFloor = expandedChangeFloors[booking.id] ?? null;
       return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+        {booking.recurringSeriesId ? <Text style={styles.seriesOccurrence}>Chuỗi hàng tuần · Tuần {(booking.recurringWeekIndex ?? 0) + 1}/{booking.repeatWeeks ?? seriesPending.length}</Text> : null}
+        {isSeriesReviewLead ? <View style={styles.seriesReviewBox}>
+          <Text style={styles.seriesReviewTitle}>Chuỗi có {seriesPending.length} lượt đang chờ duyệt</Text>
+          <Text style={styles.seriesReviewHint}>Duyệt cả chuỗi sẽ kiểm tra mọi ngày trước; nếu một lượt xung đột, không lượt nào được duyệt.</Text>
+          <View style={styles.seriesReviewActions}>
+            <Button
+              label={`Duyệt cả ${seriesPending.length} lượt`}
+              primary
+              onPress={() => action(
+                () => reviewRecurringSeries(booking.recurringSeriesId!, 'APPROVED', username),
+                `Đã duyệt ${seriesPending.length} lượt trong chuỗi.`,
+              )}
+            />
+            <Button
+              label="Từ chối cả chuỗi"
+              onPress={() => Alert.alert(
+                'Từ chối cả chuỗi đặt phòng?',
+                `Sẽ từ chối ${seriesPending.length} lượt đang chờ duyệt.`,
+                [
+                  { text: 'Quay lại', style: 'cancel' },
+                  { text: 'Từ chối cả chuỗi', style: 'destructive', onPress: () => { void action(
+                    () => reviewRecurringSeries(booking.recurringSeriesId!, 'REJECTED', username),
+                    `Đã từ chối ${seriesPending.length} lượt trong chuỗi.`,
+                  ); } },
+                ],
+              )}
+            />
+          </View>
+        </View> : null}
         {booking.status === 'PENDING' ? <View style={styles.row}><Button label="Duyệt" primary onPress={() => action(() => reviewBooking(booking.id, 'APPROVED', username), 'Đã duyệt yêu cầu.')} /><Button label="Từ chối" onPress={() => action(() => reviewBooking(booking.id, 'REJECTED', username), 'Đã từ chối yêu cầu.')} /></View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !activePin ? <View style={styles.section}><Text style={styles.sectionTitle}>Mã mở cửa</Text><Text style={styles.detail}>Người đặt đã được quyền tự tạo mã cho phòng này. Bạn cũng có thể tạo mã thay.</Text><Pressable style={styles.purple} onPress={() => action(() => createTemporaryPin(booking.id, username, 'admin'), 'Đã tạo mã tạm thời.')}><Text style={styles.white}>Tạo mã thay</Text></Pressable></View> : null}
         {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text></View> : null}
@@ -224,6 +258,11 @@ const styles = StyleSheet.create({
   message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 },
   empty: { color: '#657084', marginTop: 40, textAlign: 'center' },
   card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 14, padding: 15 },
+  seriesOccurrence: { alignSelf: 'flex-start', backgroundColor: '#EAF4FF', borderRadius: 6, color: '#24598F', fontSize: 11, fontWeight: '700', marginTop: 8, paddingHorizontal: 8, paddingVertical: 5 },
+  seriesReviewBox: { backgroundColor: '#F4F8FC', borderColor: '#D5E1EC', borderRadius: 8, borderWidth: 1, marginTop: 10, padding: 10 },
+  seriesReviewTitle: { color: '#26384D', fontSize: 13, fontWeight: '800' },
+  seriesReviewHint: { color: '#657084', fontSize: 11, lineHeight: 16, marginTop: 4 },
+  seriesReviewActions: { flexDirection: 'row', marginTop: 9 },
   row: { flexDirection: 'row', marginTop: 13 },
   button: { alignItems: 'center', borderColor: '#B01432', borderRadius: 8, borderWidth: 1, flex: 1, marginRight: 7, paddingVertical: 10 },
   buttonPrimary: { backgroundColor: '#B01432' },

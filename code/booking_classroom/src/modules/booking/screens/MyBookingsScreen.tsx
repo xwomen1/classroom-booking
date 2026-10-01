@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
 import { createTemporaryPin, getPinDisplayStatus, getRoomPinPermissions } from '../../access_control';
 import { getRooms, type Room } from '../../room_management';
@@ -13,21 +13,43 @@ import type { Booking } from '../model/booking';
 import {
   acceptKeyPickupProposal,
   cancelBooking,
+  cancelFutureRecurringBookings,
   getBookingsForUser,
   proposeKeyPickup,
   setPickupDelegate,
   toLocalDateTime,
+  updatePendingRecurringBookings,
 } from '../services/bookingRepository';
 
 const PIN_STATUS_LABEL = { PENDING: 'Chưa đến thời gian hiệu lực', ACTIVE: 'Đang có hiệu lực', EXPIRED: 'Đã hết hạn', REVOKED: 'Đã thu hồi' };
 type DelegateDraft = { fullName: string; studentId: string };
 type PickupDraft = { date: string; time: string };
+type SeriesEditDraft = Pick<Booking, 'startTime' | 'endTime' | 'purpose'>;
+
+const seriesStyles = StyleSheet.create({
+  occurrence: { alignSelf: 'flex-start', backgroundColor: '#EAF4FF', borderRadius: 6, color: '#24598F', fontSize: 11, fontWeight: '700', marginTop: 8, paddingHorizontal: 8, paddingVertical: 5 },
+  box: { backgroundColor: '#F4F8FC', borderColor: '#D5E1EC', borderRadius: 8, borderWidth: 1, marginTop: 10, padding: 10 },
+  title: { color: '#26384D', fontSize: 13, fontWeight: '800' },
+  detail: { color: '#657084', fontSize: 11, lineHeight: 16, marginTop: 4 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 9 },
+  action: { alignItems: 'center', backgroundColor: '#FFF', borderColor: '#AFC9DE', borderRadius: 7, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 40, minWidth: 130, paddingHorizontal: 8, paddingVertical: 7 },
+  actionText: { color: '#1769AA', fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  disabled: { opacity: 0.45 },
+  cancelAction: { alignItems: 'center', backgroundColor: '#FFF7F5', borderColor: '#E4C1BB', borderRadius: 7, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 40, minWidth: 130, paddingHorizontal: 8, paddingVertical: 7 },
+  cancelText: { color: '#A53A32', fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  editor: { borderTopColor: '#DDE6EE', borderTopWidth: 1, marginTop: 10, paddingTop: 9 },
+  editorHint: { color: '#657084', fontSize: 11, lineHeight: 16, marginBottom: 7 },
+  saveAction: { alignItems: 'center', backgroundColor: '#1769AA', borderRadius: 7, marginTop: 4, paddingVertical: 10 },
+  saveText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+});
 
 export function MyBookingsScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [revealedPinId, setRevealedPinId] = useState<string | null>(null); const [message, setMessage] = useState(''); const [delegates, setDelegates] = useState<Record<string, DelegateDraft>>({});
   const [permittedRoomIds, setPermittedRoomIds] = useState<string[]>([]);
   const [pickupDrafts, setPickupDrafts] = useState<Record<string, PickupDraft>>({});
   const [maintenanceReasons, setMaintenanceReasons] = useState<Record<string, string>>({});
+  const [seriesDrafts, setSeriesDrafts] = useState<Record<string, SeriesEditDraft>>({});
+  const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
   const load = useCallback(async () => { const [items, roomItems, permissionItems, requestItems] = await Promise.all([getBookingsForUser(username), getRooms(), getRoomPinPermissions(), getMaintenanceRequests()]); setBookings(items); setRooms(roomItems); setPermittedRoomIds(permissionItems.filter(item => item.username === username && item.active).map(item => item.roomId)); setMaintenanceRequests(requestItems.filter(item => item.requesterUsername === username)); }, [username]);
   useEffect(() => { load(); }, [load]);
@@ -35,9 +57,52 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể thực hiện thao tác.'); } };
   const updateDelegate = (id: string, field: keyof DelegateDraft, value: string) => setDelegates(current => ({ ...current, [id]: { ...(current[id] ?? { fullName: '', studentId: '' }), [field]: value } }));
   const updatePickup = (id: string, field: keyof PickupDraft, value: string) => setPickupDrafts(current => ({ ...current, [id]: { ...(current[id] ?? { date: '', time: '' }), [field]: value } }));
+  const updateSeriesDraft = (booking: Booking, field: keyof SeriesEditDraft, value: string) => {
+    if (!booking.recurringSeriesId) return;
+    setSeriesDrafts(current => ({
+      ...current,
+      [booking.recurringSeriesId!]: {
+        ...(current[booking.recurringSeriesId!] ?? {
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          purpose: booking.purpose,
+        }),
+        [field]: value,
+      },
+    }));
+  };
+  const saveSeriesDraft = async (booking: Booking, changes: SeriesEditDraft) => {
+    if (!booking.recurringSeriesId) return;
+    try {
+      const count = await updatePendingRecurringBookings(booking.id, username, changes);
+      setEditingSeriesId(null);
+      setMessage(`Đã cập nhật ${count} lượt đang chờ duyệt.`);
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể sửa chuỗi đặt phòng.');
+    }
+  };
+  const cancelSeries = async (booking: Booking) => {
+    try {
+      const count = await cancelFutureRecurringBookings(booking.id, username);
+      setMessage(`Đã hủy ${count} lượt đặt trong tương lai.`);
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể hủy chuỗi đặt phòng.');
+    }
+  };
   return <View style={styles.page}><ScreenHeader title="Đặt phòng của tôi" onBack={onBack} /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}{active.length === 0 ? <Text style={styles.empty}>Không có yêu cầu đang chờ hoặc sắp sử dụng.</Text> : active.map(booking => {
       const room = rooms.find(item => item.id === booking.roomId); const pin = booking.temporaryPin?.revokedAt ? undefined : booking.temporaryPin; const reveal = revealedPinId === booking.id; const pinStatus = getPinDisplayStatus(booking); const draft = delegates[booking.id] ?? { fullName: '', studentId: '' };
+      const seriesBookings = booking.recurringSeriesId ? active
+        .filter(item => item.recurringSeriesId === booking.recurringSeriesId)
+        .sort((left, right) => `${left.date}${left.startTime}`.localeCompare(`${right.date}${right.startTime}`)) : [];
+      const isSeriesLead = seriesBookings[0]?.id === booking.id;
+      const futureSeriesBookings = seriesBookings.filter(item => toLocalDateTime(item.date, item.startTime) > new Date());
+      const pendingSeriesCount = futureSeriesBookings.filter(item => item.status === 'PENDING').length;
+      const seriesDraft = booking.recurringSeriesId
+        ? seriesDrafts[booking.recurringSeriesId] ?? { startTime: booking.startTime, endTime: booking.endTime, purpose: booking.purpose }
+        : undefined;
       const pickupDraft = pickupDrafts[booking.id] ?? { date: booking.date, time: '' };
       const pickupNegotiation = booking.keyPickupNegotiation;
       const pendingMaintenance = maintenanceRequests.find(item => item.bookingId === booking.id && item.status === 'PENDING');
@@ -47,6 +112,67 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
         now <= toLocalDateTime(booking.date, booking.endTime);
       const canCreatePin = permittedRoomIds.includes(booking.roomId);
       return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+        {booking.recurringSeriesId ? <Text style={seriesStyles.occurrence}>Chuỗi hàng tuần · Tuần {(booking.recurringWeekIndex ?? 0) + 1}/{booking.repeatWeeks ?? seriesBookings.length}</Text> : null}
+        {isSeriesLead ? <View style={seriesStyles.box}>
+          <Text style={seriesStyles.title}>Các lượt còn trong chuỗi</Text>
+          <Text style={seriesStyles.detail}>{futureSeriesBookings.length} lượt trong tương lai · chỉnh sửa áp dụng cho lượt đang chờ duyệt</Text>
+          <View style={seriesStyles.actions}>
+            <Pressable
+              disabled={pendingSeriesCount === 0}
+              onPress={() => {
+                const seriesId = booking.recurringSeriesId!;
+                setEditingSeriesId(current => current === seriesId ? null : seriesId);
+              }}
+              style={[seriesStyles.action, pendingSeriesCount === 0 && seriesStyles.disabled]}
+            >
+              <Text style={seriesStyles.actionText}>{editingSeriesId === booking.recurringSeriesId ? 'Đóng chỉnh sửa' : 'Sửa lịch chờ duyệt'}</Text>
+            </Pressable>
+            <Pressable
+              disabled={futureSeriesBookings.length === 0}
+              onPress={() => Alert.alert(
+                'Hủy các lượt đặt tương lai?',
+                `Sẽ hủy ${futureSeriesBookings.length} lượt trong chuỗi. Lượt đang diễn ra không bị ảnh hưởng.`,
+                [
+                  { text: 'Giữ lại', style: 'cancel' },
+                  { text: 'Hủy các lượt', style: 'destructive', onPress: () => { void cancelSeries(booking); } },
+                ],
+              )}
+              style={[seriesStyles.cancelAction, futureSeriesBookings.length === 0 && seriesStyles.disabled]}
+            >
+              <Text style={seriesStyles.cancelText}>Hủy các lượt tương lai</Text>
+            </Pressable>
+          </View>
+          {editingSeriesId === booking.recurringSeriesId && seriesDraft ? <View style={seriesStyles.editor}>
+            <Text style={seriesStyles.editorHint}>Chỉ các lượt chưa bắt đầu và đang chờ duyệt sẽ được cập nhật.</Text>
+            <TextInput
+              accessibilityLabel="Giờ bắt đầu mới"
+              placeholder="Giờ bắt đầu (HH:mm)"
+              placeholderTextColor="#7D8795"
+              style={styles.input}
+              value={seriesDraft.startTime}
+              onChangeText={value => updateSeriesDraft(booking, 'startTime', value)}
+            />
+            <TextInput
+              accessibilityLabel="Giờ kết thúc mới"
+              placeholder="Giờ kết thúc (HH:mm)"
+              placeholderTextColor="#7D8795"
+              style={styles.input}
+              value={seriesDraft.endTime}
+              onChangeText={value => updateSeriesDraft(booking, 'endTime', value)}
+            />
+            <TextInput
+              accessibilityLabel="Mục đích sử dụng mới"
+              placeholder="Mục đích sử dụng"
+              placeholderTextColor="#7D8795"
+              style={styles.input}
+              value={seriesDraft.purpose}
+              onChangeText={value => updateSeriesDraft(booking, 'purpose', value)}
+            />
+            <Pressable style={seriesStyles.saveAction} onPress={() => saveSeriesDraft(booking, seriesDraft)}>
+              <Text style={seriesStyles.saveText}>Lưu cho các tuần còn lại</Text>
+            </Pressable>
+          </View> : null}
+        </View> : null}
         {pin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mã mở cửa · {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}</Text><Text style={styles.pinCode}>{reveal ? pin.code : '••••••'}</Text><Text style={styles.pinTime}>Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} – {new Date(pin.validUntil).toLocaleString('vi-VN')}</Text><Pressable onPress={() => setRevealedPinId(reveal ? null : booking.id)}><Text style={styles.link}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text></Pressable></View> : null}
         {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && canCreatePin ? <View style={styles.permission}><Text style={styles.permissionText}>Bạn có quyền tự tạo mã cho riêng phòng {room.name}.</Text><Pressable style={styles.purpleButton} onPress={() => action(() => createTemporaryPin(booking.id, username, 'user'), 'Đã tạo mật khẩu tạm thời.')}><Text style={styles.whiteText}>Tạo mật khẩu tạm thời</Text></Pressable></View> : null}
         {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !canCreatePin ? <Text style={styles.waiting}>Quyền tự tạo mã của phòng này đã bị thu hồi. Liên hệ cán bộ quản lý để được hỗ trợ.</Text> : null}

@@ -18,6 +18,7 @@ export async function saveConfiguration(input: AppConfiguration, adminUsername: 
   const values = [
     input.minAdvanceDays, input.maxAdvanceDays, input.maxActiveBookingsPerUser,
     input.cancellationCutoffMinutes, input.roomChangeCutoffMinutes, input.pinGraceMinutes,
+    input.noShowGraceMinutes,
   ];
   if (values.some(value => !Number.isInteger(value) || value < 0)) {
     throw new Error('Các tham số cấu hình phải là số nguyên không âm.');

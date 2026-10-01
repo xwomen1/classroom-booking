@@ -5,6 +5,7 @@ export type AppConfiguration = {
   cancellationCutoffMinutes: number;
   roomChangeCutoffMinutes: number;
   pinGraceMinutes: number;
+  noShowGraceMinutes: number;
   notificationsEnabled: boolean;
 };
 
@@ -15,5 +16,6 @@ export const DEFAULT_CONFIGURATION: AppConfiguration = {
   cancellationCutoffMinutes: 30,
   roomChangeCutoffMinutes: 30,
   pinGraceMinutes: 10,
+  noShowGraceMinutes: 15,
   notificationsEnabled: true,
 };

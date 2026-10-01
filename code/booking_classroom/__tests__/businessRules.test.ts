@@ -49,7 +49,7 @@ describe('complete local business rules', () => {
   });
 
   test('blocks booking during maintenance and uses configurable limits', async () => {
-    await saveConfiguration({ minAdvanceDays: 1, maxAdvanceDays: 5, maxActiveBookingsPerUser: 3, cancellationCutoffMinutes: 45, roomChangeCutoffMinutes: 30, pinGraceMinutes: 10, notificationsEnabled: true }, 'admin');
+    await saveConfiguration({ minAdvanceDays: 1, maxAdvanceDays: 5, maxActiveBookingsPerUser: 3, cancellationCutoffMinutes: 45, roomChangeCutoffMinutes: 30, pinGraceMinutes: 10, noShowGraceMinutes: 15, notificationsEnabled: true }, 'admin');
     const date = dateAfter(4);
     await createMaintenance({ roomId: 'room-a101', date, startTime: '08:00', endTime: '09:00', reason: 'Kiểm tra khóa', createdBy: 'admin' });
     await expect(createBooking({ requesterUsername: 'user', roomId: 'room-a101', date, startTime: '08:15', endTime: '08:45', purpose: 'Họp' })).rejects.toThrow('lịch bảo trì');

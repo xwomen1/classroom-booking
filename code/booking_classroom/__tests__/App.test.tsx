@@ -106,4 +106,5 @@ test('collapses Admin booking details until the summary is pressed', async () =>
 
   await ReactTestRenderer.act(async () => summary.props.onPress());
   expect(tree!.root.findAllByType(BookingInfo)).toHaveLength(1);
+  await ReactTestRenderer.act(async () => tree!.unmount());
 });

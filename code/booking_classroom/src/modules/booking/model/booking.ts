@@ -1,4 +1,4 @@
-export type BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'NO_SHOW';
 
 export type TemporaryPin = {
   code: string;
@@ -86,7 +86,10 @@ export type Booking = {
   roomChanges?: RoomChange[];
   smartLockAccessEvents?: SmartLockAccessEvent[];
   checkedInAt?: string;
+  checkInConfirmedBy?: string;
   checkedOutAt?: string;
+  noShowAt?: string;
+  noShowMarkedBy?: string;
 };
 
 export type CreateBookingInput = Pick<

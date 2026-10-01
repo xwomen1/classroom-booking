@@ -6,7 +6,7 @@ import type { Booking } from '../model/booking';
 import { getBookingsForUser, getBookingTimeCategory } from '../services/bookingRepository';
 
 type Filter = 'UPCOMING' | 'USED' | 'CANCELLED';
-const LABELS: Record<Filter, string> = { UPCOMING: 'Sắp tới', USED: 'Đã sử dụng', CANCELLED: 'Đã hủy / từ chối' };
+const LABELS: Record<Filter, string> = { UPCOMING: 'Sắp tới', USED: 'Đã sử dụng', CANCELLED: 'Đã đóng' };
 export function BookingScheduleScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [filter, setFilter] = useState<Filter>('UPCOMING');
   const load = useCallback(() => getBookingsForUser(username).then(setBookings), [username]);

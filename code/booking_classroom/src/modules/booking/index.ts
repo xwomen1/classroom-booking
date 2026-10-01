@@ -6,6 +6,8 @@ export {
   cancelFutureRecurringBookings,
   acceptKeyPickupProposal,
   changeBookingRoom,
+  confirmBookingCheckIn,
+  confirmBookingNoShow,
   createBooking,
   getBookingTimeCategory,
   getBookingById,

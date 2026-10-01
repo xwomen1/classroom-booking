@@ -8,7 +8,10 @@ import {
 import {
   createBooking,
   cancelFutureRecurringBookings,
+  confirmBookingCheckIn,
+  confirmBookingNoShow,
   getBookingsForUser,
+  getBookingTimeCategory,
   reviewBooking,
   reviewRecurringSeries,
   toLocalDateTime,
@@ -282,6 +285,58 @@ describe('local booking and temporary PIN flow', () => {
     const unchanged = (await getBookingsForUser('user'))
       .filter(item => item.recurringSeriesId === booking.recurringSeriesId);
     expect(unchanged.every(item => item.status === 'PENDING')).toBe(true);
+  });
+
+  test('requires the configured grace period before marking no-show and releases the slot', async () => {
+    const date = dateAfter(1);
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date,
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học',
+    });
+    await reviewBooking(booking.id, 'APPROVED', 'admin');
+    await createTemporaryPin(booking.id, 'admin', 'admin');
+    const start = toLocalDateTime(date, '08:00');
+
+    await expect(confirmBookingNoShow(booking.id, 'admin', new Date(start.getTime() + 14 * 60_000)))
+      .rejects.toThrow('sau 15 phút');
+    const marked = await confirmBookingNoShow(booking.id, 'admin', new Date(start.getTime() + 16 * 60_000));
+
+    expect(marked.status).toBe('NO_SHOW');
+    expect(marked.noShowMarkedBy).toBe('admin');
+    expect(marked.temporaryPin?.revokedAt).toBe(marked.noShowAt);
+    expect(getBookingTimeCategory(marked)).toBe('CANCELLED');
+    await expect(createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date,
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lượt thay thế sau khi vắng',
+    })).resolves.toMatchObject({ status: 'PENDING' });
+  });
+
+  test('manual Admin check-in prevents no-show confirmation', async () => {
+    const date = dateAfter(1);
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-b202',
+      date,
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Lớp học',
+    });
+    await reviewBooking(booking.id, 'APPROVED', 'admin');
+    const start = toLocalDateTime(date, '08:00');
+    const checkIn = await confirmBookingCheckIn(booking.id, 'admin', new Date(start.getTime() + 5 * 60_000));
+
+    expect(checkIn.checkedInAt).toBe(new Date(start.getTime() + 5 * 60_000).toISOString());
+    expect(checkIn.checkInConfirmedBy).toBe('admin');
+    await expect(confirmBookingNoShow(booking.id, 'admin', new Date(start.getTime() + 20 * 60_000)))
+      .rejects.toThrow('đã có check-in');
   });
 
   test('rejects a room collision and dates outside the one-to-three-day window', async () => {

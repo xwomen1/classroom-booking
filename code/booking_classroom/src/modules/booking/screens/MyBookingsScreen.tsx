@@ -199,7 +199,7 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
           <View style={styles.delegateBox}><Text style={styles.boxTitle}>Ủy quyền người nhận khóa/thẻ hộ</Text><TextInput placeholder="Họ tên người nhận hộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.fullName} onChangeText={value => updateDelegate(booking.id, 'fullName', value)} /><TextInput placeholder="Mã sinh viên / cán bộ" placeholderTextColor="#7D8795" style={styles.input} value={draft.studentId} onChangeText={value => updateDelegate(booking.id, 'studentId', value)} /><Pressable style={styles.outlineButton} onPress={() => action(() => setPickupDelegate(booking.id, username, draft.fullName, draft.studentId), 'Đã lưu người nhận khóa hộ.')}><Text style={styles.outlineText}>Lưu ủy quyền</Text></Pressable></View>
         </> : null}
         {booking.checkedInAt || booking.checkedOutAt ? <View style={styles.accessBox}>
-          <Text style={styles.boxTitle}>Ghi nhận từ SmartLock</Text>
+          <Text style={styles.boxTitle}>{booking.checkInConfirmedBy ? 'Check-in xác nhận bởi Admin' : 'Ghi nhận từ SmartLock'}</Text>
           {booking.checkedInAt ? <Text style={styles.detail}>Check in: {new Date(booking.checkedInAt).toLocaleString('vi-VN')}</Text> : null}
           {booking.checkedOutAt ? <Text style={styles.detail}>Check out: {new Date(booking.checkedOutAt).toLocaleString('vi-VN')}</Text> : null}
         </View> : null}

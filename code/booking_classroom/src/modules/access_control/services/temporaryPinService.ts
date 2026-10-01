@@ -109,7 +109,7 @@ export function getPinDisplayStatus(
 ): PinDisplayStatus | null {
   const pin = booking.temporaryPin;
   if (!pin) return null;
-  if (pin.revokedAt || booking.status === 'CANCELLED') return 'REVOKED';
+  if (pin.revokedAt || booking.status === 'CANCELLED' || booking.status === 'NO_SHOW') return 'REVOKED';
   if (now < new Date(pin.validFrom)) return 'PENDING';
   if (now > new Date(pin.validUntil)) return 'EXPIRED';
   return 'ACTIVE';

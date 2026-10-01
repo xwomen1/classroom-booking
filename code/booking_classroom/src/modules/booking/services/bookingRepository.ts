@@ -76,7 +76,7 @@ export async function getBookingById(id: string): Promise<Booking | undefined> {
 }
 
 export function getBookingTimeCategory(booking: Booking, now = new Date()): 'UPCOMING' | 'USED' | 'CANCELLED' {
-  if (booking.status === 'CANCELLED' || booking.status === 'REJECTED') return 'CANCELLED';
+  if (booking.status === 'CANCELLED' || booking.status === 'REJECTED' || booking.status === 'NO_SHOW') return 'CANCELLED';
   if (toLocalDateTime(booking.date, booking.endTime) < now) {
     return booking.status === 'APPROVED' ? 'USED' : 'CANCELLED';
   }
@@ -109,6 +109,14 @@ function overlaps(booking: Booking, date: string, startTime: string, endTime: st
 
 function isStillActive(booking: Booking, now = new Date()) {
   return ACTIVE_STATUSES.includes(booking.status) && toLocalDateTime(booking.date, booking.endTime) > now;
+}
+
+function hasCheckInEvidence(booking: Booking): boolean {
+  return Boolean(
+    booking.checkedInAt ||
+    booking.checkedOutAt ||
+    booking.smartLockAccessEvents?.some(event => event.type === 'CHECK_IN'),
+  );
 }
 
 async function validateBooking(
@@ -630,6 +638,73 @@ export async function recordSmartLockAccessEvent(
     `SmartLock ghi nhận ${action} tại phòng ${room?.name ?? roomId}.`);
   await addNotification('admin', `SmartLock: ${action}`,
     `${updated.requesterUsername} · phòng ${room?.name ?? roomId} · ${new Date(event.occurredAt).toLocaleString('vi-VN')}.`);
+  return updated;
+}
+
+export async function confirmBookingCheckIn(
+  id: string,
+  adminUsername: string,
+  now = new Date(),
+): Promise<Booking> {
+  if (isRemoteApiEnabled()) throw new Error('Xác nhận check-in thủ công hiện chỉ khả dụng ở chế độ local.');
+  await assertAccountRole(adminUsername, 'admin');
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === id);
+  if (!target || target.status !== 'APPROVED') throw new Error('Chỉ xác nhận check-in cho booking đã duyệt.');
+  if (hasCheckInEvidence(target)) throw new Error('Booking này đã có check-in được ghi nhận.');
+  const room = await getRoomById(target.roomId);
+  if (room?.lockType !== 'PHYSICAL_KEY') throw new Error('Check-in thủ công chỉ áp dụng cho phòng khóa cơ/thẻ.');
+  const start = toLocalDateTime(target.date, target.startTime);
+  const end = toLocalDateTime(target.date, target.endTime);
+  if (now < start || now >= end) throw new Error('Chỉ xác nhận có mặt trong thời gian sử dụng phòng.');
+
+  const updated: Booking = { ...target, checkedInAt: now.toISOString(), checkInConfirmedBy: adminUsername };
+  const next = [...bookings];
+  next[bookings.findIndex(item => item.id === id)] = updated;
+  await writeJson(BOOKINGS_KEY, next);
+  await addNotification(
+    updated.requesterUsername,
+    'Đã xác nhận có mặt',
+    `Admin đã ghi nhận bạn có mặt tại phòng ${room?.name ?? updated.roomId}.`,
+  );
+  return updated;
+}
+
+export async function confirmBookingNoShow(
+  id: string,
+  adminUsername: string,
+  now = new Date(),
+): Promise<Booking> {
+  if (isRemoteApiEnabled()) throw new Error('Xác nhận vắng mặt hiện chỉ khả dụng ở chế độ local.');
+  await assertAccountRole(adminUsername, 'admin');
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === id);
+  if (!target || target.status !== 'APPROVED') throw new Error('Chỉ xác nhận vắng mặt cho booking đã duyệt.');
+  if (hasCheckInEvidence(target)) throw new Error('Booking đã có check-in, không thể ghi nhận vắng mặt.');
+
+  const configuration = await getConfiguration();
+  const eligibleAt = toLocalDateTime(target.date, target.startTime).getTime() + configuration.noShowGraceMinutes * 60_000;
+  if (now.getTime() < eligibleAt) {
+    throw new Error(`Chỉ xác nhận vắng mặt sau ${configuration.noShowGraceMinutes} phút kể từ giờ bắt đầu.`);
+  }
+
+  const nowIso = now.toISOString();
+  const updated: Booking = {
+    ...target,
+    status: 'NO_SHOW',
+    noShowAt: nowIso,
+    noShowMarkedBy: adminUsername,
+    temporaryPin: target.temporaryPin ? { ...target.temporaryPin, revokedAt: nowIso } : undefined,
+  };
+  const next = [...bookings];
+  next[bookings.findIndex(item => item.id === id)] = updated;
+  await writeJson(BOOKINGS_KEY, next);
+  const room = await getRoomById(updated.roomId);
+  await addNotification(
+    updated.requesterUsername,
+    'Đã ghi nhận vắng mặt',
+    `Admin xác nhận không có check-in cho phòng ${room?.name ?? updated.roomId}; lượt đặt đã được đóng và mã truy cập thu hồi.`,
+  );
   return updated;
 }
 

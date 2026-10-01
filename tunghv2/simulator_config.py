@@ -6,7 +6,7 @@ ONEIOT_CSE_ID = "/in-cse"
 
 # Same identity as create_device_for_tooltest / pairing bypass.
 MQTT_DEVICE_ID = "S3073a30b-e5c0-4370-a186-643ed93efb09"
-# Tự nhập token MQTT test vào chuỗi rỗng bên dưới trước khi chạy simulator.
+# Token mặc định để trống; người dùng dán token vào giao diện khi chạy.
 MQTT_TOKEN = ""
 SMARTLOCK_AE_ID = "S0a92253e-6f4b-472e-86a8-e25a3853cd11"
 SMARTLOCK_DEVICE_ID = MQTT_DEVICE_ID
@@ -26,4 +26,3 @@ REMOTE_UNLOCK_COUNTDOWN_SECONDS = 60
 
 # Matches the current firmware rule for DLWA12.
 IGNORE_SET_KEY_FOR_NO_CODE = True
-

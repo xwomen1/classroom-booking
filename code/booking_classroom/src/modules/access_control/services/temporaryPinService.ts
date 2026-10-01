@@ -13,7 +13,7 @@ import { addNotification } from '../../notifications';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import {
   reserveSmartLockPasswordId,
-  sendTemporaryPasswordToGateway,
+  sendTemporaryPasswordToOneIoT,
 } from '../../smart_lock';
 import {
   grantRoomPinPermission,
@@ -61,7 +61,7 @@ export async function createTemporaryPin(
   const validFrom = addMinutes(start, -configuration.pinGraceMinutes);
   const validUntil = addMinutes(end, configuration.pinGraceMinutes);
   const { lock, passwordId } = await reserveSmartLockPasswordId(booking.roomId);
-  const command = await sendTemporaryPasswordToGateway(lock, {
+  const command = await sendTemporaryPasswordToOneIoT(lock, {
     roomId: room.id,
     roomName: room.name,
     code,

@@ -1,6 +1,6 @@
 # booking_classroom
 
-Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp, phân quyền Admin/User, lưu dữ liệu local và kết nối SmartLock gateway khi cần gửi lệnh xuống khóa.
+Ứng dụng React Native phục vụ đề tài đặt phòng học/phòng họp, phân quyền Admin/User, lưu dữ liệu local và kết nối trực tiếp OneIoT khi cần gửi lệnh xuống khóa.
 
 README này dành cho thành viên phát triển: mô tả phần đã có, cách sửa/chạy kiểm tra code, cách xử lý lỗi môi trường và cách chia module. Hướng dẫn cài APK nhanh cho người chỉ cần sử dụng nằm tại [`../../README.md`](../../README.md).
 
@@ -18,15 +18,16 @@ README này dành cho thành viên phát triển: mô tả phần đã có, các
 - Admin duyệt/từ chối, đổi sang phòng khả dụng trước hạn và nhận thông báo thay đổi.
 - `Lịch đặt phòng` chỉ đọc và phân nhóm sắp tới/đã dùng/đã đóng. `Quản lý đặt phòng` mới chứa thao tác rút/hủy, mã truy cập và ủy quyền nhận khóa.
 - Phòng khóa mã số: duyệt booking tự cấp quyền cho User tại đúng phòng; Admin có thể tạo mã hộ hoặc thu hồi quyền phòng trong Quản lý user; thời gian đệm hiệu lực cấu hình được, mã bị thu hồi khi hủy/đổi phòng.
-- Admin có màn **Quản lý khóa**: hệ thống hiện quản lý một SmartLock, cho phép gắn/tháo/chuyển khóa giữa các phòng khóa số và cấu hình địa chỉ gateway `tunghv3`.
-- Khi tạo mật khẩu, app chỉ gửi lệnh nếu phòng của booking trùng phòng đang gắn khóa. Gateway mã hóa mật khẩu và phát `traitCreateTmpPasswordLock` tới OneIoT.
+- Admin có màn **Quản lý khóa**: hệ thống hiện quản lý một SmartLock, cho phép gắn/tháo/chuyển khóa giữa các phòng khóa số, dán token của Tools và kiểm tra kết nối OneIoT.
+- App tích hợp phần giao tiếp của Tools bằng module Android MQTT TLS. Tools Device ID là danh tính gửi lệnh; Device ID/Device name của SmartLock là thiết bị đích và không bị trộn với nhau.
+- Khi tạo mật khẩu, app chỉ gửi lệnh nếu phòng của booking trùng phòng đang gắn khóa. App mã hóa mật khẩu theo cơ chế của Tools và phát `traitCreateTmpPasswordLock` trực tiếp tới OneIoT, không cần địa chỉ IP hoặc gateway trên máy tính.
 - Phòng khóa cơ/thẻ: Admin tạo lịch hẹn nhận khóa; User khai báo người nhận hộ và mã sinh viên/cán bộ.
 - Admin xem lịch sử dụng, tạo/hủy lịch bảo trì và sửa các tham số đặt trước, giới hạn, hạn hủy, hạn đổi phòng, thời gian mã và thông báo.
 - Toàn bộ dữ liệu trên được lưu bằng Async Storage và tiếp tục tồn tại sau khi tắt/mở ứng dụng.
 
 Các luồng trên đã được chạy thử trực tiếp trên Samsung M21 (SM-M215F). Ảnh màn hình và biên bản kiểm tra nằm trong thư mục `evidence/`.
 
-Hai tài khoản demo là `admin/1` và `user/2`. Tài khoản, phòng, booking, quyền, thông báo, liên kết SmartLock--phòng và địa chỉ gateway đều được giữ trên thiết bị bằng Async Storage. Gateway nằm tại `../../tunghv3` và không lưu token OneIoT trong repository.
+Hai tài khoản demo là `admin/1` và `user/2`. Tài khoản, phòng, booking, quyền, thông báo và liên kết SmartLock--phòng được giữ trên thiết bị bằng Async Storage. Token OneIoT không được ghi vào Async Storage hoặc repository; token chỉ tồn tại trong RAM sau khi người dùng dán và bấm **Kiểm tra kết nối**. App ngắt MQTT khi đăng xuất, chuyển sang nền hoặc bị đóng.
 
 ## Chọn chế độ local hoặc đồng bộ server
 
@@ -39,7 +40,7 @@ export const ENABLE_REMOTE_SYNC = false;
 - `false`: app dùng toàn bộ repository local và đăng nhập được bằng `admin/1`, `user/2` mà không cần booking server.
 - `true`: app gọi REST API. Trước khi bật, sửa `REMOTE_API_BASE_URL` trong cùng file thành địa chỉ LAN của máy chạy `../../booking-server`.
 
-Source server và các nhánh gọi API vẫn được giữ để merge tiếp với branch `syncdata`. Gateway khóa `../../tunghv3` hoạt động độc lập với cờ này.
+Source server và các nhánh gọi API vẫn được giữ để merge tiếp với branch `syncdata`. Kết nối OneIoT của SmartLock hoạt động độc lập với cờ này; `../../tunghv3` chỉ còn là mã gateway tham khảo và app không gọi tới nó.
 
 ## Công nghệ và môi trường đã kiểm tra
 
@@ -154,7 +155,7 @@ Cài bản có sẵn qua ADB:
 adb install -r .\release\booking_classroom-v1.0.apk
 ```
 
-Để cài trên điện thoại khác, gửi tệp `release/booking_classroom-v1.0.apk` sang máy đó, cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu, rồi mở APK để cài. Hai tài khoản demo và toàn bộ nghiệp vụ đặt phòng hoạt động cục bộ, không cần booking server. Mạng chỉ cần khi app gửi lệnh tới gateway SmartLock.
+Để cài trên điện thoại khác, gửi tệp `release/booking_classroom-v1.0.apk` sang máy đó, cho phép cài ứng dụng không rõ nguồn gốc khi Android yêu cầu, rồi mở APK để cài. Hai tài khoản demo và toàn bộ nghiệp vụ đặt phòng hoạt động cục bộ, không cần booking server. Mạng chỉ cần khi app kết nối OneIoT để gửi lệnh tới SmartLock.
 
 Bản Release đã được kiểm tra bằng cách xóa `adb reverse`, tắt hẳn ứng dụng rồi mở lại trên Samsung M21. Cả hai chế độ `admin/1` và `user/2` hoạt động khi Metro không chạy.
 
@@ -182,7 +183,7 @@ booking_classroom/
 │   ├── room_management/     # Dữ liệu phòng mẫu và loại khóa
 │   ├── booking/             # Tạo, duyệt, từ chối, xem và hủy booking
 │   ├── access_control/      # Sinh và tính hiệu lực mã số tạm thời
-│   ├── smart_lock/          # Gắn một khóa vào phòng và gọi gateway tunghv3
+│   ├── smart_lock/          # Gắn khóa vào phòng và giao tiếp trực tiếp OneIoT
 │   ├── schedule_maintenance/# Lịch sử dụng và lịch bảo trì
 │   ├── profile/             # Thông tin cá nhân
 │   ├── notifications/       # Thông báo nghiệp vụ

@@ -1,19 +1,19 @@
 booking_classroom - device verification
-Date: 2026-09-26
+Date: 2026-10-01
 Device: Samsung SM-M215F (Samsung M21)
 ADB serial: R58N33W6H3A
 Package: com.bookingclassroom
 Version: 1.0 (versionCode 1)
 Release APK: release/booking_classroom-v1.0.apk
-Release APK size: 57942770 bytes
-Release APK SHA256: F91229B129C17CB340B6313EB9DE5D0000FE1E3404B032E5841CC36DFFE39CFC
+Release APK size: 58020098 bytes
+Release APK SHA256: A5FE8D57BE4B5D47FAC9D58C548D78139B8E9BF678213A310A4F9E0394A72818
 Release package debuggable flag: false
 Metro process required: no
 adb reverse rules during verification: none
 Force-stop and cold relaunch without Metro: PASS
-Admin login and updated Admin navigation: PASS
-User authentication and role routing on fresh local data: PASS (automated test)
-Existing device user/2 login: not repeated because this device's preserved local account data had previously been changed
+Admin login without Wi-Fi or booking server: PASS
+User/2 login and role routing without Wi-Fi or booking server: PASS
+SmartLock management screen on device: PASS
 Account management, status/password and room permission revocation logic: PASS
 Room CRUD form and 8-floor accordion room list rendered: PASS
 Booking review and access-control screen rendered: PASS
@@ -24,10 +24,13 @@ Vertical date/time pickers rendered: PASS
 Room selection -> purpose input -> direct booking form on one screen: PASS
 Booking calendar has separate read-only tabs: PASS
 Booking management is a separate action screen: PASS
-Admin-created temporary PIN flow: PASS
+Admin-created temporary PIN flow with mocked native bridge: PASS
 Booking approval -> room-scoped User PIN permission flow: PASS
 Room permission revocation blocks User PIN generation: PASS
-Source tests: 13/13 PASS
+SmartLock room binding and wrong-room rejection: PASS
+OneIoT MQTT payload construction without real token: PASS
+Real OneIoT publish: NOT TESTED (token intentionally blank)
+Source tests: 14/14 PASS
 TypeScript and ESLint: PASS
 Fatal or Metro connection errors in checked logcat: 0
-Current regression screenshots: evidence/18-admin-room-floors.png, evidence/19-maintenance-room-floors.png, evidence/20-login-demo-accounts.png
+Current regression screenshots: evidence/18-admin-room-floors.png, evidence/19-maintenance-room-floors.png, evidence/20-login-demo-accounts.png, evidence/21-smartlock-management.png

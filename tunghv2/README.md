@@ -18,8 +18,8 @@ python -m pip install -r requirements.txt
 .\run_simulator.ps1
 ```
 
-Trước khi chạy, mở `simulator_config.py` và tự nhập token test vào biến
-`MQTT_TOKEN`. Giá trị trong repository được để rỗng để tránh công khai credential.
+Khi giao diện mở, dán token MQTT test vào ô `Token` rồi bấm `Kết nối`.
+Token chỉ được giữ trong RAM của phiên chạy, không ghi vào file cấu hình.
 
 Sau đó mở tool trong một terminal khác tại thư mục gốc của project:
 
@@ -56,5 +56,5 @@ tunghv2\dist\SmartLock_Simulator.exe
 
 Không commit các thư mục `dist`, `.nuitka-cache`, `__pycache__` hoặc các thư mục build trung gian. Chúng đã được loại trừ trong `.gitignore`.
 
-Chỉ phân phối file EXE, không cần gửi thư mục source. Nuitka biên dịch Python sang mã máy nên khó đọc hơn PyInstaller, nhưng không có binary phía client nào chống dịch ngược tuyệt đối. Token MQTT vẫn có thể bị trích xuất từ chương trình; chỉ nên dùng tài khoản test và thu hồi token khi không còn sử dụng.
+Chỉ phân phối file EXE, không cần gửi thư mục source. Nuitka biên dịch Python sang mã máy nên khó đọc hơn PyInstaller, nhưng không có binary phía client nào chống dịch ngược tuyệt đối. Token nhập trên giao diện chỉ được giữ trong RAM; vẫn nên dùng tài khoản test và thu hồi token khi không còn sử dụng.
 

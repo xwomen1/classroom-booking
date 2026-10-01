@@ -9,7 +9,8 @@ Thư mục này chứa tài liệu và source của một Booking App tích hợ
 - `hien_trang_trien_khai.tex/.pdf`: ghi nhận ngắn gọn những phần đã triển khai thực tế.
 - `code/booking_classroom`: source React Native của ứng dụng.
 - `code/booking-server`: source Java/Spring Boot được giữ lại cho giai đoạn đồng bộ sau; bản hiện tại đang tắt kết nối bằng cờ cấu hình.
-- `tunghv3`: gateway HTTP--MQTT để app gửi lệnh tới một SmartLock OneIoT.
+- `tunghv2`: chương trình giả lập SmartLock để demo khi chưa dùng khóa thật.
+- `tunghv3`: gateway HTTP--MQTT cũ được giữ làm mã tham khảo; app hiện không cần chạy gateway này.
 - `code/booking_classroom/src/modules`: các module nghiệp vụ để phân công riêng cho từng thành viên.
 
 Danh sách module, phạm vi và ô người phụ trách được ghi tại [`code/booking_classroom/src/modules/README.md`](code/booking_classroom/src/modules/README.md).
@@ -23,7 +24,7 @@ adb devices -l
 adb install -r .\code\booking_classroom\release\booking_classroom-v1.0.apk
 ```
 
-Sau khi lệnh cài báo `Success`, có thể mở `booking_classroom` trên điện thoại. Bản Release không cần Metro, cáp USB hoặc booking server. Tài khoản, phòng và booking được lưu local trên điện thoại; riêng chức năng gửi mật khẩu xuống khóa cần máy chạy gateway `tunghv3`.
+Sau khi lệnh cài báo `Success`, có thể mở `booking_classroom` trên điện thoại. Bản Release không cần Metro, cáp USB hoặc booking server. Tài khoản, phòng và booking được lưu local trên điện thoại; chức năng gửi mật khẩu xuống khóa cần điện thoại có Internet và một phiên kết nối OneIoT đang hoạt động.
 
 Công tắc đồng bộ nằm tại `code/booking_classroom/src/core/config/runtimeFlags.ts`. Giữ `ENABLE_REMOTE_SYNC = false` để chạy local; chỉ đổi thành `true` và sửa `REMOTE_API_BASE_URL` khi nhóm bắt đầu triển khai booking server.
 
@@ -38,7 +39,7 @@ Tài khoản demo:
 
 Bản hiện tại có chức năng gộp \"Tìm và đặt phòng\": sơ đồ chữ U cho tầng 1–8 hiển thị phòng trống/đã đặt/bảo trì theo khoảng thời gian; User chọn phòng, nhập mục đích và gửi yêu cầu ngay trên cùng màn hình. Khi Admin duyệt booking của phòng khóa số, User được cấp quyền tự tạo mật khẩu riêng cho đúng phòng đó; Admin có thể thu hồi quyền theo từng phòng trong Quản lý user.
 
-Admin có thêm **Quản lý khóa** để gắn một SmartLock duy nhất vào một phòng khóa số. Chỉ booking của phòng đang gắn khóa mới được gửi `traitCreateTmpPasswordLock` qua gateway `tunghv3`.
+Admin có thêm **Quản lý khóa** để gắn một SmartLock duy nhất vào một phòng khóa số. Tại đây, Admin dán token tương ứng với Tools Device ID và bấm **Kiểm tra kết nối**. App kết nối trực tiếp OneIoT bằng MQTT TLS rồi gửi `traitCreateTmpPasswordLock` tới SmartLock đích; không cần nhập IP máy tính. Token chỉ nằm trong bộ nhớ của phiên chạy và kết nối tự ngắt khi đăng xuất, chuyển app sang nền hoặc đóng app.
 
 ## Dành cho thành viên phát triển
 

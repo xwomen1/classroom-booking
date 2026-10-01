@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet } from 'react-native';
+import { AppState, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { RoleDashboardScreen } from './src/app';
 import type { AuthenticatedUser } from './src/core/types/authenticatedUser';
@@ -9,12 +9,25 @@ import {
   PriorityBannerHost,
   requestPriorityNotificationPermission,
 } from './src/modules/notifications';
+import { disconnectOneIoT } from './src/modules/smart_lock';
 
 function App() {
   const [session, setSession] = useState<AuthenticatedUser | null>(null);
 
   useEffect(() => {
     requestPriorityNotificationPermission().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState !== 'active') {
+        disconnectOneIoT().catch(() => {});
+      }
+    });
+    return () => {
+      subscription.remove();
+      disconnectOneIoT().catch(() => {});
+    };
   }, []);
 
   return (
@@ -28,6 +41,7 @@ function App() {
           <RoleDashboardScreen
             session={session}
             onLogout={() => {
+              disconnectOneIoT().catch(() => {});
               clearApiSession();
               setSession(null);
             }}

@@ -11,10 +11,13 @@ import { ScreenHeader } from '../../../shared';
 import type { Room } from '../../room_management';
 import { getRooms } from '../../room_management';
 import type { ManagedSmartLock } from '../model/managedSmartLock';
-import { getSmartLockGatewayStatus } from '../services/smartLockGatewayClient';
+import {
+  connectOneIoT,
+  disconnectOneIoT,
+  getOneIoTConnectionStatus,
+} from '../services/oneIoTClient';
 import {
   assignSmartLockToRoom,
-  configureSmartLockGateway,
   getManagedSmartLock,
   unassignSmartLock,
 } from '../services/smartLockRepository';
@@ -31,8 +34,8 @@ export function SmartLockManagementScreen({
   const [lock, setLock] = useState<ManagedSmartLock | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeFloor, setActiveFloor] = useState(1);
-  const [gatewayUrl, setGatewayUrl] = useState('');
-  const [gatewayState, setGatewayState] = useState<'UNKNOWN' | 'CONNECTED' | 'DISCONNECTED'>('UNKNOWN');
+  const [token, setToken] = useState('');
+  const [oneIotState, setOneIotState] = useState<'UNKNOWN' | 'CONNECTED' | 'DISCONNECTED'>('UNKNOWN');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [working, setWorking] = useState(false);
@@ -43,10 +46,11 @@ export function SmartLockManagementScreen({
       getRooms(),
     ]);
     setLock(managedLock);
-    setGatewayUrl(managedLock.gatewayBaseUrl);
     setRooms(roomItems);
     const assignedRoom = roomItems.find(item => item.id === managedLock.assignedRoomId);
     if (assignedRoom) setActiveFloor(assignedRoom.floor);
+    const status = await getOneIoTConnectionStatus();
+    setOneIotState(status.connected ? 'CONNECTED' : 'DISCONNECTED');
   }, []);
 
   useEffect(() => {
@@ -67,7 +71,6 @@ export function SmartLockManagementScreen({
     try {
       const updated = await action();
       setLock(updated);
-      setGatewayUrl(updated.gatewayBaseUrl);
       setIsError(false);
       setMessage(success);
     } catch (error) {
@@ -78,24 +81,37 @@ export function SmartLockManagementScreen({
     }
   };
 
-  const checkGateway = async () => {
+  const checkOneIoT = async () => {
     if (!lock) return;
     setWorking(true);
     try {
-      const configured = await configureSmartLockGateway(gatewayUrl, adminUsername);
-      setLock(configured);
-      const status = await getSmartLockGatewayStatus(configured);
-      setGatewayState(status.connected ? 'CONNECTED' : 'DISCONNECTED');
+      const status = await connectOneIoT(lock, token);
+      setOneIotState(status.connected ? 'CONNECTED' : 'DISCONNECTED');
       setIsError(!status.connected);
       setMessage(
         status.connected
-          ? 'Gateway đã kết nối OneIoT và sẵn sàng nhận lệnh.'
-          : status.error || 'Gateway đang chạy nhưng chưa kết nối OneIoT.',
+          ? 'Tools trong app đã kết nối OneIoT và sẵn sàng gửi lệnh.'
+          : 'OneIoT chưa xác nhận kết nối.',
       );
     } catch (error) {
-      setGatewayState('DISCONNECTED');
+      setOneIotState('DISCONNECTED');
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : 'Không kiểm tra được gateway.');
+      setMessage(error instanceof Error ? error.message : 'Không kiểm tra được kết nối OneIoT.');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const disconnect = async () => {
+    setWorking(true);
+    try {
+      await disconnectOneIoT();
+      setOneIotState('DISCONNECTED');
+      setIsError(false);
+      setMessage('Đã ngắt kết nối OneIoT của phiên hiện tại.');
+    } catch (error) {
+      setIsError(true);
+      setMessage(error instanceof Error ? error.message : 'Không thể ngắt kết nối OneIoT.');
     } finally {
       setWorking(false);
     }
@@ -114,12 +130,13 @@ export function SmartLockManagementScreen({
             <View style={styles.lockIcon}><Text style={styles.lockIconText}>⌨</Text></View>
             <View style={styles.lockTitleBox}>
               <Text style={styles.lockTitle}>{lock?.displayName ?? 'SmartLock'}</Text>
-              <Text style={styles.lockSubtitle}>Một khóa duy nhất đang được quản lý</Text>
+              <Text style={styles.lockSubtitle}>Thiết bị đích; Tools trong app gửi lệnh qua OneIoT</Text>
             </View>
           </View>
           <InfoRow label="Model" value={lock?.model ?? '—'} />
-          <InfoRow label="Device ID" value={lock?.deviceId ?? '—'} />
-          <InfoRow label="Device name" value={lock?.deviceName ?? '—'} />
+          <InfoRow label="SmartLock Device ID" value={lock?.smartLockDeviceId ?? '—'} />
+          <InfoRow label="SmartLock Device name" value={lock?.smartLockDeviceName ?? '—'} />
+          <InfoRow label="Tools Device ID" value={lock?.toolDeviceId ?? '—'} />
           <InfoRow
             label="Phòng đang gắn"
             value={assignedRoom ? `${assignedRoom.name} · Tầng ${assignedRoom.floor}` : 'Chưa gắn phòng'}
@@ -128,34 +145,39 @@ export function SmartLockManagementScreen({
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Kết nối tunghv3</Text>
+          <Text style={styles.sectionTitle}>Kết nối Tools với OneIoT</Text>
           <Text style={styles.helpText}>
-            Nhập địa chỉ máy đang chạy SmartLock gateway, ví dụ http://192.168.1.10:8135.
+            Dán token tương ứng với Tools Device ID ở trên. Token chỉ được giữ trong bộ nhớ của phiên app, không lưu vào dữ liệu local hay source code.
           </Text>
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            onChangeText={setGatewayUrl}
-            placeholder="http://192.168.1.10:8135"
+            onChangeText={setToken}
+            placeholder="Dán token OneIoT của Tools"
             placeholderTextColor="#8A94A4"
+            secureTextEntry
+            selectTextOnFocus
             style={styles.input}
-            value={gatewayUrl}
+            value={token}
           />
+          <Text style={styles.endpointText}>
+            MQTT TLS: {lock?.oneIotBroker ?? '—'}:{lock?.oneIotPort ?? '—'}
+          </Text>
           <View style={styles.statusRow}>
             <View
               style={[
                 styles.statusDot,
-                gatewayState === 'CONNECTED'
+                oneIotState === 'CONNECTED'
                   ? styles.connectedDot
-                  : gatewayState === 'DISCONNECTED'
+                  : oneIotState === 'DISCONNECTED'
                     ? styles.disconnectedDot
                     : styles.unknownDot,
               ]}
             />
             <Text style={styles.statusText}>
-              {gatewayState === 'CONNECTED'
+              {oneIotState === 'CONNECTED'
                 ? 'Đã kết nối'
-                : gatewayState === 'DISCONNECTED'
+                : oneIotState === 'DISCONNECTED'
                   ? 'Chưa kết nối'
                   : 'Chưa kiểm tra'}
             </Text>
@@ -163,22 +185,22 @@ export function SmartLockManagementScreen({
           <View style={styles.actionRow}>
             <Pressable
               disabled={working}
-              onPress={() => runAction(
-                () => configureSmartLockGateway(gatewayUrl, adminUsername),
-                'Đã lưu địa chỉ gateway.',
-              )}
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.secondaryButtonText}>Lưu địa chỉ</Text>
-            </Pressable>
-            <Pressable
-              disabled={working}
-              onPress={checkGateway}
+              onPress={checkOneIoT}
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
               <Text style={styles.primaryButtonText}>{working ? 'Đang kiểm tra...' : 'Kiểm tra kết nối'}</Text>
             </Pressable>
+            {oneIotState === 'CONNECTED' ? (
+              <Pressable
+                disabled={working}
+                onPress={disconnect}
+                style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.secondaryButtonText}>Ngắt kết nối</Text>
+              </Pressable>
+            ) : null}
           </View>
+          <Text style={styles.sessionNote}>App sẽ tự ngắt OneIoT khi đăng xuất, chuyển sang nền hoặc bị đóng.</Text>
         </View>
 
         <View style={styles.card}>
@@ -270,6 +292,8 @@ const styles = StyleSheet.create({
   sectionTitle: { color: '#253047', fontSize: 16, fontWeight: '900', marginBottom: 6 },
   helpText: { color: '#657084', fontSize: 13, lineHeight: 19, marginBottom: 12 },
   input: { backgroundColor: '#F9FAFC', borderColor: '#C9D2E0', borderRadius: 9, borderWidth: 1, color: '#172033', paddingHorizontal: 12, paddingVertical: 11 },
+  endpointText: { color: '#718096', fontSize: 12, marginTop: 8 },
+  sessionNote: { color: '#718096', fontSize: 12, lineHeight: 17, marginTop: 10 },
   statusRow: { alignItems: 'center', flexDirection: 'row', marginTop: 11 },
   statusDot: { borderRadius: 5, height: 10, marginRight: 7, width: 10 },
   connectedDot: { backgroundColor: '#259A58' },

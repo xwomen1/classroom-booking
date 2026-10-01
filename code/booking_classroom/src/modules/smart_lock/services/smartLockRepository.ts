@@ -9,20 +9,15 @@ const DEFAULT_SMART_LOCK: ManagedSmartLock = {
   id: 'primary-smart-lock',
   displayName: 'SmartLock DLWA12',
   model: 'DLWA12',
-  aeId: 'S0a92253e-6f4b-472e-86a8-e25a3853cd11',
-  deviceId: 'S3073a30b-e5c0-4370-a186-643ed93efb09',
-  deviceName: 'SMARTLOCK_device_55132471',
-  gatewayBaseUrl: 'http://192.168.0.133:8135',
+  smartLockAeId: 'S0a92253e-6f4b-472e-86a8-e25a3853cd11',
+  smartLockDeviceId: 'S3073a30b-e5c0-4370-a186-643ed93efb09',
+  smartLockDeviceName: 'SMARTLOCK_device_55132471',
+  oneIotBroker: 'oneiot.com.vn',
+  oneIotPort: 2111,
+  oneIotCseId: '/in-cse',
+  toolDeviceId: 'S0a92253e-6f4b-472e-86a8-e25a3853cd11',
   nextPasswordId: 1,
 };
-
-function normalizeGatewayBaseUrl(value: string): string {
-  const normalized = value.trim().replace(/\/+$/, '');
-  if (!/^https?:\/\/[^\s]+$/i.test(normalized)) {
-    throw new Error('Địa chỉ gateway phải bắt đầu bằng http:// hoặc https://.');
-  }
-  return normalized;
-}
 
 export async function getManagedSmartLock(): Promise<ManagedSmartLock> {
   const stored = await readJson<Partial<ManagedSmartLock> | null>(SMART_LOCK_KEY, null);
@@ -30,30 +25,35 @@ export async function getManagedSmartLock(): Promise<ManagedSmartLock> {
     await writeJson(SMART_LOCK_KEY, DEFAULT_SMART_LOCK);
     return { ...DEFAULT_SMART_LOCK };
   }
+  const legacy = stored as Partial<ManagedSmartLock> & {
+    aeId?: string;
+    deviceId?: string;
+    deviceName?: string;
+  };
   const normalized: ManagedSmartLock = {
     ...DEFAULT_SMART_LOCK,
-    ...stored,
     id: 'primary-smart-lock',
+    displayName: stored.displayName ?? DEFAULT_SMART_LOCK.displayName,
+    model: stored.model ?? DEFAULT_SMART_LOCK.model,
+    smartLockAeId:
+      stored.smartLockAeId ?? legacy.aeId ?? DEFAULT_SMART_LOCK.smartLockAeId,
+    smartLockDeviceId:
+      stored.smartLockDeviceId ?? legacy.deviceId ?? DEFAULT_SMART_LOCK.smartLockDeviceId,
+    smartLockDeviceName:
+      stored.smartLockDeviceName ?? legacy.deviceName ?? DEFAULT_SMART_LOCK.smartLockDeviceName,
+    oneIotBroker: stored.oneIotBroker ?? DEFAULT_SMART_LOCK.oneIotBroker,
+    oneIotPort: stored.oneIotPort ?? DEFAULT_SMART_LOCK.oneIotPort,
+    oneIotCseId: stored.oneIotCseId ?? DEFAULT_SMART_LOCK.oneIotCseId,
+    toolDeviceId: stored.toolDeviceId ?? DEFAULT_SMART_LOCK.toolDeviceId,
+    assignedRoomId: stored.assignedRoomId,
+    assignedAt: stored.assignedAt,
+    assignedBy: stored.assignedBy,
     nextPasswordId:
       Number.isInteger(stored.nextPasswordId) && Number(stored.nextPasswordId) >= 1
         ? Number(stored.nextPasswordId)
         : 1,
   };
   return normalized;
-}
-
-export async function configureSmartLockGateway(
-  gatewayBaseUrl: string,
-  adminUsername: string,
-): Promise<ManagedSmartLock> {
-  await assertAccountRole(adminUsername, 'admin');
-  const lock = await getManagedSmartLock();
-  const updated = {
-    ...lock,
-    gatewayBaseUrl: normalizeGatewayBaseUrl(gatewayBaseUrl),
-  };
-  await writeJson(SMART_LOCK_KEY, updated);
-  return updated;
 }
 
 export async function assignSmartLockToRoom(

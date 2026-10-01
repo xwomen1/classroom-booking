@@ -1,19 +1,20 @@
 export { SmartLockManagementScreen } from './screens/SmartLockManagementScreen';
 export {
   assignSmartLockToRoom,
-  configureSmartLockGateway,
   getManagedSmartLock,
   getSmartLockForRoom,
   reserveSmartLockPasswordId,
   unassignSmartLock,
 } from './services/smartLockRepository';
 export {
-  getSmartLockGatewayStatus,
-  sendTemporaryPasswordToGateway,
-} from './services/smartLockGatewayClient';
+  connectOneIoT,
+  disconnectOneIoT,
+  getOneIoTConnectionStatus,
+  sendTemporaryPasswordToOneIoT,
+} from './services/oneIoTClient';
 export type {
   ManagedSmartLock,
-  SmartLockGatewayStatus,
+  OneIoTConnectionStatus,
   TemporaryPasswordCommand,
   TemporaryPasswordCommandResult,
 } from './model/managedSmartLock';

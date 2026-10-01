@@ -131,6 +131,7 @@ class OneIoTBridge:
         self.events = event_queue
         self.client = None
         self.connected = False
+        self.token = ""
         self.local_ip = detect_local_ip()
         self.firmware_version = cfg.SIMULATOR_FIRMWARE_VERSION
         self.publish_topic = (
@@ -152,11 +153,10 @@ class OneIoTBridge:
     def log(self, text):
         self.emit("log", text)
 
-    def start(self):
-        if not cfg.MQTT_TOKEN:
-            self.log(
-                "Thiếu MQTT_TOKEN. Hãy nhập token trong simulator_config.py trước khi chạy."
-            )
+    def start(self, token):
+        token = str(token or "").strip()
+        if not token:
+            self.log("Thiếu token MQTT. Hãy dán token vào giao diện rồi bấm Kết nối.")
             self.emit("cloud", False)
             return
 
@@ -166,6 +166,9 @@ class OneIoTBridge:
             self.log("Thiếu paho-mqtt. Chạy: pip install -r tunghv/requirements.txt")
             self.emit("cloud", False)
             return
+
+        self.stop()
+        self.token = token
 
         try:
             self.client = mqtt.Client(
@@ -181,7 +184,7 @@ class OneIoTBridge:
                 protocol=mqtt.MQTTv311,
             )
 
-        self.client.username_pw_set(cfg.MQTT_DEVICE_ID, cfg.MQTT_TOKEN)
+        self.client.username_pw_set(cfg.MQTT_DEVICE_ID, self.token)
         self.client.tls_set(cert_reqs=ssl.CERT_NONE)
         self.client.tls_insecure_set(True)
         self.client.reconnect_delay_set(min_delay=1, max_delay=20)
@@ -196,10 +199,13 @@ class OneIoTBridge:
         self.client.loop_start()
 
     def stop(self):
-        if self.client:
+        client = self.client
+        self.client = None
+        self.connected = False
+        if client:
             try:
-                self.client.disconnect()
-                self.client.loop_stop()
+                client.disconnect()
+                client.loop_stop()
             except Exception:
                 pass
 
@@ -267,7 +273,7 @@ class OneIoTBridge:
                 f"{cfg.SMARTLOCK_DEVICE_NAME}/{container}"
             ),
             "ty": 4,
-            "tkns": [cfg.MQTT_TOKEN],
+            "tkns": [self.token],
             "pc": {
                 "m2m:cin": {
                     "cnf": "text/plains:0",
@@ -466,7 +472,8 @@ class SmartLockSimulatorApp:
         self.remote_seconds = 0
         self.ota_running = False
 
-        self.cloud_text = tk.StringVar(value="OneIoT: đang kết nối")
+        self.cloud_text = tk.StringVar(value="OneIoT: CHƯA KẾT NỐI")
+        self.token_value = tk.StringVar(value=cfg.MQTT_TOKEN)
         self.lock_text = tk.StringVar(value="ĐÃ KHÓA")
         self.screen_text = tk.StringVar(value="READY")
         self.battery_value = tk.IntVar(value=80)
@@ -475,7 +482,10 @@ class SmartLockSimulatorApp:
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.after(80, self._drain_events)
-        self.bridge.start()
+        if self.token_value.get().strip():
+            self.connect_cloud()
+        else:
+            self.log("Dán token MQTT vào ô Token rồi bấm Kết nối.")
         self.local_server.start()
 
     def _build_ui(self):
@@ -591,6 +601,10 @@ class SmartLockSimulatorApp:
         ttk.Label(status_box, text=f"AE_ID: {cfg.SMARTLOCK_AE_ID}").grid(row=1, column=0, sticky="w", padx=10)
         ttk.Label(status_box, text=f"Device: {cfg.SMARTLOCK_DEVICE_ID}").grid(row=2, column=0, sticky="w", padx=10)
         ttk.Label(status_box, text=f"Model: {cfg.SMARTLOCK_MODEL} | Bypass pairing: ON").grid(row=3, column=0, sticky="w", padx=10, pady=(0, 6))
+        ttk.Label(status_box, text="Token:").grid(row=4, column=0, sticky="w", padx=(10, 4), pady=(2, 8))
+        ttk.Entry(status_box, textvariable=self.token_value, show="*").grid(row=4, column=1, sticky="ew", padx=4, pady=(2, 8))
+        ttk.Button(status_box, text="Kết nối", command=self.connect_cloud).grid(row=4, column=2, padx=(4, 10), pady=(2, 8))
+        status_box.columnconfigure(1, weight=1)
 
         controls = ttk.LabelFrame(right, text="Điều khiển mô phỏng")
         controls.pack(fill="x", pady=(0, 10))
@@ -634,6 +648,14 @@ class SmartLockSimulatorApp:
         stamp = time.strftime("%H:%M:%S")
         self.log_text.insert("end", f"[{stamp}] {text}\n")
         self.log_text.see("end")
+
+    def connect_cloud(self):
+        token = self.token_value.get().strip()
+        if not token:
+            messagebox.showwarning("Thiếu token", "Hãy dán token MQTT trước khi kết nối.")
+            return
+        self.cloud_text.set("OneIoT: ĐANG KẾT NỐI")
+        self.bridge.start(token)
 
     def _drain_events(self):
         try:

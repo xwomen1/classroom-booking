@@ -2,35 +2,23 @@ export type ManagedSmartLock = {
   id: 'primary-smart-lock';
   displayName: string;
   model: string;
-  aeId: string;
-  deviceId: string;
-  deviceName: string;
-  gatewayBaseUrl: string;
+  smartLockAeId: string;
+  smartLockDeviceId: string;
+  smartLockDeviceName: string;
+  oneIotBroker: string;
+  oneIotPort: number;
+  oneIotCseId: string;
+  toolDeviceId: string;
   assignedRoomId?: string;
   assignedAt?: string;
   assignedBy?: string;
   nextPasswordId: number;
 };
 
-export type SmartLockGatewayStatus = {
+export type OneIoTConnectionStatus = {
   connected: boolean;
-  configured: boolean;
-  lock: {
-    aeId: string;
-    deviceId: string;
-    deviceName: string;
-    model: string;
-  };
-  lastCommand?: {
-    trait: string;
-    passwordId: number;
-    publishedAt: string;
-  };
-  lastResponse?: {
-    trait: string;
-    receivedAt: string;
-  };
-  error?: string;
+  broker?: string;
+  toolDeviceId?: string;
 };
 
 export type TemporaryPasswordCommand = {

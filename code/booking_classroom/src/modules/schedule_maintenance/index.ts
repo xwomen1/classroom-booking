@@ -10,4 +10,3 @@ export {
   requestRoomMaintenance,
   scheduleMaintenanceFromRequest,
 } from './services/maintenanceRepository';
-export { ScheduleMaintenanceScreen } from './screens/ScheduleMaintenanceScreen';

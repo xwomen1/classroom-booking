@@ -36,7 +36,7 @@
   \item Có xác thực local, đăng ký, hồ sơ, đổi/khôi phục mật khẩu, thông báo và hai tài khoản demo \texttt{admin/1}, \texttt{user/2}.
   \item User tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa. Hệ thống kiểm tra thời hạn đặt, trùng phòng, trùng lịch User, bảo trì và giới hạn booking.
   \item Admin quản lý tài khoản, phòng, booking, lịch và cấu hình; có thể duyệt/từ chối hoặc đổi sang phòng đáp ứng các điều kiện cần thiết.
-  \item User đang sử dụng một phòng được gửi yêu cầu bảo trì kèm lý do. Admin nhận thông báo; tầng có yêu cầu tự mở và được tô vàng, phòng liên quan cũng được tô vàng. Admin có thể lên lịch xử lý hoặc từ chối.
+  \item Quản lý phòng và bảo trì dùng chung một màn hình tám tầng. Khi chọn phòng, Admin có thể sửa, xóa, lên lịch/hủy lịch bảo trì và xem lịch sử dụng đã duyệt của phòng. Yêu cầu bảo trì từ User vẫn tự mở, tô vàng tầng/phòng liên quan và cho phép Admin tiếp nhận hoặc từ chối.
   \item Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa trước. Admin chấp nhận hoặc gửi thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại cho đến khi hai bên thống nhất.
   \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền.
   \item Admin có thể gắn một SmartLock vào một phòng khóa số. App tích hợp trực tiếp cơ chế Tools qua MQTT TLS OneIoT để gửi \texttt{traitCreateTmpPasswordLock}, không cần IP máy tính hoặc gateway.

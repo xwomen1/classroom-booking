@@ -9,7 +9,7 @@
 - Kiểm tra trùng phòng, trùng lịch User, thời gian bảo trì, thời hạn đặt trước và giới hạn booking.
 - Admin duyệt/từ chối, đổi sang phòng đáp ứng tối thiểu loại khóa, sức chứa, thiết bị và thời gian.
 - Lịch đặt phòng là màn chỉ đọc; thao tác hủy, truy cập và nhận khóa nằm trong Quản lý đặt phòng.
-- User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do. Admin nhận thông báo; tầng có yêu cầu tự mở, phòng và tầng được tô vàng; Admin có thể lên lịch xử lý hoặc từ chối.
+- User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do. Admin xử lý trên màn hình quản lý phòng và bảo trì dùng chung: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch/hủy lịch bảo trì hoặc xem lịch sử dụng.
 - Với khóa cơ/thẻ từ, User đề xuất thời gian nhận trước. Admin chấp nhận hoặc đề xuất thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại đến khi thống nhất.
 - Với khóa số, booking đã duyệt cấp quyền tạo mã theo đúng cặp User–phòng. Admin có thể tạo mã hộ hoặc thu hồi quyền.
 - Admin gắn một SmartLock vào một phòng khóa số, dán token trong phiên và kiểm tra kết nối OneIoT.

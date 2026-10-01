@@ -11,5 +11,6 @@
 - Admin có thể chọn yêu cầu để điền sẵn phòng/lý do, lên lịch bảo trì hoặc từ chối.
 - Khi lên lịch xử lý hoặc từ chối, yêu cầu được đóng và User nhận thông báo.
 - Lịch bảo trì chặn booking mới bị trùng; không cho tạo lịch đè lên booking đã duyệt.
+- Giao diện Admin được tích hợp vào `RoomManagementScreen`: chọn tầng, chọn phòng rồi mới hiện thao tác và lịch liên quan.
 
-**Hiện trạng:** đã có repository và giao diện local cho yêu cầu, thông báo, đánh dấu tầng/phòng, tạo/hủy lịch và xử lý yêu cầu.
+**Hiện trạng:** repository bảo trì vẫn độc lập; màn hình riêng đã được bỏ để tránh lặp tám tầng với quản lý phòng.

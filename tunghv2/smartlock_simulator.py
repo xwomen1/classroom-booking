@@ -332,8 +332,8 @@ class OneIoTBridge:
                 "fingerUnlock": 1,
                 "passwordUnlock": 1,
                 "cardUnlock": 1,
-                "remoteUnlock": 1,
-                "remoteUnlockApp": 1,
+                "remoteUnlock": 0,
+                "remoteUnlockApp": 0,
                 "activityHistory": 1,
                 "unlockHistory": 1,
                 "alert": 1,
@@ -349,24 +349,12 @@ class OneIoTBridge:
             deviceName=cfg.SMARTLOCK_DEVICE_NAME,
         )
 
-    def publish_temp_password_response(self, action, password_ids, result=0):
-        traits = {
-            "create": "traitResponseCreateTmpPassword",
-            "delete": "traitResponseDeleteTmpPassword",
-            "update": "traitResponseUpdateTmpPassword",
-        }
-        results = [
-            {
-                "passwordID": pid - 900 if pid > 900 else pid,
-                "result": result,
-            }
-            for pid in password_ids
-        ]
+    def publish_temp_password_response(self, password_id, result=0):
         return self.publish_trait(
-            traits[action],
+            "traitResponseCreateTmpPassword",
             None,
-            numPassword=len(results),
-            passwordResultList=results,
+            numPassword=1,
+            passwordResultList=[{"passwordID": password_id, "result": result}],
         )
 
     def publish_remove_response(self):
@@ -468,8 +456,6 @@ class SmartLockSimulatorApp:
         self.permanent_password = cfg.DEFAULT_PERMANENT_PASSWORD
         self.temp_passwords: dict[int, TempPassword] = {}
         self.relock_job = None
-        self.remote_job = None
-        self.remote_seconds = 0
         self.ota_running = False
 
         self.cloud_text = tk.StringVar(value="OneIoT: CHƯA KẾT NỐI")
@@ -690,7 +676,7 @@ class SmartLockSimulatorApp:
             if self.input_digits:
                 self.validate_password()
             else:
-                self.start_remote_unlock_request()
+                self.screen_text.set("NHAP MAT KHAU")
             return
         if len(self.input_digits) < 12:
             self.input_digits += key
@@ -745,27 +731,6 @@ class SmartLockSimulatorApp:
         value = max(0, min(100, int(self.battery_value.get())))
         self.bridge.publish_trait("traitBatteryLevel", value)
 
-    def start_remote_unlock_request(self):
-        if self.remote_job:
-            self.root.after_cancel(self.remote_job)
-        self.remote_seconds = cfg.REMOTE_UNLOCK_COUNTDOWN_SECONDS
-        self._remote_tick()
-
-    def _remote_tick(self):
-        if self.remote_seconds < 0:
-            self.remote_job = None
-            self.screen_text.set("REMOTE TIMEOUT")
-            return
-        self.bridge.publish_trait("traitUnlockRequest", self.remote_seconds)
-        self.screen_text.set(f"REMOTE {self.remote_seconds}s")
-        self.remote_seconds -= 1
-        self.remote_job = self.root.after(1000, self._remote_tick)
-
-    def stop_remote_request(self):
-        if self.remote_job:
-            self.root.after_cancel(self.remote_job)
-            self.remote_job = None
-
     def first_pair(self):
         self.bridge.publish_first_pair()
         self.log("Đã phát traitFirstPair; kết nối cloud vẫn giữ do bypass")
@@ -783,44 +748,8 @@ class SmartLockSimulatorApp:
         data = packet["data"]
         trait = str(data.get("trait", ""))
         self.log(f"Xử lý trait từ tool: {trait}")
-        if trait == "traitReplyUnlockRequest":
-            accepted = int(data.get("value", 1)) == 0
-            self.stop_remote_request()
-            if accepted:
-                self.bridge.publish_trait("traitResponseUnlockStatus", 0)
-                self.unlock("Tool chấp nhận mở từ xa")
-            else:
-                self.bridge.publish_trait("traitResponseUnlockStatus", 1)
-                self.screen_text.set("REMOTE REJECT")
-            return
-        if trait == "traitSetKeyForNoCode":
-            if cfg.IGNORE_SET_KEY_FOR_NO_CODE and cfg.SMARTLOCK_MODEL == "DLWA12":
-                self.log("DLWA12 bỏ qua traitSetKeyForNoCode giống firmware hiện tại")
-                return
-            password_id = int(data.get("passwordID", 1))
-            plain = decrypt_lock_password(
-                data.get("password"),
-                data.get("deviceID", cfg.SMARTLOCK_DEVICE_ID),
-                password_id,
-                data.get("startTime", "0"),
-                data.get("endTime", "9999"),
-            )
-            if plain:
-                self.permanent_password = plain
-                self.bridge.publish_trait(
-                    "traitResponseSetKeyForNoCode",
-                    None,
-                    passwordID=password_id,
-                    result=0,
-                )
-            return
-        action_by_trait = {
-            "traitCreateTmpPasswordLock": "create",
-            "traitDeleteTmpPasswordLock": "delete",
-            "traitUpdateTmpPasswordLock": "update",
-        }
-        if trait in action_by_trait:
-            self.handle_temp_password(action_by_trait[trait], data)
+        if trait == "traitCreateTmpPasswordLock":
+            self.handle_temp_password(data)
             return
         if trait == "traitRemoveSmartLock":
             self.temp_passwords.clear()
@@ -833,37 +762,35 @@ class SmartLockSimulatorApp:
             if resource:
                 self.start_ota({"url": str(resource), "root": packet.get("root", {})})
 
-    def handle_temp_password(self, action, data):
+    def handle_temp_password(self, data):
         entries = data.get("passwordList") or data.get("passwords") or []
-        if not isinstance(entries, list):
-            entries = []
-        handled_ids = []
-        for item in entries:
-            try:
-                password_id = int(item.get("passwordID", item.get("passwordId")))
-            except (TypeError, ValueError):
-                continue
-            handled_ids.append(password_id)
-            if action == "delete":
-                self.temp_passwords.pop(password_id, None)
-                continue
-            start_time = str(item.get("startTime", "0"))
-            end_time = str(item.get("endTime", "9999"))
-            plain = decrypt_lock_password(
-                item.get("password"),
-                item.get("deviceID", data.get("deviceID", cfg.SMARTLOCK_DEVICE_ID)),
-                password_id,
-                start_time,
-                end_time,
+        if not isinstance(entries, list) or not entries:
+            self.log("Bỏ qua lệnh tạo mật khẩu không có passwordList")
+            return
+        item = entries[0]
+        try:
+            password_id = int(item.get("passwordID", item.get("passwordId")))
+        except (AttributeError, TypeError, ValueError):
+            self.log("Bỏ qua lệnh tạo mật khẩu có passwordID không hợp lệ")
+            return
+        start_time = str(item.get("startTime", "0"))
+        end_time = str(item.get("endTime", "9999"))
+        plain = decrypt_lock_password(
+            item.get("password"),
+            item.get("deviceID", data.get("deviceID", cfg.SMARTLOCK_DEVICE_ID)),
+            password_id,
+            start_time,
+            end_time,
+        )
+        result = 0 if plain else 1
+        if plain:
+            self.temp_passwords[password_id] = TempPassword(
+                password_id, plain, start_time, end_time
             )
-            if plain:
-                self.temp_passwords[password_id] = TempPassword(
-                    password_id, plain, start_time, end_time
-                )
-            else:
-                self.log(f"Không giải mã được mật khẩu ID={password_id}")
+        else:
+            self.log(f"Không giải mã được mật khẩu ID={password_id}")
         self.refresh_password_tree()
-        self.bridge.publish_temp_password_response(action, handled_ids, result=0)
+        self.bridge.publish_temp_password_response(password_id, result=result)
 
     def refresh_password_tree(self):
         for item in self.password_tree.get_children():
@@ -927,7 +854,6 @@ class SmartLockSimulatorApp:
         self.screen_text.set("OTA SUCCESS")
 
     def close(self):
-        self.stop_remote_request()
         self.local_server.stop()
         self.bridge.stop()
         self.root.destroy()

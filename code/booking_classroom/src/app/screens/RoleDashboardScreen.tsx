@@ -26,7 +26,6 @@ import {
 import { presentPriorityNotification, consumeNotificationDestination, subscribePriorityBannerOpen } from '../../modules/notifications/services/priorityBanner';
 import { ProfileScreen } from '../../modules/profile';
 import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
-import { ScheduleMaintenanceScreen } from '../../modules/schedule_maintenance';
 import { SmartLockManagementScreen } from '../../modules/smart_lock';
 
 type RoleDashboardScreenProps = {
@@ -40,8 +39,8 @@ type ActiveScreen = 'profile' | 'password' | 'notifications' | string | null;
 const ADMIN_FEATURES: readonly FeatureItem[] = [
   { title: 'Quản lý tài khoản', description: 'Tài khoản và quyền tạo mã theo phòng' },
   {
-    title: 'Quản lý phòng',
-    description: 'Phòng, sức chứa, thiết bị và trạng thái',
+    title: 'Quản lý phòng và bảo trì',
+    description: 'Thông tin phòng, lịch sử dụng, lịch và yêu cầu bảo trì',
   },
   {
     title: 'Quản lý khóa',
@@ -50,10 +49,6 @@ const ADMIN_FEATURES: readonly FeatureItem[] = [
   {
     title: 'Yêu cầu đặt phòng',
     description: 'Duyệt, từ chối, đổi phòng và cấp quyền vào phòng',
-  },
-  {
-    title: 'Lịch phòng và bảo trì',
-    description: 'Lịch sử dụng, lịch bảo trì và yêu cầu báo sự cố',
   },
   {
     title: 'Quy định đặt phòng',
@@ -115,7 +110,7 @@ export function RoleDashboardScreen({
       if (session.role === 'admin' && banner.title === 'Có yêu cầu đặt phòng mới') {
         setActiveScreen('Yêu cầu đặt phòng');
       } else if (session.role === 'admin' && banner.title === 'Có yêu cầu bảo trì mới') {
-        setActiveScreen('Lịch phòng và bảo trì');
+        setActiveScreen('Quản lý phòng và bảo trì');
       }
     });
   }, [session.role]);
@@ -187,7 +182,7 @@ export function RoleDashboardScreen({
             session.role === 'admin' &&
             notification.title === 'Có yêu cầu bảo trì mới'
           ) {
-            setActiveScreen('Lịch phòng và bảo trì');
+            setActiveScreen('Quản lý phòng và bảo trì');
           }
         }}
       />
@@ -204,14 +199,11 @@ export function RoleDashboardScreen({
   if (isAdmin && activeScreen === 'Quản lý tài khoản') {
     return <AccountManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
-  if (isAdmin && activeScreen === 'Quản lý phòng') {
+  if (isAdmin && activeScreen === 'Quản lý phòng và bảo trì') {
     return <RoomManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
   }
   if (isAdmin && activeScreen === 'Quản lý khóa') {
     return <SmartLockManagementScreen adminUsername={session.username} onBack={closeChildScreen} />;
-  }
-  if (isAdmin && activeScreen === 'Lịch phòng và bảo trì') {
-    return <ScheduleMaintenanceScreen username={session.username} onBack={closeChildScreen} />;
   }
   if (isAdmin && activeScreen === 'Quy định đặt phòng') {
     return <ConfigurationScreen adminUsername={session.username} onBack={closeChildScreen} />;

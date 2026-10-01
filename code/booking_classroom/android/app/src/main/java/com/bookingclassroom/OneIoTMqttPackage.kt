@@ -65,6 +65,8 @@ class OneIoTMqttModule(
     reactContext: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
   private val executor = Executors.newSingleThreadExecutor()
+  private val pendingTemporaryPasswords =
+      ConcurrentHashMap<Int, CompletableFuture<Int>>()
   @Volatile private var mqttClient: SimpleMqttClient? = null
   @Volatile private var sessionToken: String? = null
 
@@ -100,7 +102,7 @@ class OneIoTMqttModule(
                 token.trim(),
                 smartLockAeId.trim(),
                 cseId.trim(),
-            ) { topic, payload -> emitSmartLockMessage(topic, payload) }
+            ) { topic, payload -> handleSmartLockMessage(topic, payload) }
         candidate.connect()
         mqttClient = candidate
         sessionToken = token.trim()
@@ -171,14 +173,32 @@ class OneIoTMqttModule(
                 endTime = numericEndTime,
             )
         val topic = "/oneM2M/req/${client.clientId}/${cseId.trim('/')}/json"
-        client.publish(topic, command.payload.toByteArray(StandardCharsets.UTF_8))
+        val firmwareResponse = CompletableFuture<Int>()
+        check(pendingTemporaryPasswords.putIfAbsent(numericPasswordId, firmwareResponse) == null) {
+          "passwordID $numericPasswordId Ä‘ang chá» SmartLock xá»­ lÃ½."
+        }
+        val publishedAt = Instant.now().toString()
+        try {
+          client.publish(topic, command.payload.toByteArray(StandardCharsets.UTF_8))
+          val firmwareResult = firmwareResponse.get(20, TimeUnit.SECONDS)
+          check(firmwareResult == 0) {
+            "SmartLock tá»« chá»‘i táº¡o máº­t kháº©u (passwordID=$numericPasswordId, result=$firmwareResult)."
+          }
+        } catch (error: TimeoutException) {
+          throw IllegalStateException(
+              "KhÃ´ng nháº­n Ä‘Æ°á»£c traitResponseCreateTmpPassword tá»« SmartLock trong thá»i gian chá».",
+              error,
+          )
+        } finally {
+          pendingTemporaryPasswords.remove(numericPasswordId, firmwareResponse)
+        }
 
         val result = Arguments.createMap()
         result.putBoolean("accepted", true)
         result.putString("trait", TEMP_PASSWORD_TRAIT)
         result.putString("requestId", command.recordId)
         result.putInt("passwordId", numericPasswordId)
-        result.putString("publishedAt", Instant.now().toString())
+        result.putString("publishedAt", publishedAt)
         result.putString("roomId", roomId)
         result.putString("roomName", roomName)
         promise.resolve(result)
@@ -228,8 +248,19 @@ class OneIoTMqttModule(
     }
   }
 
+  private fun handleSmartLockMessage(topic: String, payload: String) {
+    temporaryPasswordResults(payload).forEach { (passwordId, result) ->
+      pendingTemporaryPasswords[passwordId]?.complete(result)
+    }
+    emitSmartLockMessage(topic, payload)
+  }
+
   @Synchronized
   private fun closeSession() {
+    pendingTemporaryPasswords.values.forEach {
+      it.completeExceptionally(IllegalStateException("Káº¿t ná»‘i OneIoT Ä‘Ã£ bá»‹ ngáº¯t."))
+    }
+    pendingTemporaryPasswords.clear()
     mqttClient?.disconnect()
     mqttClient = null
     sessionToken = null
@@ -240,6 +271,50 @@ class OneIoTMqttModule(
     const val SMART_LOCK_EVENT = "OneIoTSmartLockEvent"
     private const val TEMP_PASSWORD_TRAIT = "traitCreateTmpPasswordLock"
   }
+}
+
+private fun temporaryPasswordResults(payload: String): Map<Int, Int> {
+  val results = mutableMapOf<Int, Int>()
+
+  fun visit(value: Any?, depth: Int) {
+    if (depth > 10 || value == null || value == JSONObject.NULL) return
+    when (value) {
+      is JSONObject -> {
+        if (value.optString("trait") == "traitResponseCreateTmpPassword") {
+          val list = value.optJSONArray("passwordResultList")
+          if (list != null) {
+            for (index in 0 until list.length()) {
+              val item = list.optJSONObject(index) ?: continue
+              if (item.has("passwordID") && item.has("result")) {
+                results[item.optInt("passwordID")] = item.optInt("result")
+              }
+            }
+          }
+        }
+        val keys = value.keys()
+        while (keys.hasNext()) visit(value.opt(keys.next()), depth + 1)
+      }
+      is JSONArray -> {
+        for (index in 0 until value.length()) visit(value.opt(index), depth + 1)
+      }
+      is String -> {
+        val text = value.trim()
+        try {
+          when {
+            text.startsWith("{") -> visit(JSONObject(text), depth + 1)
+            text.startsWith("[") -> visit(JSONArray(text), depth + 1)
+          }
+        } catch (_: Exception) {
+        }
+      }
+    }
+  }
+
+  try {
+    visit(JSONObject(payload), 0)
+  } catch (_: Exception) {
+  }
+  return results
 }
 
 private data class BuiltCommand(val payload: String, val recordId: String)

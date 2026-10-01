@@ -33,9 +33,9 @@ Simulator hỗ trợ:
 
 - Kết nối thẳng OneIoT, không chờ AP/BLE/pairing.
 - Mỗi lần bấm nút trên khóa sẽ phát trạng thái `connected`; simulator không tự phát trạng thái này khi MQTT vừa kết nối.
-- Phím số, `*`, `#`, vân tay, thẻ và nút mở bên trong. Nhấn `#` khi chưa nhập mật khẩu để gửi yêu cầu mở khóa từ xa (thay cho nút chuông riêng).
-- Gửi các trait mở khóa, khóa lại, pin, first-pair và yêu cầu mở khóa từ xa.
-- Nhận phản hồi mở khóa, mật khẩu tạm thời, remove và lệnh OTA từ tool.
+- Phím số, `*`, `#`, vân tay, thẻ và nút mở bên trong. Phím `#` chỉ xác nhận mật khẩu đã nhập.
+- Gửi các trait mở khóa, khóa lại, pin và first-pair.
+- Nhận một mật khẩu tạm thời trong mỗi lệnh, phản hồi kết quả lưu mật khẩu, nhận remove và lệnh OTA.
 - HTTP `/ota_command` cổng `8124` cho mode OTA local 115-2.
 - Kiểm tra byte đầu `0xE9` của ESP image trước khi báo OTA mô phỏng thành công.
 

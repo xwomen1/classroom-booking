@@ -40,7 +40,7 @@ Dữ liệu tài khoản, phòng, booking, bảo trì và cấu hình được l
 
 - Đăng ký, đăng nhập, hồ sơ, đổi/khôi phục mật khẩu và thông báo.
 - Tìm và đặt phòng theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
-- Admin duyệt/từ chối, đổi phòng phù hợp, quản lý phòng, tài khoản, lịch và bảo trì.
+- Admin duyệt/từ chối, đổi phòng phù hợp và quản lý tài khoản. Quản lý phòng và bảo trì dùng chung một màn hình: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch bảo trì hoặc xem lịch sử dụng.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do; Admin nhận thông báo, thấy tầng/phòng được đánh dấu vàng và xử lý yêu cầu.
 - Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa; Admin chấp nhận hoặc đề xuất giờ khác; hai bên trao đổi đến khi thống nhất.
 - Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời.

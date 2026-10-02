@@ -190,8 +190,8 @@ public class BookingService {
       throw new IllegalArgumentException("Yêu cầu này đã được xử lý.");
     }
     if ("APPROVED".equals(decision)) {
-      if (!localDateTime(target.date, target.startTime).isAfter(LocalDateTime.now(ZONE))) {
-        throw new IllegalArgumentException("Không thể duyệt yêu cầu đã đến giờ sử dụng.");
+      if (!localDateTime(target.date, target.endTime).isAfter(LocalDateTime.now(ZONE))) {
+        throw new IllegalArgumentException("Không thể duyệt yêu cầu đã kết thúc thời gian sử dụng.");
       }
       if (hasMaintenanceConflict(target.roomId, target.date, target.startTime, target.endTime)) {
         throw new IllegalArgumentException("Phòng đã có lịch bảo trì trong khung giờ này.");
@@ -250,8 +250,8 @@ public class BookingService {
         throw new ForbiddenException("Quyền tự tạo mã tại phòng này đã bị thu hồi hoặc chưa được cấp.");
       }
     }
-    if (input == null || input.code() == null || !input.code().matches("\\d{4,12}")) {
-      throw new IllegalArgumentException("Mật khẩu tạm thời phải gồm 4 đến 12 chữ số.");
+    if (input == null || input.code() == null || !input.code().matches("\\d{7}")) {
+      throw new IllegalArgumentException("Mật khẩu tạm thời phải gồm đúng 7 chữ số.");
     }
     if (input.lockPasswordId() == null || input.lockPasswordId() < 1 || input.lockPasswordId() > 255) {
       throw new IllegalArgumentException("ID mật khẩu trên khóa phải nằm trong khoảng 1 đến 255.");
@@ -297,6 +297,9 @@ public class BookingService {
       && (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays)) {
       throw new IllegalArgumentException(
           "Chỉ được đặt trước từ " + configuration.minAdvanceDays + " đến " + configuration.maxAdvanceDays + " ngày.");
+    }
+    if (!localDateTime(input.date(), input.endTime()).isAfter(LocalDateTime.now(ZONE))) {
+      throw new IllegalArgumentException("Không thể đặt một khoảng thời gian đã kết thúc.");
     }
     if (hasMaintenanceConflict(input.roomId(), input.date(), input.startTime(), input.endTime())) {
       throw new IllegalArgumentException("Phòng có lịch bảo trì trong khoảng thời gian này.");

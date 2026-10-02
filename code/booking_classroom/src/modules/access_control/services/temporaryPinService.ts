@@ -4,6 +4,7 @@ import { assertAccountRole } from '../../auth/services/accountRepository';
 import type { Booking } from '../../booking/model/booking';
 import {
   getBookingById,
+  getBookings,
   saveTemporaryPin,
   toLocalDateTime,
   updateBooking,
@@ -13,8 +14,13 @@ import { addNotification } from '../../notifications';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import {
   reserveSmartLockPasswordId,
+  getManagedSmartLock,
+} from '../../smart_lock/services/smartLockRepository';
+import {
+  getOneIoTConnectionStatus,
   sendTemporaryPasswordToOneIoT,
-} from '../../smart_lock';
+} from '../../smart_lock/services/oneIoTClient';
+import type { ManagedSmartLock } from '../../smart_lock/model/managedSmartLock';
 import {
   grantRoomPinPermission,
   hasRoomPinPermission,
@@ -24,8 +30,84 @@ function addMinutes(date: Date, minutes: number): Date {
   return new Date(date.getTime() + minutes * 60_000);
 }
 
-function generateSixDigitPin(): string {
-  return String(Math.floor(100_000 + Math.random() * 900_000));
+function generateSevenDigitPin(): string {
+  return String(Math.floor(1_000_000 + Math.random() * 9_000_000));
+}
+
+export type TemporaryPinDeliverySummary = {
+  sent: number;
+  failed: number;
+  skipped: number;
+};
+
+async function deliverTemporaryPin(
+  booking: Booking,
+  lock: ManagedSmartLock,
+): Promise<Booking> {
+  const pin = booking.temporaryPin;
+  if (!pin || pin.revokedAt || pin.lockDeliveredAt || pin.lockPasswordId === undefined) {
+    return booking;
+  }
+  const room = await getRoomById(booking.roomId);
+  if (!room || room.lockType !== 'PIN_CODE' || lock.assignedRoomId !== room.id) {
+    return booking;
+  }
+
+  const attemptedAt = new Date().toISOString();
+  try {
+    const command = await sendTemporaryPasswordToOneIoT(lock, {
+      roomId: room.id,
+      roomName: room.name,
+      code: pin.code,
+      passwordId: pin.lockPasswordId,
+      startTime: Math.floor(new Date(pin.validFrom).getTime() / 1000),
+      endTime: Math.floor(new Date(pin.validUntil).getTime() / 1000),
+    });
+    return saveTemporaryPin(booking.id, {
+      ...pin,
+      lockPasswordId: command.passwordId,
+      lockCommandId: command.requestId,
+      lockDeliveredAt: command.publishedAt,
+      lockDeliveryAttemptedAt: attemptedAt,
+      lockDeliveryError: undefined,
+    });
+  } catch (error) {
+    return saveTemporaryPin(booking.id, {
+      ...pin,
+      lockDeliveryAttemptedAt: attemptedAt,
+      lockDeliveryError: error instanceof Error ? error.message : 'Không gửi được lệnh tới OneIoT.',
+    });
+  }
+}
+
+export async function deliverPendingTemporaryPins(
+  now = new Date(),
+): Promise<TemporaryPinDeliverySummary> {
+  const status = await getOneIoTConnectionStatus();
+  if (!status.connected) {
+    throw new Error('Phiên OneIoT chưa kết nối.');
+  }
+  const lock = await getManagedSmartLock();
+  const bookings = await getBookings();
+  const summary: TemporaryPinDeliverySummary = { sent: 0, failed: 0, skipped: 0 };
+
+  for (const booking of bookings) {
+    const pin = booking.temporaryPin;
+    if (!pin || pin.revokedAt || pin.lockDeliveredAt) continue;
+    if (
+      booking.status !== 'APPROVED' ||
+      lock.assignedRoomId !== booking.roomId ||
+      pin.lockPasswordId === undefined ||
+      new Date(pin.validUntil) <= now
+    ) {
+      summary.skipped += 1;
+      continue;
+    }
+    const delivered = await deliverTemporaryPin(booking, lock);
+    if (delivered.temporaryPin?.lockDeliveredAt) summary.sent += 1;
+    else summary.failed += 1;
+  }
+  return summary;
 }
 
 export async function createTemporaryPin(
@@ -57,33 +139,29 @@ export async function createTemporaryPin(
   const end = toLocalDateTime(booking.date, booking.endTime);
   if (end <= new Date()) throw new Error('Không thể tạo mã cho phiên sử dụng đã kết thúc.');
   const configuration = await getConfiguration();
-  const code = generateSixDigitPin();
+  const code = generateSevenDigitPin();
   const validFrom = addMinutes(start, -configuration.pinGraceMinutes);
   const validUntil = addMinutes(end, configuration.pinGraceMinutes);
   const { lock, passwordId } = await reserveSmartLockPasswordId(booking.roomId);
-  const command = await sendTemporaryPasswordToOneIoT(lock, {
-    roomId: room.id,
-    roomName: room.name,
-    code,
-    passwordId,
-    startTime: Math.floor(validFrom.getTime() / 1000),
-    endTime: Math.floor(validUntil.getTime() / 1000),
-  });
-  const updated = await saveTemporaryPin(bookingId, {
+  let updated = await saveTemporaryPin(bookingId, {
     code,
     createdAt: new Date().toISOString(),
     createdBy: actorUsername,
     validFrom: validFrom.toISOString(),
     validUntil: validUntil.toISOString(),
-    lockPasswordId: command.passwordId,
-    lockCommandId: command.requestId,
-    lockDeliveredAt: command.publishedAt,
+    lockPasswordId: passwordId,
   });
+  const status = await getOneIoTConnectionStatus().catch(() => ({ connected: false }));
+  if (status.connected) {
+    updated = await deliverTemporaryPin(updated, lock);
+  }
   if (!isRemoteApiEnabled()) {
     await addNotification(
       updated.requesterUsername,
       'Đã cấp mã mở cửa tạm thời',
-      `Mã cho phòng ${room.name} đã sẵn sàng trong chi tiết đặt phòng.`,
+      updated.temporaryPin?.lockDeliveredAt
+        ? `Mã cho phòng ${room.name} đã sẵn sàng và lệnh đã được gửi tới SmartLock.`
+        : `Mã cho phòng ${room.name} đã sẵn sàng trong app; lệnh sẽ được gửi khi kết nối OneIoT.`,
     );
   }
   return updated;

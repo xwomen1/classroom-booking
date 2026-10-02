@@ -1,6 +1,7 @@
 import { storage } from '../src/core/storage/jsonStorage';
 import {
   createTemporaryPin,
+  deliverPendingTemporaryPins,
   grantRoomPinPermission,
   hasRoomPinPermission,
   revokeRoomPinPermission,
@@ -18,6 +19,8 @@ import {
   toLocalDateTime,
   updatePendingRecurringBookings,
 } from '../src/modules/booking';
+import { saveConfiguration } from '../src/modules/configuration';
+import * as oneIoTClient from '../src/modules/smart_lock/services/oneIoTClient';
 import { registerAccount } from '../src/modules/auth';
 import { assignSmartLockToRoom } from '../src/modules/smart_lock';
 
@@ -40,7 +43,12 @@ describe('local booking and temporary PIN flow', () => {
     await assignSmartLockToRoom('room-a101', 'admin');
   });
 
-  test('expires an unreviewed request when its session starts', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  test('keeps an unreviewed same-day request active until its session ends', () => {
     const booking = {
       id: 'pending-at-start',
       requesterUsername: 'user',
@@ -54,14 +62,42 @@ describe('local booking and temporary PIN flow', () => {
     };
 
     expect(isBookingStillActive(booking, new Date('2030-01-01T07:59:00'))).toBe(true);
-    expect(isBookingStillActive(booking, new Date('2030-01-01T08:00:00'))).toBe(false);
+    expect(isBookingStillActive(booking, new Date('2030-01-01T08:23:00'))).toBe(true);
+    expect(isBookingStillActive(booking, new Date('2030-01-01T09:00:00'))).toBe(false);
     expect(isBookingStillActive(
       { ...booking, status: 'APPROVED' },
       new Date('2030-01-01T08:30:00'),
     )).toBe(true);
   });
 
-  test('creates, approves and issues a six-digit PIN for the requester', async () => {
+  test('allows creating and approving an ongoing booking when Admin allows same-day booking', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2030, 0, 1, 8, 23));
+    await saveConfiguration({
+      minAdvanceDays: 0,
+      maxAdvanceDays: 3,
+      maxActiveBookingsPerUser: 2,
+      cancellationCutoffMinutes: 30,
+      roomChangeCutoffMinutes: 30,
+      pinGraceMinutes: 10,
+      noShowGraceMinutes: 15,
+      notificationsEnabled: true,
+    }, 'admin');
+
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: '2030-01-01',
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Đặt phòng đang trong khung giờ',
+    });
+    await expect(reviewBooking(booking.id, 'APPROVED', 'admin')).resolves.toMatchObject({
+      status: 'APPROVED',
+    });
+  });
+
+  test('creates, approves and issues a seven-digit PIN for the requester', async () => {
     const date = dateAfter(1);
     const booking = await createBooking({
       requesterUsername: 'user',
@@ -78,15 +114,38 @@ describe('local booking and temporary PIN flow', () => {
     await reviewBooking(booking.id, 'APPROVED', 'admin');
     const approved = await createTemporaryPin(booking.id, 'admin', 'admin');
 
-    expect(approved.temporaryPin?.code).toMatch(/^\d{6}$/);
+    expect(approved.temporaryPin?.code).toMatch(/^\d{7}$/);
     expect(new Date(approved.temporaryPin!.validFrom).getTime()).toBe(
       toLocalDateTime(date, '08:00').getTime() - 10 * 60_000,
     );
     expect(new Date(approved.temporaryPin!.validUntil).getTime()).toBe(
       toLocalDateTime(date, '09:00').getTime() + 10 * 60_000,
     );
+    expect(approved.temporaryPin?.lockDeliveredAt).toBeUndefined();
     await expect(getBookingsForUser('user')).resolves.toHaveLength(1);
     await expect(getBookingsForUser('another-user')).resolves.toHaveLength(0);
+  });
+
+  test('queues a temporary PIN offline and sends it after OneIoT connects', async () => {
+    const date = dateAfter(1);
+    const booking = await createBooking({
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date,
+      startTime: '10:00',
+      endTime: '11:00',
+      purpose: 'Kiểm thử hàng đợi mật khẩu',
+    });
+    await reviewBooking(booking.id, 'APPROVED', 'admin');
+    const queued = await createTemporaryPin(booking.id, 'admin', 'admin');
+    expect(queued.temporaryPin?.lockPasswordId).toBeDefined();
+    expect(queued.temporaryPin?.lockDeliveredAt).toBeUndefined();
+
+    jest.spyOn(oneIoTClient, 'getOneIoTConnectionStatus').mockResolvedValue({ connected: true });
+    await expect(deliverPendingTemporaryPins()).resolves.toMatchObject({ sent: 1, failed: 0 });
+    const [delivered] = await getBookingsForUser('user');
+    expect(delivered.temporaryPin?.lockDeliveredAt).toBeDefined();
+    expect(delivered.temporaryPin?.lockCommandId).toBe(`test-${delivered.temporaryPin?.lockPasswordId}`);
   });
 
   test('approving a booking grants room-scoped PIN permission that admin can revoke', async () => {
@@ -107,7 +166,7 @@ describe('local booking and temporary PIN flow', () => {
     await grantRoomPinPermission('user', 'room-a101', 'admin');
     const updated = await createTemporaryPin(booking.id, 'user', 'user');
 
-    expect(updated.temporaryPin?.code).toMatch(/^\d{6}$/);
+    expect(updated.temporaryPin?.code).toMatch(/^\d{7}$/);
     expect(updated.temporaryPin?.createdBy).toBe('user');
   });
 

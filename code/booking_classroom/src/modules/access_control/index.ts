@@ -1,9 +1,10 @@
 export {
   createTemporaryPin,
+  deliverPendingTemporaryPins,
   getPinDisplayStatus,
   grantUserPinPermission,
 } from './services/temporaryPinService';
-export type { PinDisplayStatus } from './services/temporaryPinService';
+export type { PinDisplayStatus, TemporaryPinDeliverySummary } from './services/temporaryPinService';
 export {
   getRoomPinPermissions,
   grantRoomPinPermission,

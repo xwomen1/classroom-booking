@@ -108,10 +108,8 @@ function overlaps(booking: Booking, date: string, startTime: string, endTime: st
 }
 
 export function isBookingStillActive(booking: Booking, now = new Date()) {
-  if (booking.status === 'PENDING') {
-    return toLocalDateTime(booking.date, booking.startTime) > now;
-  }
-  return booking.status === 'APPROVED' && toLocalDateTime(booking.date, booking.endTime) > now;
+  return ACTIVE_STATUSES.includes(booking.status) &&
+    toLocalDateTime(booking.date, booking.endTime) > now;
 }
 
 function hasCheckInEvidence(booking: Booking): boolean {
@@ -129,11 +127,15 @@ async function validateBooking(
 ) {
   const room = await getRoomById(input.roomId);
   if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng không tồn tại hoặc đang tạm khóa/bảo trì.');
-  const { start } = validateDateAndTime(input.date, input.startTime, input.endTime);
+  const { start, end } = validateDateAndTime(input.date, input.startTime, input.endTime);
   const configuration = await getConfiguration();
-  const dayDifference = calendarDayDifference(start, new Date());
+  const now = new Date();
+  const dayDifference = calendarDayDifference(start, now);
   if (!options.skipAdvanceWindowCheck && (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays)) {
     throw new Error(`Chỉ được đặt trước từ ${configuration.minAdvanceDays} đến ${configuration.maxAdvanceDays} ngày.`);
+  }
+  if (end <= now) {
+    throw new Error('Không thể đặt một khoảng thời gian đã kết thúc.');
   }
   if (await hasMaintenanceConflict(input.roomId, input.date, input.startTime, input.endTime)) {
     throw new Error('Phòng có lịch bảo trì trong khoảng thời gian này.');
@@ -241,7 +243,7 @@ export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED
   if (!target) throw new Error('Không tìm thấy yêu cầu đặt phòng.');
   if (target.status !== 'PENDING') throw new Error('Yêu cầu này đã được xử lý.');
   if (decision === 'APPROVED') {
-    if (toLocalDateTime(target.date, target.startTime) <= new Date()) throw new Error('Không thể duyệt yêu cầu đã đến giờ sử dụng.');
+    if (toLocalDateTime(target.date, target.endTime) <= new Date()) throw new Error('Không thể duyệt yêu cầu đã hết giờ sử dụng.');
     if (await hasMaintenanceConflict(target.roomId, target.date, target.startTime, target.endTime)) {
       throw new Error('Phòng đã có lịch bảo trì trong khung giờ này.');
     }
@@ -284,8 +286,8 @@ export async function reviewRecurringSeries(
     const approvedCandidates: Booking[] = [];
     const now = new Date();
     for (const booking of pending) {
-      if (toLocalDateTime(booking.date, booking.startTime) <= now) {
-        throw new Error('Có lượt trong chuỗi đã đến giờ sử dụng; chưa lượt nào được duyệt.');
+      if (toLocalDateTime(booking.date, booking.endTime) <= now) {
+        throw new Error('Có lượt trong chuỗi đã hết giờ sử dụng; chưa lượt nào được duyệt.');
       }
       if (await hasMaintenanceConflict(booking.roomId, booking.date, booking.startTime, booking.endTime)) {
         throw new Error('Có lượt trong chuỗi trùng lịch bảo trì; chưa lượt nào được duyệt.');

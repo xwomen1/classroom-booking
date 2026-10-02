@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenHeader } from '../../../shared';
+import { deliverPendingTemporaryPins } from '../../access_control';
 import type { Room } from '../../room_management';
 import { getRooms } from '../../room_management';
 import type { ManagedSmartLock } from '../model/managedSmartLock';
@@ -88,11 +89,14 @@ export function SmartLockManagementScreen({
       const status = await connectOneIoT(lock, token);
       setOneIotState(status.connected ? 'CONNECTED' : 'DISCONNECTED');
       setIsError(!status.connected);
-      setMessage(
-        status.connected
-          ? 'Tools trong app đã kết nối OneIoT và sẵn sàng gửi lệnh.'
-          : 'OneIoT chưa xác nhận kết nối.',
-      );
+      if (status.connected) {
+        const delivery = await deliverPendingTemporaryPins();
+        setMessage(delivery.sent > 0
+          ? `Đã kết nối OneIoT và gửi ${delivery.sent} mật khẩu đang chờ tới SmartLock${delivery.failed ? `; ${delivery.failed} lệnh gửi lỗi` : ''}.`
+          : 'Tools trong app đã kết nối OneIoT; không có mật khẩu mới cần gửi.');
+      } else {
+        setMessage('OneIoT chưa xác nhận kết nối.');
+      }
     } catch (error) {
       setOneIotState('DISCONNECTED');
       setIsError(true);

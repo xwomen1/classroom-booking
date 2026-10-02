@@ -156,7 +156,7 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
           </>}
         </View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !activePin ? <View style={styles.section}><Text style={styles.sectionTitle}>Mã mở cửa</Text><Text style={styles.detail}>Người đặt đã được quyền tự tạo mã cho phòng này. Bạn cũng có thể tạo mã thay.</Text><Pressable style={styles.purple} onPress={() => action(() => createTemporaryPin(booking.id, username, 'admin'), 'Đã tạo mã tạm thời.')}><Text style={styles.white}>Tạo mã thay</Text></Pressable></View> : null}
-        {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text></View> : null}
+        {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text><Text style={styles.detail}>{booking.temporaryPin!.lockDeliveredAt ? 'Đã gửi lệnh tới SmartLock' : 'Đang chờ kết nối OneIoT để gửi tới SmartLock'}</Text></View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thỏa thuận nhận khóa / thẻ</Text>
           {booking.keyPickupAppointment ? <View style={styles.pickupAgreed}><Text style={styles.pickupAgreedTitle}>Đã thống nhất</Text><Text style={styles.detail}>{booking.keyPickupAppointment.date} · {booking.keyPickupAppointment.time} · {booking.keyPickupAppointment.location}</Text></View> : null}

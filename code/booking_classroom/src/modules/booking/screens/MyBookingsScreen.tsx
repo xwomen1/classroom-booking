@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
-import { createTemporaryPin, getPinDisplayStatus, getRoomPinPermissions } from '../../access_control';
+import { createTemporaryPin, deliverPendingTemporaryPins, getPinDisplayStatus, getRoomPinPermissions } from '../../access_control';
 import { getRooms, type Room } from '../../room_management';
 import {
   connectOneIoT,
@@ -77,9 +77,11 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
   const active = bookings.filter(item => ['PENDING', 'APPROVED'].includes(item.status) && toLocalDateTime(item.date, item.endTime) > new Date());
   const needsOneIoTConnection = active.some(booking => {
     const room = rooms.find(item => item.id === booking.roomId);
-    const hasPin = Boolean(booking.temporaryPin && !booking.temporaryPin.revokedAt);
+    const pin = booking.temporaryPin;
+    const hasPin = Boolean(pin && !pin.revokedAt);
+    const waitingForDelivery = Boolean(hasPin && !pin?.lockDeliveredAt && new Date(pin!.validUntil) > new Date());
     return booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' &&
-      permittedRoomIds.includes(booking.roomId) && !hasPin;
+      permittedRoomIds.includes(booking.roomId) && (!hasPin || waitingForDelivery);
   });
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể thực hiện thao tác.'); } };
   const checkOneIoT = async () => {
@@ -88,7 +90,15 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
       const managedLock = await getManagedSmartLock();
       const status = await connectOneIoT(managedLock, oneIotToken);
       setOneIotConnected(status.connected);
-      setMessage(status.connected ? 'Đã kết nối OneIoT cho phiên hiện tại.' : 'OneIoT chưa xác nhận kết nối.');
+      if (status.connected) {
+        const delivery = await deliverPendingTemporaryPins();
+        setMessage(delivery.sent > 0
+          ? `Đã kết nối OneIoT và gửi ${delivery.sent} mật khẩu đang chờ tới SmartLock${delivery.failed ? `; ${delivery.failed} lệnh gửi lỗi` : ''}.`
+          : 'Đã kết nối OneIoT cho phiên hiện tại; không có mật khẩu mới cần gửi.');
+        await load();
+      } else {
+        setMessage('OneIoT chưa xác nhận kết nối.');
+      }
     } catch (error) {
       setOneIotConnected(false);
       setMessage(error instanceof Error ? error.message : 'Không thể kết nối OneIoT.');
@@ -97,13 +107,15 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
     }
   };
   const createPinForBooking = async (bookingId: string) => {
-    const status = await getOneIoTConnectionStatus();
-    setOneIotConnected(status.connected);
-    if (!status.connected) {
-      setMessage('Phiên OneIoT chưa kết nối hoặc đã bị ngắt. Hãy nhập token và kiểm tra kết nối trước.');
-      return;
+    try {
+      const updated = await createTemporaryPin(bookingId, username, 'user');
+      setMessage(updated.temporaryPin?.lockDeliveredAt
+        ? 'Đã tạo mật khẩu tạm thời và gửi lệnh tới SmartLock.'
+        : 'Đã tạo mật khẩu tạm thời trong app. Lệnh đang chờ kết nối OneIoT để gửi tới SmartLock.');
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể tạo mật khẩu tạm thời.');
     }
-    await action(() => createTemporaryPin(bookingId, username, 'user'), 'Đã tạo mật khẩu tạm thời.');
   };
   const updateDelegate = (id: string, field: keyof DelegateDraft, value: string) => setDelegates(current => ({ ...current, [id]: { ...(current[id] ?? { fullName: '', studentId: '' }), [field]: value } }));
   const updatePickup = (id: string, field: keyof PickupDraft, value: string) => setPickupDrafts(current => ({ ...current, [id]: { ...(current[id] ?? { date: '', time: '' }), [field]: value } }));
@@ -144,8 +156,8 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
   return <View style={styles.page}><ScreenHeader title="Đặt phòng của tôi" onBack={onBack} /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}
     {needsOneIoTConnection ? <View style={styles.oneIotBox}>
-      <Text style={styles.boxTitle}>Kết nối OneIoT để tạo mật khẩu</Text>
-      <Text style={styles.helperText}>Token chỉ được giữ trong phiên app. Sau khi app chuyển nền hoặc đóng, bạn cần kết nối lại.</Text>
+      <Text style={styles.boxTitle}>Kết nối OneIoT để gửi mật khẩu tới khóa</Text>
+      <Text style={styles.helperText}>Bạn vẫn có thể tạo và xem mã khi chưa kết nối. Sau khi kết nối thành công, app tự gửi các mã đang chờ. Token chỉ được giữ trong phiên app.</Text>
       <TextInput autoCapitalize="none" autoCorrect={false} onChangeText={setOneIotToken} placeholder="Dán token OneIoT của Tools" placeholderTextColor="#7D8795" secureTextEntry selectTextOnFocus style={styles.input} value={oneIotToken} />
       <View style={styles.connectionStatusRow}><View style={[styles.connectionDot, oneIotConnected ? styles.connectedDot : styles.disconnectedDot]} /><Text style={styles.connectionStatusText}>{oneIotConnected ? 'Đã kết nối' : 'Chưa kết nối'}</Text></View>
       <Pressable disabled={oneIotWorking} style={[styles.purpleButton, oneIotWorking && styles.disabledButton]} onPress={checkOneIoT}><Text style={styles.whiteText}>{oneIotWorking ? 'Đang kiểm tra...' : 'Kiểm tra kết nối'}</Text></Pressable>
@@ -231,8 +243,8 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
             </Pressable>
           </View> : null}
         </View> : null}
-        {pin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mã mở cửa · {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}</Text><Text style={styles.pinCode}>{reveal ? pin.code : '••••••'}</Text><Text style={styles.pinTime}>Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} – {new Date(pin.validUntil).toLocaleString('vi-VN')}</Text><Pressable onPress={() => setRevealedPinId(reveal ? null : booking.id)}><Text style={styles.link}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text></Pressable></View> : null}
-        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && canCreatePin ? <View style={styles.permission}><Text style={styles.permissionText}>Bạn có quyền tự tạo mã cho riêng phòng {room.name}.</Text><Pressable disabled={!oneIotConnected} style={[styles.purpleButton, !oneIotConnected && styles.disabledButton]} onPress={() => createPinForBooking(booking.id)}><Text style={styles.whiteText}>{oneIotConnected ? 'Tạo mật khẩu tạm thời' : 'Kết nối OneIoT trước'}</Text></Pressable></View> : null}
+        {pin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mã mở cửa · {pinStatus ? PIN_STATUS_LABEL[pinStatus] : ''}</Text><Text style={styles.pinCode}>{reveal ? pin.code : '••••••'}</Text><Text style={styles.pinTime}>Hiệu lực: {new Date(pin.validFrom).toLocaleString('vi-VN')} – {new Date(pin.validUntil).toLocaleString('vi-VN')}</Text><Text style={styles.pinDelivery}>{pin.lockDeliveredAt ? 'Đã gửi lệnh tới SmartLock' : 'Đang chờ kết nối OneIoT để gửi tới SmartLock'}</Text><Pressable onPress={() => setRevealedPinId(reveal ? null : booking.id)}><Text style={styles.link}>{reveal ? 'Ẩn mã' : 'Xem mã'}</Text></Pressable></View> : null}
+        {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && canCreatePin ? <View style={styles.permission}><Text style={styles.permissionText}>Bạn có quyền tự tạo mã cho riêng phòng {room.name}. Có thể tạo mã trước rồi kết nối OneIoT sau.</Text><Pressable style={styles.purpleButton} onPress={() => createPinForBooking(booking.id)}><Text style={styles.whiteText}>Tạo mật khẩu tạm thời</Text></Pressable></View> : null}
         {!pin && booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !canCreatePin ? <Text style={styles.waiting}>Quyền tự tạo mã của phòng này đã bị thu hồi. Liên hệ cán bộ quản lý để được hỗ trợ.</Text> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <>
           <View style={styles.delegateBox}>
@@ -273,4 +285,4 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
     })}
   </ScrollView></View>;
 }
-const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: '#F4F7FB' }, content: { padding: 18, paddingBottom: 40 }, message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 }, empty: { color: '#657084', marginTop: 40, textAlign: 'center' }, card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 13, padding: 16 }, oneIotBox: { backgroundColor: '#F4F0FF', borderColor: '#D8CBEA', borderRadius: 11, borderWidth: 1, marginBottom: 13, padding: 13 }, connectionStatusRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 10 }, connectionDot: { borderRadius: 5, height: 10, marginRight: 7, width: 10 }, connectedDot: { backgroundColor: '#259A58' }, disconnectedDot: { backgroundColor: '#C7364F' }, connectionStatusText: { color: '#4A566B', fontSize: 13, fontWeight: '700' }, pinBox: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 13, padding: 12 }, pinLabel: { color: '#5C4778', fontSize: 12, fontWeight: '800' }, pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 6 }, pinTime: { color: '#62547B', fontSize: 11, marginTop: 6 }, link: { color: '#6A42A1', fontWeight: '800', marginTop: 8 }, permission: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 12, padding: 11 }, permissionText: { color: '#5C4778', marginBottom: 8 }, purpleButton: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 8, paddingVertical: 10 }, disabledButton: { backgroundColor: '#A9A1B4', opacity: 0.75 }, whiteText: { color: '#FFF', fontWeight: '800' }, waiting: { backgroundColor: '#FFF7E7', borderRadius: 8, color: '#765014', marginTop: 8, padding: 10 }, delegateBox: { backgroundColor: '#F7F9FC', borderRadius: 9, marginTop: 12, padding: 11 }, boxTitle: { color: '#344057', fontWeight: '800', marginBottom: 8 }, detail: { color: '#596579', fontSize: 12, marginTop: 4 }, helperText: { color: '#657084', fontSize: 12, lineHeight: 17, marginBottom: 8 }, agreedBox: { backgroundColor: '#E9F7EF', borderRadius: 8, marginBottom: 8, padding: 10 }, agreedTitle: { color: '#17613A', fontWeight: '800' }, counterBox: { backgroundColor: '#EDF5FF', borderRadius: 8, marginBottom: 8, padding: 10 }, accessBox: { backgroundColor: '#EEF7F7', borderRadius: 9, marginTop: 12, padding: 11 }, maintenanceBox: { backgroundColor: '#FFF8E1', borderColor: '#E2B83B', borderRadius: 9, borderWidth: 1, marginTop: 12, padding: 11 }, reasonInput: { minHeight: 72, textAlignVertical: 'top' }, maintenanceButton: { alignItems: 'center', backgroundColor: '#B7791F', borderRadius: 8, paddingVertical: 10 }, maintenanceButtonText: { color: '#FFF', fontWeight: '800' }, input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', marginBottom: 8, paddingHorizontal: 10, paddingVertical: 9 }, outlineButton: { alignItems: 'center', borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, paddingVertical: 9 }, outlineText: { color: '#315A86', fontWeight: '800' }, cancelButton: { alignSelf: 'flex-start', marginTop: 13, paddingVertical: 5 }, cancelText: { color: '#B01432', fontSize: 13, fontWeight: '800' } });
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: '#F4F7FB' }, content: { padding: 18, paddingBottom: 40 }, message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 }, empty: { color: '#657084', marginTop: 40, textAlign: 'center' }, card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 13, padding: 16 }, oneIotBox: { backgroundColor: '#F4F0FF', borderColor: '#D8CBEA', borderRadius: 11, borderWidth: 1, marginBottom: 13, padding: 13 }, connectionStatusRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 10 }, connectionDot: { borderRadius: 5, height: 10, marginRight: 7, width: 10 }, connectedDot: { backgroundColor: '#259A58' }, disconnectedDot: { backgroundColor: '#C7364F' }, connectionStatusText: { color: '#4A566B', fontSize: 13, fontWeight: '700' }, pinBox: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 13, padding: 12 }, pinLabel: { color: '#5C4778', fontSize: 12, fontWeight: '800' }, pinCode: { color: '#3B235F', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 6 }, pinTime: { color: '#62547B', fontSize: 11, marginTop: 6 }, pinDelivery: { color: '#5C4778', fontSize: 11, fontWeight: '700', marginTop: 6 }, link: { color: '#6A42A1', fontWeight: '800', marginTop: 8 }, permission: { backgroundColor: '#F4F0FF', borderRadius: 9, marginTop: 12, padding: 11 }, permissionText: { color: '#5C4778', marginBottom: 8 }, purpleButton: { alignItems: 'center', backgroundColor: '#5A3788', borderRadius: 8, paddingVertical: 10 }, disabledButton: { backgroundColor: '#A9A1B4', opacity: 0.75 }, whiteText: { color: '#FFF', fontWeight: '800' }, waiting: { backgroundColor: '#FFF7E7', borderRadius: 8, color: '#765014', marginTop: 8, padding: 10 }, delegateBox: { backgroundColor: '#F7F9FC', borderRadius: 9, marginTop: 12, padding: 11 }, boxTitle: { color: '#344057', fontWeight: '800', marginBottom: 8 }, detail: { color: '#596579', fontSize: 12, marginTop: 4 }, helperText: { color: '#657084', fontSize: 12, lineHeight: 17, marginBottom: 8 }, agreedBox: { backgroundColor: '#E9F7EF', borderRadius: 8, marginBottom: 8, padding: 10 }, agreedTitle: { color: '#17613A', fontWeight: '800' }, counterBox: { backgroundColor: '#EDF5FF', borderRadius: 8, marginBottom: 8, padding: 10 }, accessBox: { backgroundColor: '#EEF7F7', borderRadius: 9, marginTop: 12, padding: 11 }, maintenanceBox: { backgroundColor: '#FFF8E1', borderColor: '#E2B83B', borderRadius: 9, borderWidth: 1, marginTop: 12, padding: 11 }, reasonInput: { minHeight: 72, textAlignVertical: 'top' }, maintenanceButton: { alignItems: 'center', backgroundColor: '#B7791F', borderRadius: 8, paddingVertical: 10 }, maintenanceButtonText: { color: '#FFF', fontWeight: '800' }, input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', marginBottom: 8, paddingHorizontal: 10, paddingVertical: 9 }, outlineButton: { alignItems: 'center', borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, paddingVertical: 9 }, outlineText: { color: '#315A86', fontWeight: '800' }, cancelButton: { alignSelf: 'flex-start', marginTop: 13, paddingVertical: 5 }, cancelText: { color: '#B01432', fontSize: 13, fontWeight: '800' } });

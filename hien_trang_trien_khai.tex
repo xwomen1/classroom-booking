@@ -34,22 +34,22 @@
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Source app nằm tại \path{final_project/code/booking_classroom}; React Native 0.86.2 và TypeScript. \texttt{ENABLE\_REMOTE\_SYNC = false} để app hoạt động không cần booking server.
   \item Có xác thực local, đăng ký, hồ sơ, đổi/khôi phục mật khẩu, thông báo và hai tài khoản demo \texttt{admin/1}, \texttt{user/2}.
-  \item User tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa. Hệ thống kiểm tra thời hạn đặt, trùng phòng, trùng lịch User, bảo trì và giới hạn booking.
+  \item User tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa. Hệ thống kiểm tra thời hạn đặt, trùng phòng, trùng lịch User, bảo trì và giới hạn booking. Nếu Admin cho phép đặt cùng ngày, khoảng đang diễn ra vẫn được tạo và duyệt khi chưa qua giờ kết thúc.
   \item Hỗ trợ đặt lặp hàng tuần; User có thể sửa các lượt đang chờ duyệt hoặc hủy lượt tương lai, Admin có thể duyệt/từ chối cả chuỗi.
   \item Admin quản lý tài khoản, phòng, booking, lịch và cấu hình; có thể duyệt/từ chối hoặc đổi sang phòng đáp ứng các điều kiện cần thiết.
   \item Admin xác nhận check-in thủ công cho phòng khóa cơ/thẻ từ và ghi nhận vắng mặt sau thời gian ân hạn cấu hình khi booking chưa có bằng chứng check-in; trạng thái vắng mặt thu hồi quyền truy cập liên quan.
   \item Quản lý phòng và bảo trì dùng chung một màn hình tám tầng. Khi chọn phòng, Admin có thể sửa, xóa, lên lịch/hủy lịch bảo trì và xem lịch sử dụng đã duyệt của phòng. Yêu cầu bảo trì từ User vẫn tự mở, tô vàng tầng/phòng liên quan và cho phép Admin tiếp nhận hoặc từ chối.
   \item Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa trước. Admin chấp nhận hoặc gửi thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại cho đến khi hai bên thống nhất.
-  \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền. User có quyền phải nhập token và kiểm tra kết nối OneIoT trong phiên trước khi phát lệnh tạo mã.
-  \item Admin có thể gắn một SmartLock vào một phòng khóa số. App tích hợp trực tiếp cơ chế Tools qua MQTT TLS OneIoT để gửi \texttt{traitCreateTmpPasswordLock}, không cần IP máy tính hoặc gateway.
-  \item App đã đăng ký topic OneM2M theo Tools và phân tích bản tin SmartLock để ghi nhận check-in/check-out vào booking đúng phòng, đúng khoảng thời gian. Phần này chưa được kiểm thử đầu cuối với token và khóa thật.
+  \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền. Mã gồm đúng 7 chữ số, được lưu và hiển thị local khi offline, sau đó tự gửi khi có kết nối OneIoT.
+  \item Admin có thể gắn một SmartLock vào một phòng khóa số. App tích hợp trực tiếp cơ chế Tools qua MQTT TLS OneIoT để gửi \texttt{traitCreateTmpPasswordLock} với ID riêng và thời gian theo booking; app không chờ phản hồi từ khóa.
+  \item App đã đăng ký topic OneM2M theo Tools và phân tích bản tin SmartLock để ghi nhận check-in/check-out vào booking đúng phòng, đúng khoảng thời gian. Đã kiểm tra kết nối OneIoT và phát một mã đang chờ; chưa xác nhận trực tiếp việc khóa thật áp dụng mã.
   \item Token OneIoT chỉ giữ trong RAM; không lưu vào Async Storage hoặc repository. Kết nối tự ngắt khi đăng xuất, app chuyển nền hoặc bị đóng.
-  \item Kiểm tra source đạt: Jest 30/30 ca, ESLint, TypeScript và Android Release build sau khi hợp nhất hai nhánh.
+  \item Kiểm tra source đạt: Jest 34/34 ca, ESLint, TypeScript và Android Release build.
   \item APK, cache, \path{node_modules} và thư mục build không được đưa lên Git. Thành viên clone source rồi tự build Debug hoặc Release theo README.
 \end{itemize}
 
-\textbf{Kiểm tra thiết bị:} bản Release mới đã được build, cài lại và mở trực tiếp trên Samsung M21 không cần Metro hoặc \texttt{adb reverse}. Đăng nhập \texttt{user/2} và màn quản lý booking hoạt động bình thường. Dữ liệu local hiện không có booking khóa số đủ điều kiện nên chưa phát lệnh tạo mã thật trong lượt kiểm tra này.
+\textbf{Kiểm tra thiết bị:} bản Release mới đã được build và cài trên Samsung M21. Đã tạo booking A101 cùng ngày sau giờ bắt đầu, duyệt khi phiên vẫn đang diễn ra, tạo mã offline rồi kết nối OneIoT để tự phát một lệnh đang chờ. Bản Release chạy không cần Metro hoặc \texttt{adb reverse}.
 
-\textbf{Chưa hoàn thành:} đồng bộ dữ liệu nhiều thiết bị, cơ sở dữ liệu máy chủ và kiểm thử đầu cuối OneIoT bằng token/SmartLock thật.
+\textbf{Chưa hoàn thành:} đồng bộ dữ liệu nhiều thiết bị và xác nhận trực tiếp SmartLock thật đã nhận, lưu và sử dụng được mật khẩu.
 
 \end{document}

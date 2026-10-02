@@ -45,8 +45,9 @@ Dữ liệu tài khoản, phòng, booking, bảo trì và cấu hình được l
 - Admin quản lý điểm danh: xác nhận có mặt cho phòng dùng khóa cơ/thẻ từ và ghi nhận vắng mặt sau thời gian ân hạn khi chưa có check-in hợp lệ.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do; Admin nhận thông báo, thấy tầng/phòng được đánh dấu vàng và xử lý yêu cầu.
 - Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa; Admin chấp nhận hoặc đề xuất giờ khác; hai bên trao đổi đến khi thống nhất.
-- Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời. User phải nhập token và kết nối OneIoT trong phiên trước khi gửi lệnh tạo mã.
-- Admin gắn một SmartLock vào phòng, nhập token trong phiên và kết nối trực tiếp tới OneIoT bằng MQTT TLS. App gửi lệnh tạo mật khẩu và nhận bản tin SmartLock để ghi nhận check-in/check-out.
+- Nếu Admin cho phép đặt cùng ngày, một khoảng đang diễn ra vẫn có thể được tạo và duyệt miễn là chưa qua giờ kết thúc và thỏa các quy tắc còn lại.
+- Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời gồm 7 chữ số. Mã được lưu và hiển thị ngay khi offline; app tự gửi các mã đang chờ sau khi kết nối OneIoT.
+- Admin gắn một SmartLock vào phòng, nhập token trong phiên và kết nối trực tiếp tới OneIoT bằng MQTT TLS. App gửi `traitCreateTmpPasswordLock` theo thời gian booking, không chờ phản hồi từ khóa, và nhận bản tin SmartLock để ghi nhận check-in/check-out.
 
 Chế độ local được điều khiển tại `code/booking_classroom/src/core/config/runtimeFlags.ts`:
 

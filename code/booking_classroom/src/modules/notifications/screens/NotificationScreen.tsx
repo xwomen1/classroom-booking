@@ -6,6 +6,7 @@ import {
   getNotifications,
   markAllNotificationsRead,
 } from '../services/notificationRepository';
+import { getNotificationTone, notificationToneTheme } from '../services/notificationTone';
 
 type NotificationScreenProps = {
   username: string;
@@ -52,31 +53,11 @@ export function NotificationScreen({
           <Text style={styles.empty}>Chưa có thông báo.</Text>
         ) : (
           notifications.map(notification => (
-            <Pressable
+            <NotificationCard
               key={notification.id}
-              testID={`notification-card-${notification.id}`}
+              notification={notification}
               onPress={() => onOpen?.(notification)}
-              style={[
-                styles.card,
-                isApprovalNotification(notification)
-                  ? styles.approvedCard
-                  : !notification.read && styles.unreadCard,
-              ]}
-            >
-              <View style={styles.cardHeader}>
-                {!notification.read ? (
-                  <View style={[
-                    styles.unreadDot,
-                    isApprovalNotification(notification) && styles.approvedDot,
-                  ]} testID={`notification-unread-dot-${notification.id}`} />
-                ) : null}
-                <Text style={styles.title}>{notification.title}</Text>
-              </View>
-              <Text style={styles.message}>{notification.message}</Text>
-              <Text style={styles.time}>
-                {new Date(notification.createdAt).toLocaleString('vi-VN')}
-              </Text>
-            </Pressable>
+            />
           ))
         )}
       </ScrollView>
@@ -96,8 +77,6 @@ const styles = StyleSheet.create({
     marginBottom: 11,
     padding: 15,
   },
-  unreadCard: { backgroundColor: '#FFF6F7', borderColor: '#E7B4BD' },
-  approvedCard: { backgroundColor: '#EAF7EF', borderColor: '#9BCFAE' },
   cardHeader: { alignItems: 'center', flexDirection: 'row' },
   unreadDot: {
     backgroundColor: '#B01432',
@@ -106,14 +85,38 @@ const styles = StyleSheet.create({
     marginRight: 8,
     width: 9,
   },
-  approvedDot: { backgroundColor: '#22864A' },
   title: { color: '#172033', flex: 1, fontSize: 15, fontWeight: '800' },
   message: { color: '#4F5C70', fontSize: 14, lineHeight: 20, marginTop: 7 },
   time: { color: '#8993A3', fontSize: 12, marginTop: 10 },
 });
 
-function isApprovalNotification(notification: NotificationItem): boolean {
-  return `${notification.title} ${notification.message}`
-    .toLocaleLowerCase('vi-VN')
-    .includes('được duyệt');
+function NotificationCard({
+  notification,
+  onPress,
+}: {
+  notification: NotificationItem;
+  onPress: () => void;
+}) {
+  const theme = notificationToneTheme[getNotificationTone(notification)];
+  return (
+    <Pressable
+      testID={`notification-card-${notification.id}`}
+      onPress={onPress}
+      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}
+    >
+      <View style={styles.cardHeader}>
+        {!notification.read ? (
+          <View
+            style={[styles.unreadDot, { backgroundColor: theme.accent }]}
+            testID={`notification-unread-dot-${notification.id}`}
+          />
+        ) : null}
+        <Text style={styles.title}>{notification.title}</Text>
+      </View>
+      <Text style={styles.message}>{notification.message}</Text>
+      <Text style={styles.time}>
+        {new Date(notification.createdAt).toLocaleString('vi-VN')}
+      </Text>
+    </Pressable>
+  );
 }

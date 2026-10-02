@@ -1,8 +1,10 @@
 import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
+import type { NotificationTone } from '../model/notificationItem';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { presentPriorityNotification } from './priorityBanner';
+import { getNotificationTone } from './notificationTone';
 
 const NOTIFICATION_KEY_PREFIX = 'notifications.';
 
@@ -39,14 +41,16 @@ export async function addNotification(
   username: string,
   title: string,
   message: string,
+  tone?: NotificationTone,
 ): Promise<void> {
+  const resolvedTone = getNotificationTone({ title, message, tone });
   if (isRemoteApiEnabled()) {
     const created = await apiRequest<NotificationItem | undefined>('/api/notifications', {
       method: 'POST',
       body: { username, title, message },
     });
     if (created) {
-      await presentPriorityNotification(title, message);
+      await presentPriorityNotification(title, message, getNotificationTone(created));
     }
     return;
   }
@@ -58,10 +62,11 @@ export async function addNotification(
     message,
     createdAt: new Date().toISOString(),
     read: false,
+    tone: resolvedTone,
   };
   await writeJson(keyFor(username), [item, ...notifications]);
   try {
-    await presentPriorityNotification(title, message);
+    await presentPriorityNotification(title, message, resolvedTone);
   } catch {
     // The in-app list is already saved. A banner failure must not roll back the action.
   }

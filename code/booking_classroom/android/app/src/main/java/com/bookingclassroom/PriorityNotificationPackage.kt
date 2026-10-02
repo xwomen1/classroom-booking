@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -50,7 +51,7 @@ class PriorityNotificationModule(
   override fun getName(): String = NAME
 
   @ReactMethod
-  fun show(title: String, message: String, destination: String, promise: Promise) {
+  fun show(title: String, message: String, destination: String, tone: String, promise: Promise) {
     try {
       val context = reactApplicationContext
       if (
@@ -91,6 +92,7 @@ class PriorityNotificationModule(
               .setStyle(NotificationCompat.BigTextStyle().bigText(message))
               .setPriority(NotificationCompat.PRIORITY_HIGH)
               .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+              .setColor(colorForTone(tone))
               .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
               .setAutoCancel(true)
               .setContentIntent(pendingIntent)
@@ -135,6 +137,14 @@ class PriorityNotificationModule(
             }
     manager.createNotificationChannel(channel)
   }
+
+  private fun colorForTone(tone: String): Int =
+      when (tone) {
+        "positive" -> Color.rgb(34, 134, 74)
+        "negative" -> Color.rgb(180, 35, 24)
+        "attention" -> Color.rgb(168, 103, 0)
+        else -> Color.rgb(47, 111, 237)
+      }
 
   companion object {
     const val NAME = "PriorityNotification"

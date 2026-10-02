@@ -6,6 +6,7 @@ import {
   subscribePriorityBanners,
   type PriorityBanner,
 } from '../services/priorityBanner';
+import { notificationToneTheme } from '../services/notificationTone';
 
 export function PriorityBannerHost() {
   const insets = useSafeAreaInsets();
@@ -76,6 +77,7 @@ export function PriorityBannerHost() {
   if (!banner) {
     return null;
   }
+  const theme = notificationToneTheme[banner.tone];
 
   return (
     <View pointerEvents="box-none" style={styles.host}>
@@ -91,16 +93,16 @@ export function PriorityBannerHost() {
             openPriorityBanner(banner);
             hideRef.current();
           }}
-          style={styles.card}
+          style={[styles.card, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}
         >
-          <View style={styles.mark}>
-            <Text style={styles.markText}>!</Text>
+          <View style={[styles.mark, { backgroundColor: theme.accent }]}>
+            <Text style={styles.markText}>{theme.mark}</Text>
           </View>
           <View style={styles.copy}>
-            <Text style={styles.kicker}>
+            <Text style={[styles.kicker, { color: theme.accent }]}>
               {banner.title === 'Có yêu cầu đặt phòng mới'
                 ? 'Chạm để phê duyệt'
-                : 'Thông báo ưu tiên'}
+                : theme.label}
             </Text>
             <Text numberOfLines={1} style={styles.title}>
               {banner.title}
@@ -126,8 +128,6 @@ const styles = StyleSheet.create({
   },
   card: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderLeftColor: '#2F6FED',
     borderLeftWidth: 4,
     borderRadius: 16,
     elevation: 8,
@@ -141,7 +141,6 @@ const styles = StyleSheet.create({
   },
   mark: {
     alignItems: 'center',
-    backgroundColor: '#2F6FED',
     borderRadius: 18,
     height: 36,
     justifyContent: 'center',
@@ -155,7 +154,6 @@ const styles = StyleSheet.create({
   },
   copy: { flex: 1 },
   kicker: {
-    color: '#2F6FED',
     fontSize: 12,
     fontWeight: '700',
   },

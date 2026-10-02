@@ -3,11 +3,14 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
+import type { NotificationTone } from '../model/notificationItem';
+import { getNotificationTone } from './notificationTone';
 
 export type PriorityBanner = {
   id: string;
   title: string;
   message: string;
+  tone: NotificationTone;
 };
 
 type BannerListener = (banner: PriorityBanner) => void;
@@ -64,11 +67,14 @@ export async function consumeNotificationDestination(): Promise<string | null> {
 export async function presentPriorityNotification(
   title: string,
   message: string,
+  tone?: NotificationTone,
 ): Promise<void> {
+  const resolvedTone = getNotificationTone({ title, message, tone });
   const banner: PriorityBanner = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     title,
     message,
+    tone: resolvedTone,
   };
   listeners.forEach(listener => listener(banner));
 
@@ -76,7 +82,7 @@ export async function presentPriorityNotification(
     return;
   }
   const nativeModule = NativeModules.PriorityNotification as
-    | { show?: (title: string, message: string, destination: string) => Promise<boolean> }
+    | { show?: (title: string, message: string, destination: string, tone: NotificationTone) => Promise<boolean> }
     | undefined;
   if (!nativeModule?.show) {
     return;
@@ -90,5 +96,5 @@ export async function presentPriorityNotification(
     }
   }
   const destination = title === 'Có yêu cầu đặt phòng mới' ? 'approval' : '';
-  await nativeModule.show(title, message, destination);
+  await nativeModule.show(title, message, destination, resolvedTone);
 }

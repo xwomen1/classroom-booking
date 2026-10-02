@@ -11,6 +11,7 @@ import { storage, writeJson } from '../src/core/storage/jsonStorage';
 import { AdminBookingScreen } from '../src/modules/booking/screens/AdminBookingScreen';
 import { BookingInfo } from '../src/modules/booking/components/BookingInfo';
 import { NotificationScreen } from '../src/modules/notifications';
+import { getNotificationTone } from '../src/modules/notifications/services/notificationTone';
 
 beforeEach(async () => {
   await storage.clear();
@@ -46,6 +47,34 @@ test('renders approved notifications with green styling', async () => {
   });
   const unreadDot = card.findByProps({ testID: 'notification-unread-dot-approved-booking' });
   expect(StyleSheet.flatten(unreadDot.props.style)).toMatchObject({ backgroundColor: '#22864A' });
+});
+
+test('classifies positive, negative and attention notifications by meaning', () => {
+  expect(getNotificationTone({ title: 'Đã ghi nhận check in', message: 'SmartLock ghi nhận check in tại phòng A101.' })).toBe('positive');
+  expect(getNotificationTone({ title: 'Đã cấp mã mở cửa tạm thời', message: 'Mã đã sẵn sàng trong app.' })).toBe('positive');
+  expect(getNotificationTone({ title: 'Yêu cầu bị từ chối', message: 'Phòng A101.' })).toBe('negative');
+  expect(getNotificationTone({ title: 'Có yêu cầu bảo trì mới', message: 'User báo sự cố.' })).toBe('attention');
+});
+
+test('renders a check-in notification in green instead of unread red', async () => {
+  await writeJson('notifications.user', [{
+    id: 'smart-lock-check-in',
+    title: 'Đã ghi nhận check in',
+    message: 'SmartLock ghi nhận check in tại phòng A101.',
+    createdAt: new Date().toISOString(),
+    read: false,
+  }]);
+
+  let tree: ReturnType<typeof ReactTestRenderer.create> | undefined;
+  await ReactTestRenderer.act(async () => {
+    tree = ReactTestRenderer.create(<NotificationScreen username="user" onBack={() => {}} />);
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  });
+
+  const card = tree!.root.findByProps({ testID: 'notification-card-smart-lock-check-in' });
+  expect(StyleSheet.flatten(card.props.style)).toMatchObject({ backgroundColor: '#EAF7EF', borderColor: '#9BCFAE' });
+  const dot = card.findByProps({ testID: 'notification-unread-dot-smart-lock-check-in' });
+  expect(StyleSheet.flatten(dot.props.style)).toMatchObject({ backgroundColor: '#22864A' });
 });
 
 test('shows 9+ on the Admin booking card when more than nine requests are pending', async () => {

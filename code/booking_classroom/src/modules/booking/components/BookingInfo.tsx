@@ -8,6 +8,7 @@ const STATUS_LABELS: Record<BookingStatus, string> = {
   APPROVED: 'Đã duyệt',
   REJECTED: 'Từ chối',
   CANCELLED: 'Đã hủy',
+  NO_SHOW: 'Vắng mặt',
 };
 
 export function BookingInfo({ booking }: { booking: Booking }) {
@@ -27,6 +28,7 @@ export function BookingInfo({ booking }: { booking: Booking }) {
       </Text>
       <Text style={styles.purpose}>{booking.purpose}</Text>
       <Text style={styles.requester}>Người đặt: {booking.requesterUsername}</Text>
+      {booking.noShowAt ? <Text style={styles.noShowLine}>Xác nhận vắng bởi {booking.noShowMarkedBy ?? 'quản trị viên'} · {new Date(booking.noShowAt).toLocaleString('vi-VN')}</Text> : null}
       {booking.keyPickupAppointment ? (
         <Text style={styles.accessLine}>Nhận khóa: {booking.keyPickupAppointment.date} {booking.keyPickupAppointment.time} · {booking.keyPickupAppointment.location}</Text>
       ) : null}
@@ -45,9 +47,11 @@ const styles = StyleSheet.create({
   statusAPPROVED: { backgroundColor: '#DDF4E7' },
   statusREJECTED: { backgroundColor: '#FBE1E4' },
   statusCANCELLED: { backgroundColor: '#E8EBF0' },
+  statusNO_SHOW: { backgroundColor: '#FFF0CC' },
   statusText: { color: '#253047', fontSize: 11, fontWeight: '800' },
   line: { color: '#566176', fontSize: 14, marginTop: 3 },
   purpose: { color: '#253047', fontSize: 14, fontWeight: '700', marginTop: 9 },
   requester: { color: '#7B8596', fontSize: 12, marginTop: 7 },
+  noShowLine: { color: '#805B00', fontSize: 12, fontWeight: '700', marginTop: 7 },
   accessLine: { color: '#5A3788', fontSize: 12, fontWeight: '700', marginTop: 6 },
 });

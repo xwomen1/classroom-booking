@@ -54,6 +54,8 @@ public final class Domain {
     public String date;
     public String startTime;
     public String endTime;
+    public boolean repeatWeekly;
+    public int repeatWeeks;
     @Column(length = 1000)
     public String purpose;
     public String status;

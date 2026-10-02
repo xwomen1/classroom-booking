@@ -1,4 +1,4 @@
-export type BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'NO_SHOW';
 
 export type TemporaryPin = {
   code: string;
@@ -70,6 +70,10 @@ export type Booking = {
   startTime: string;
   endTime: string;
   purpose: string;
+  repeatWeekly?: boolean;
+  repeatWeeks?: number;
+  recurringSeriesId?: string;
+  recurringWeekIndex?: number;
   status: BookingStatus;
   createdAt: string;
   reviewedAt?: string;
@@ -82,10 +86,16 @@ export type Booking = {
   roomChanges?: RoomChange[];
   smartLockAccessEvents?: SmartLockAccessEvent[];
   checkedInAt?: string;
+  checkInConfirmedBy?: string;
   checkedOutAt?: string;
+  noShowAt?: string;
+  noShowMarkedBy?: string;
 };
 
 export type CreateBookingInput = Pick<
   Booking,
   'requesterUsername' | 'roomId' | 'date' | 'startTime' | 'endTime' | 'purpose'
->;
+> & {
+  repeatWeekly?: boolean;
+  repeatWeeks?: number;
+};

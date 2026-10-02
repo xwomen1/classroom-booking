@@ -11,6 +11,17 @@ import { getRooms } from '../services/roomRepository';
 type Props = { username: string; onBack: () => void };
 type MapStatus = 'AVAILABLE' | 'BOOKED' | 'MAINTENANCE' | 'FILTERED';
 type MapRoom = Room & { mapStatus: MapStatus };
+
+function buildWeeklyPreview(date: string, weeks: number): string[] {
+  if (!date) return [];
+  const firstDate = new Date(`${date}T00:00:00`);
+  return Array.from({ length: weeks }, (_, index) => {
+    const occurrence = new Date(firstDate);
+    occurrence.setDate(firstDate.getDate() + index * 7);
+    return occurrence.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  });
+}
+
 const MAP_ROWS: ReadonlyArray<ReadonlyArray<number | null>> = [
   [0, null, 1],
   [2, null, 3],
@@ -31,6 +42,8 @@ export function RoomSearchScreen({ username, onBack }: Props) {
   const [rooms, setRooms] = useState<MapRoom[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purpose, setPurpose] = useState('');
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState(1);
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -111,12 +124,20 @@ export function RoomSearchScreen({ username, onBack }: Props) {
         startTime,
         endTime,
         purpose,
+        repeatWeekly,
+        repeatWeeks,
       });
       const bookedRoomName = selected.name;
       setPurpose('');
+      setRepeatWeekly(false);
+      setRepeatWeeks(1);
       await refreshMap();
       setIsError(false);
-      setMessage(`Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`);
+      setMessage(
+        repeatWeekly
+          ? `Đã gửi yêu cầu đặt phòng ${bookedRoomName} lặp lại ${repeatWeeks} tuần.`
+          : `Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`,
+      );
     } catch (error) {
       setIsError(true);
       setMessage(error instanceof Error ? error.message : 'Không thể tạo yêu cầu đặt phòng.');
@@ -216,6 +237,78 @@ export function RoomSearchScreen({ username, onBack }: Props) {
                 multiline
               />
             </View>
+
+            <View style={styles.repeatBox}>
+              <View style={styles.repeatHeading}>
+                <Text style={styles.repeatTitle}>Tần suất đặt</Text>
+                <Text style={styles.repeatSubtitle}>Chọn lịch một lần hoặc lặp hàng tuần</Text>
+              </View>
+              <View style={styles.frequencyControl} accessibilityRole="radiogroup">
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: !repeatWeekly }}
+                  onPress={() => setRepeatWeekly(false)}
+                  style={[styles.frequencyOption, !repeatWeekly && styles.frequencyOptionActive]}
+                >
+                  <Text style={[styles.frequencyText, !repeatWeekly && styles.frequencyTextActive]}>Một lần</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: repeatWeekly }}
+                  onPress={() => setRepeatWeekly(true)}
+                  style={[styles.frequencyOption, repeatWeekly && styles.frequencyOptionActive]}
+                >
+                  <Text style={[styles.frequencyText, repeatWeekly && styles.frequencyTextActive]}>Hàng tuần</Text>
+                </Pressable>
+              </View>
+              {repeatWeekly ? (
+                <View style={styles.weeklyDetails}>
+                  <View style={styles.weekCountRow}>
+                    <View style={styles.weekCountCopy}>
+                      <Text style={styles.weekCountTitle}>Số tuần</Text>
+                      <Text style={styles.weekCountHint}>Tối đa 8 tuần</Text>
+                    </View>
+                    <View style={styles.stepper}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Giảm số tuần"
+                        accessibilityState={{ disabled: repeatWeeks <= 1 }}
+                        disabled={repeatWeeks <= 1}
+                        onPress={() => setRepeatWeeks(value => Math.max(1, value - 1))}
+                        style={[styles.stepButton, repeatWeeks <= 1 && styles.stepButtonDisabled]}
+                      >
+                        <Text style={styles.stepButtonText}>-</Text>
+                      </Pressable>
+                      <View style={styles.weekCountValue}>
+                        <Text style={styles.weekCountNumber}>{repeatWeeks}</Text>
+                        <Text style={styles.weekCountUnit}>tuần</Text>
+                      </View>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Tăng số tuần"
+                        accessibilityState={{ disabled: repeatWeeks >= 8 }}
+                        disabled={repeatWeeks >= 8}
+                        onPress={() => setRepeatWeeks(value => Math.min(8, value + 1))}
+                        style={[styles.stepButton, repeatWeeks >= 8 && styles.stepButtonDisabled]}
+                      >
+                        <Text style={styles.stepButtonText}>+</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                  <Text style={styles.previewTitle}>Ngày sẽ tạo ({repeatWeeks} yêu cầu)</Text>
+                  <View style={styles.previewDates}>
+                    {buildWeeklyPreview(date, repeatWeeks).map((item, index) => (
+                      <View key={`${item}-${index}`} style={styles.previewDate}>
+                        <Text style={styles.previewWeek}>Tuần {index + 1}</Text>
+                        <Text style={styles.previewDay}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={styles.approvalHint}>Mỗi ngày là một yêu cầu riêng và cần Admin duyệt.</Text>
+                </View>
+              ) : null}
+            </View>
+
             <Pressable
               disabled={saving || selected.mapStatus !== 'AVAILABLE'}
               onPress={submitBooking}
@@ -271,5 +364,9 @@ const styles = StyleSheet.create({
   mapSection: { alignItems: 'stretch', flexDirection: 'row' }, floorRail: { backgroundColor: '#FFF', borderColor: '#CAD4E0', borderRadius: 12, borderWidth: 1, marginRight: 8, overflow: 'hidden', width: 53 }, building: { color: '#315A86', fontSize: 10, fontWeight: '900', paddingVertical: 7, textAlign: 'center' }, floorButton: { alignItems: 'center', borderTopColor: '#E4E8EF', borderTopWidth: 1, paddingVertical: 8 }, floorButtonOn: { backgroundColor: '#1769AA' }, floorText: { color: '#344057', fontSize: 12, fontWeight: '800' }, floorTextOn: { color: '#FFF' },
   mapArea: { backgroundColor: '#EAF0F7', borderColor: '#AAB8C8', borderRadius: 13, borderWidth: 1, flex: 1, padding: 7 }, mapTitle: { color: '#344057', fontSize: 11, fontWeight: '900', marginBottom: 7, textAlign: 'center' }, mapRow: { flexDirection: 'row', marginBottom: 6 }, mapGap: { flex: 0.75 }, mapRoomPlaceholder: { flex: 1, minHeight: 72 },
   roomCell: { borderColor: '#AAB8C8', borderRadius: 8, borderWidth: 1, flex: 1, minHeight: 76, padding: 6 }, available: { backgroundColor: '#DDF4E7' }, booked: { backgroundColor: '#FBE1E4' }, maintenance: { backgroundColor: '#ECEEF2' }, filtered: { backgroundColor: '#FFF', opacity: 0.45 }, roomSelected: { borderColor: '#1769AA', borderWidth: 3 }, roomName: { color: '#172033', fontSize: 12, fontWeight: '900' }, roomMeta: { color: '#4F5B6E', fontSize: 10, marginTop: 2 }, roomEquipment: { color: '#657084', fontSize: 9, marginTop: 2 },
+  repeatBox: { borderTopColor: '#E5EAF0', borderTopWidth: 1, marginTop: 15, paddingTop: 13 }, repeatHeading: { marginBottom: 9 }, repeatTitle: { color: '#172033', fontSize: 14, fontWeight: '800' }, repeatSubtitle: { color: '#657084', fontSize: 11, marginTop: 3 },
+  frequencyControl: { backgroundColor: '#EEF2F6', borderRadius: 8, flexDirection: 'row', padding: 3 }, frequencyOption: { alignItems: 'center', borderColor: 'transparent', borderRadius: 6, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 40 }, frequencyOptionActive: { backgroundColor: '#FFF', borderColor: '#C7D9E9', elevation: 1 }, frequencyText: { color: '#657084', fontSize: 12, fontWeight: '700' }, frequencyTextActive: { color: '#1769AA' },
+  weeklyDetails: { marginTop: 14 }, weekCountRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, weekCountCopy: { flex: 1 }, weekCountTitle: { color: '#344057', fontSize: 13, fontWeight: '700' }, weekCountHint: { color: '#7A8492', fontSize: 10, marginTop: 3 }, stepper: { alignItems: 'center', flexDirection: 'row' }, stepButton: { alignItems: 'center', backgroundColor: '#F4F7FA', borderColor: '#CBD6E1', borderRadius: 8, borderWidth: 1, height: 38, justifyContent: 'center', width: 38 }, stepButtonDisabled: { opacity: 0.4 }, stepButtonText: { color: '#1769AA', fontSize: 18, fontWeight: '800' }, weekCountValue: { alignItems: 'center', minWidth: 54 }, weekCountNumber: { color: '#172033', fontSize: 17, fontWeight: '800' }, weekCountUnit: { color: '#657084', fontSize: 10 },
+  previewTitle: { color: '#344057', fontSize: 12, fontWeight: '700', marginBottom: 7, marginTop: 13 }, previewDates: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 }, previewDate: { alignItems: 'center', backgroundColor: '#EFF5FA', borderColor: '#D6E3ED', borderRadius: 6, borderWidth: 1, minWidth: 68, paddingHorizontal: 8, paddingVertical: 6 }, previewWeek: { color: '#657084', fontSize: 10 }, previewDay: { color: '#1769AA', fontSize: 12, fontWeight: '800', marginTop: 2 }, approvalHint: { color: '#657084', fontSize: 10, lineHeight: 15, marginTop: 7 },
   selectedBox: { backgroundColor: '#FFF', borderColor: '#D6DDE8', borderRadius: 11, borderWidth: 1, marginTop: 12, padding: 12 }, selectedTitle: { color: '#172033', fontSize: 16, fontWeight: '900' }, selectedDetail: { color: '#596579', fontSize: 12, marginTop: 4 }, purposeField: { marginTop: 12 }, bookButton: { alignItems: 'center', backgroundColor: '#B01432', borderRadius: 8, marginTop: 10, paddingVertical: 11 }, bookText: { color: '#FFF', fontWeight: '800' }, disabled: { opacity: 0.4 }, selectHint: { backgroundColor: '#EAF4FF', borderRadius: 9, color: '#315A86', marginTop: 12, padding: 11, textAlign: 'center' },
 });

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
 import { createTemporaryPin } from '../../access_control';
+import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { getRooms, type Room } from '../../room_management';
 import type { MaintenanceRecord } from '../../schedule_maintenance/model/maintenance';
 import { getMaintenanceRecords, periodsOverlap } from '../../schedule_maintenance/services/maintenanceRepository';
@@ -10,20 +11,38 @@ import type { Booking } from '../model/booking';
 import {
   acceptKeyPickupProposal,
   changeBookingRoom,
+  confirmBookingCheckIn,
+  confirmBookingNoShow,
   getBookings,
   meetsReplacementRoomRequirements,
   proposeKeyPickup,
   reviewBooking,
+  reviewRecurringSeries,
+  toLocalDateTime,
 } from '../services/bookingRepository';
 
 type PickupDraft = { date: string; time: string; location: string };
 type ChangeDraft = { roomId: string; reason: string };
+const BOOKING_STATUS_LABEL: Record<Booking['status'], string> = {
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+  NO_SHOW: 'Vắng mặt',
+};
 const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 export function AdminBookingScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([]); const [message, setMessage] = useState(''); const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [pickups, setPickups] = useState<Record<string, PickupDraft>>({}); const [changes, setChanges] = useState<Record<string, ChangeDraft>>({}); const [expandedChangeFloors, setExpandedChangeFloors] = useState<Record<string, number | null>>({});
-  const load = useCallback(async () => { const [items, roomItems, maintenanceItems] = await Promise.all([getBookings(), getRooms(), getMaintenanceRecords()]); setBookings([...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))); setRooms(roomItems); setMaintenance(maintenanceItems); }, []);
+  const [expandedBookings, setExpandedBookings] = useState<Record<string, boolean>>({});
+  const [noShowGraceMinutes, setNoShowGraceMinutes] = useState(15);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const load = useCallback(async () => { const [items, roomItems, maintenanceItems, configuration] = await Promise.all([getBookings(), getRooms(), getMaintenanceRecords(), getConfiguration()]); setBookings([...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))); setRooms(roomItems); setMaintenance(maintenanceItems); setNoShowGraceMinutes(configuration.noShowGraceMinutes ?? 15); }, []);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 30_000);
+    return () => clearInterval(interval);
+  }, []);
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể xử lý yêu cầu.'); } };
   const setPickup = (id: string, field: keyof PickupDraft, value: string) => setPickups(current => ({ ...current, [id]: { ...(current[id] ?? { date: '', time: '', location: '' }), [field]: value } }));
   const setChange = (id: string, field: keyof ChangeDraft, value: string) => setChanges(current => ({ ...current, [id]: { ...(current[id] ?? { roomId: '', reason: '' }), [field]: value } }));
@@ -32,16 +51,109 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
     const ended = new Date(`${item.date}T${item.endTime}:00`) <= new Date();
     return filter === 'ACTIVE'
       ? ['PENDING', 'APPROVED'].includes(item.status) && !ended
-      : ['REJECTED', 'CANCELLED'].includes(item.status) || ended;
+      : ['REJECTED', 'CANCELLED', 'NO_SHOW'].includes(item.status) || ended;
   });
   return <View style={styles.page}><ScreenHeader title="Yêu cầu đặt phòng" onBack={onBack} /><View style={styles.tabs}><Tab label="Đang xử lý" on={filter === 'ACTIVE'} onPress={() => setFilter('ACTIVE')} /><Tab label="Đã đóng" on={filter === 'HISTORY'} onPress={() => setFilter('HISTORY')} /></View><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}{visible.length === 0 ? <Text style={styles.empty}>Không có yêu cầu trong nhóm này.</Text> : visible.map(booking => {
       const room = rooms.find(item => item.id === booking.roomId); const pickup = pickups[booking.id] ?? { date: booking.date, time: '', location: '' }; const change = changes[booking.id] ?? { roomId: '', reason: '' }; const activePin = booking.temporaryPin && !booking.temporaryPin.revokedAt;
+      const seriesPending = booking.recurringSeriesId ? visible
+        .filter(item => item.recurringSeriesId === booking.recurringSeriesId && item.status === 'PENDING')
+        .sort((left, right) => `${left.date}${left.startTime}`.localeCompare(`${right.date}${right.startTime}`)) : [];
+      const isSeriesReviewLead = booking.status === 'PENDING' && seriesPending[0]?.id === booking.id;
       const replacementRooms = room ? getReplacementCandidates(room, booking, rooms, bookings, maintenance) : [];
       const replacementRoom = replacementRooms.find(item => item.id === change.roomId);
       const expandedChangeFloor = expandedChangeFloors[booking.id] ?? null;
-      return <View key={booking.id} style={styles.card}><BookingInfo booking={booking} />
+      const expanded = expandedBookings[booking.id] === true;
+      const now = currentTime;
+      const bookingStart = toLocalDateTime(booking.date, booking.startTime);
+      const bookingEnd = toLocalDateTime(booking.date, booking.endTime);
+      const hasCheckIn = Boolean(booking.checkedInAt || booking.checkedOutAt || booking.smartLockAccessEvents?.some(event => event.type === 'CHECK_IN'));
+      const checkInWindowOpen = booking.status === 'APPROVED' && !hasCheckIn && now >= bookingStart && now < bookingEnd;
+      const noShowEligible = booking.status === 'APPROVED' && !hasCheckIn && now.getTime() >= bookingStart.getTime() + noShowGraceMinutes * 60_000;
+      return <View key={booking.id} style={styles.card}>
+        <Pressable
+          testID={`admin-booking-summary-${booking.id}`}
+          accessibilityRole="button"
+          accessibilityState={{ expanded }}
+          accessibilityLabel={`${room?.name ?? booking.roomId}, ${booking.date}, ${booking.startTime}-${booking.endTime}, ${BOOKING_STATUS_LABEL[booking.status]}, ${expanded ? 'thu gọn' : 'xem chi tiết'}`}
+          onPress={() => setExpandedBookings(current => ({ ...current, [booking.id]: !current[booking.id] }))}
+          style={styles.bookingSummary}
+        >
+          <View style={styles.bookingSummaryContent}>
+            <View style={styles.bookingSummaryHeading}>
+              <Text style={[styles.bookingSummaryStatus, styles[`summary${booking.status}`]]}>{BOOKING_STATUS_LABEL[booking.status]}</Text>
+              <Text numberOfLines={1} style={styles.bookingSummaryRoom}>{room?.name ?? booking.roomId} · {booking.date} · {booking.startTime}–{booking.endTime}</Text>
+            </View>
+            <Text numberOfLines={1} style={styles.bookingSummaryPurpose}>{booking.purpose}</Text>
+            <Text numberOfLines={1} style={styles.bookingSummaryMeta}>
+              Người đặt: {booking.requesterUsername}{booking.recurringSeriesId ? ` · Tuần ${(booking.recurringWeekIndex ?? 0) + 1}/${booking.repeatWeeks ?? seriesPending.length}` : ''}
+            </Text>
+          </View>
+          <Text style={styles.bookingSummaryChevron}>{expanded ? '⌃' : '⌄'}</Text>
+        </Pressable>
+        {expanded ? <View style={styles.expandedDetails}>
+        <BookingInfo booking={booking} />
+        {booking.recurringSeriesId ? <Text style={styles.seriesOccurrence}>Chuỗi hàng tuần · Tuần {(booking.recurringWeekIndex ?? 0) + 1}/{booking.repeatWeeks ?? seriesPending.length}</Text> : null}
+        {isSeriesReviewLead ? <View style={styles.seriesReviewBox}>
+          <Text style={styles.seriesReviewTitle}>Chuỗi có {seriesPending.length} lượt đang chờ duyệt</Text>
+          <Text style={styles.seriesReviewHint}>Duyệt cả chuỗi sẽ kiểm tra mọi ngày trước; nếu một lượt xung đột, không lượt nào được duyệt.</Text>
+          <View style={styles.seriesReviewActions}>
+            <Button
+              label={`Duyệt cả ${seriesPending.length} lượt`}
+              primary
+              onPress={() => action(
+                () => reviewRecurringSeries(booking.recurringSeriesId!, 'APPROVED', username),
+                `Đã duyệt ${seriesPending.length} lượt trong chuỗi.`,
+              )}
+            />
+            <Button
+              label="Từ chối cả chuỗi"
+              onPress={() => Alert.alert(
+                'Từ chối cả chuỗi đặt phòng?',
+                `Sẽ từ chối ${seriesPending.length} lượt đang chờ duyệt.`,
+                [
+                  { text: 'Quay lại', style: 'cancel' },
+                  { text: 'Từ chối cả chuỗi', style: 'destructive', onPress: () => action(
+                    () => reviewRecurringSeries(booking.recurringSeriesId!, 'REJECTED', username),
+                    `Đã từ chối ${seriesPending.length} lượt trong chuỗi.`,
+                  ) },
+                ],
+              )}
+            />
+          </View>
+        </View> : null}
         {booking.status === 'PENDING' ? <View style={styles.row}><Button label="Duyệt" primary onPress={() => action(() => reviewBooking(booking.id, 'APPROVED', username), 'Đã duyệt yêu cầu.')} /><Button label="Từ chối" onPress={() => action(() => reviewBooking(booking.id, 'REJECTED', username), 'Đã từ chối yêu cầu.')} /></View> : null}
+        {booking.status === 'APPROVED' && (hasCheckIn || now >= bookingStart) ? <View style={styles.attendanceBox}>
+          <Text style={styles.sectionTitle}>Điểm danh</Text>
+          {hasCheckIn ? <Text style={styles.attendanceConfirmed}>
+            Đã ghi nhận check-in lúc {new Date(booking.checkedInAt ?? booking.smartLockAccessEvents?.find(event => event.type === 'CHECK_IN')?.occurredAt ?? now.toISOString()).toLocaleString('vi-VN')}
+            {booking.checkInConfirmedBy ? ` · Admin ${booking.checkInConfirmedBy} xác nhận` : ' · SmartLock'}
+          </Text> : <>
+            <Text style={styles.attendancePending}>
+              {noShowEligible
+                ? `Chưa có check-in sau ${noShowGraceMinutes} phút ân hạn.`
+                : `Chưa có check-in. Có thể xác nhận vắng sau ${noShowGraceMinutes} phút kể từ giờ bắt đầu.`}
+            </Text>
+            {checkInWindowOpen && room?.lockType === 'PHYSICAL_KEY' ? <Pressable
+              style={styles.checkInButton}
+              onPress={() => action(() => confirmBookingCheckIn(booking.id, username), 'Đã ghi nhận User có mặt.')}
+            ><Text style={styles.checkInButtonText}>Xác nhận User có mặt</Text></Pressable> : null}
+            {noShowEligible ? <Pressable
+              style={styles.noShowButton}
+              onPress={() => Alert.alert(
+                'Xác nhận vắng mặt?',
+                `Booking chưa có check-in sau ${noShowGraceMinutes} phút. Xác nhận sẽ đóng booking và thu hồi mã truy cập.`,
+                [
+                  { text: 'Quay lại', style: 'cancel' },
+                  { text: 'Xác nhận vắng mặt', style: 'destructive', onPress: () => action(
+                    () => confirmBookingNoShow(booking.id, username),
+                    'Đã ghi nhận vắng mặt và giải phóng lượt đặt.',
+                  ) },
+                ],
+              )}
+            ><Text style={styles.noShowButtonText}>Xác nhận vắng mặt</Text></Pressable> : null}
+          </>}
+        </View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PIN_CODE' && !activePin ? <View style={styles.section}><Text style={styles.sectionTitle}>Mã mở cửa</Text><Text style={styles.detail}>Người đặt đã được quyền tự tạo mã cho phòng này. Bạn cũng có thể tạo mã thay.</Text><Pressable style={styles.purple} onPress={() => action(() => createTemporaryPin(booking.id, username, 'admin'), 'Đã tạo mã tạm thời.')}><Text style={styles.white}>Tạo mã thay</Text></Pressable></View> : null}
         {activePin ? <View style={styles.pinBox}><Text style={styles.pinLabel}>Mật khẩu tạm thời</Text><Text style={styles.pinCode}>{booking.temporaryPin!.code}</Text><Text style={styles.detail}>Tạo bởi {booking.temporaryPin!.createdBy}</Text></View> : null}
         {booking.status === 'APPROVED' && room?.lockType === 'PHYSICAL_KEY' ? <View style={styles.section}>
@@ -82,7 +194,8 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
             <Text style={styles.blueText}>Xác nhận đổi phòng</Text>
           </Pressable>
         </View> : null}
-      </View>;
+          </View> : null}
+        </View>;
     })}
   </ScrollView></View>;
 }
@@ -224,6 +337,32 @@ const styles = StyleSheet.create({
   message: { backgroundColor: '#EDF5FF', borderRadius: 9, color: '#24598F', marginBottom: 12, padding: 11 },
   empty: { color: '#657084', marginTop: 40, textAlign: 'center' },
   card: { backgroundColor: '#FFF', borderColor: '#E1E6EE', borderRadius: 13, borderWidth: 1, marginBottom: 14, padding: 15 },
+  bookingSummary: { alignItems: 'center', flexDirection: 'row', minHeight: 54 },
+  bookingSummaryContent: { flex: 1, minWidth: 0 },
+  bookingSummaryHeading: { alignItems: 'center', flexDirection: 'row' },
+  bookingSummaryStatus: { borderRadius: 6, fontSize: 10, fontWeight: '800', marginRight: 7, overflow: 'hidden', paddingHorizontal: 7, paddingVertical: 4 },
+  summaryPENDING: { backgroundColor: '#FFF0CC', color: '#805B00' },
+  summaryAPPROVED: { backgroundColor: '#DDF4E7', color: '#17613A' },
+  summaryREJECTED: { backgroundColor: '#FBE1E4', color: '#9C273A' },
+  summaryCANCELLED: { backgroundColor: '#E8EBF0', color: '#566176' },
+  summaryNO_SHOW: { backgroundColor: '#FFF0CC', color: '#805B00' },
+  bookingSummaryRoom: { color: '#172033', flex: 1, fontSize: 12, fontWeight: '800' },
+  bookingSummaryPurpose: { color: '#344057', fontSize: 12, fontWeight: '700', marginTop: 5 },
+  bookingSummaryMeta: { color: '#7B8596', fontSize: 10, marginTop: 3 },
+  bookingSummaryChevron: { color: '#657084', fontSize: 20, marginLeft: 12, paddingHorizontal: 3 },
+  expandedDetails: { borderTopColor: '#E9EDF2', borderTopWidth: 1, marginTop: 10, paddingTop: 11 },
+  seriesOccurrence: { alignSelf: 'flex-start', backgroundColor: '#EAF4FF', borderRadius: 6, color: '#24598F', fontSize: 11, fontWeight: '700', marginTop: 8, paddingHorizontal: 8, paddingVertical: 5 },
+  seriesReviewBox: { backgroundColor: '#F4F8FC', borderColor: '#D5E1EC', borderRadius: 8, borderWidth: 1, marginTop: 10, padding: 10 },
+  seriesReviewTitle: { color: '#26384D', fontSize: 13, fontWeight: '800' },
+  seriesReviewHint: { color: '#657084', fontSize: 11, lineHeight: 16, marginTop: 4 },
+  seriesReviewActions: { flexDirection: 'row', marginTop: 9 },
+  attendanceBox: { backgroundColor: '#F4F8FC', borderColor: '#D5E1EC', borderRadius: 8, borderWidth: 1, marginTop: 12, padding: 11 },
+  attendancePending: { color: '#805B00', fontSize: 12, lineHeight: 18 },
+  attendanceConfirmed: { color: '#17613A', fontSize: 12, lineHeight: 18 },
+  checkInButton: { alignItems: 'center', borderColor: '#22864A', borderRadius: 7, borderWidth: 1, marginTop: 8, paddingVertical: 9 },
+  checkInButtonText: { color: '#17613A', fontSize: 12, fontWeight: '800' },
+  noShowButton: { alignItems: 'center', backgroundColor: '#A53A32', borderRadius: 7, marginTop: 8, paddingVertical: 9 },
+  noShowButtonText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   row: { flexDirection: 'row', marginTop: 13 },
   button: { alignItems: 'center', borderColor: '#B01432', borderRadius: 8, borderWidth: 1, flex: 1, marginRight: 7, paddingVertical: 10 },
   buttonPrimary: { backgroundColor: '#B01432' },

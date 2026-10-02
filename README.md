@@ -40,10 +40,12 @@ Dữ liệu tài khoản, phòng, booking, bảo trì và cấu hình được l
 
 - Đăng ký, đăng nhập, hồ sơ, đổi/khôi phục mật khẩu và thông báo.
 - Tìm và đặt phòng theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
+- Có thể đặt lặp hàng tuần, theo dõi từng tuần, sửa các lượt đang chờ duyệt hoặc hủy các lượt tương lai trong chuỗi.
 - Admin duyệt/từ chối, đổi phòng phù hợp và quản lý tài khoản. Quản lý phòng và bảo trì dùng chung một màn hình: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch bảo trì hoặc xem lịch sử dụng.
+- Admin quản lý điểm danh: xác nhận có mặt cho phòng dùng khóa cơ/thẻ từ và ghi nhận vắng mặt sau thời gian ân hạn khi chưa có check-in hợp lệ.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do; Admin nhận thông báo, thấy tầng/phòng được đánh dấu vàng và xử lý yêu cầu.
 - Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa; Admin chấp nhận hoặc đề xuất giờ khác; hai bên trao đổi đến khi thống nhất.
-- Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời.
+- Với khóa số, User được cấp quyền theo đúng phòng đã duyệt để tạo mật khẩu tạm thời. User phải nhập token và kết nối OneIoT trong phiên trước khi gửi lệnh tạo mã.
 - Admin gắn một SmartLock vào phòng, nhập token trong phiên và kết nối trực tiếp tới OneIoT bằng MQTT TLS. App gửi lệnh tạo mật khẩu và nhận bản tin SmartLock để ghi nhận check-in/check-out.
 
 Chế độ local được điều khiển tại `code/booking_classroom/src/core/config/runtimeFlags.ts`:

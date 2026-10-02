@@ -17,6 +17,7 @@ export function ConfigurationScreen({ adminUsername, onBack }: Props) {
     <NumberField label="Hạn hủy yêu cầu đã duyệt (phút trước giờ bắt đầu)" value={config.cancellationCutoffMinutes} onChange={value => numeric('cancellationCutoffMinutes', value)} />
     <NumberField label="Hạn đổi phòng (phút trước giờ bắt đầu)" value={config.roomChangeCutoffMinutes} onChange={value => numeric('roomChangeCutoffMinutes', value)} />
     <NumberField label="Khoảng đệm hiệu lực mã số (phút)" value={config.pinGraceMinutes} onChange={value => numeric('pinGraceMinutes', value)} />
+    <NumberField label="Thời gian chờ check-in trước khi xác nhận vắng (phút)" value={config.noShowGraceMinutes} onChange={value => numeric('noShowGraceMinutes', value)} />
     <View style={styles.switchRow}><View style={styles.switchText}><Text style={styles.label}>Thông báo hoạt động</Text><Text style={styles.note}>Tắt mục này sẽ ngừng tạo thông báo mới.</Text></View><Switch value={config.notificationsEnabled} onValueChange={value => setConfig(current => ({ ...current, notificationsEnabled: value }))} /></View>
     {message ? <Text style={styles.message}>{message}</Text> : null}<Pressable style={styles.primary} onPress={save}><Text style={styles.primaryText}>Lưu quy định</Text></Pressable>
   </ScrollView></View>;

@@ -14,6 +14,38 @@ import type { SmartLockAccessEvent } from '../model/booking';
 const BOOKINGS_KEY = 'booking.records';
 const ACTIVE_STATUSES: readonly BookingStatus[] = ['PENDING', 'APPROVED'];
 
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function buildRecurringBookingInputs(input: CreateBookingInput): CreateBookingInput[] {
+  const repeatWeekly = Boolean(input.repeatWeekly);
+  const repeatWeeks = Number.isInteger(input.repeatWeeks) ? Math.max(1, Math.min(8, input.repeatWeeks!)) : 1;
+
+  if (!repeatWeekly) {
+    return [{ ...input, repeatWeekly: false, repeatWeeks: 1 }];
+  }
+
+  const baseDate = new Date(`${input.date}T00:00:00`);
+  const results: CreateBookingInput[] = [];
+
+  for (let index = 0; index < repeatWeeks; index += 1) {
+    const date = new Date(baseDate);
+    date.setDate(baseDate.getDate() + index * 7);
+    results.push({
+      ...input,
+      date: formatDate(date),
+      repeatWeekly: true,
+      repeatWeeks: repeatWeeks,
+    });
+  }
+
+  return results;
+}
+
 export function meetsReplacementRoomRequirements(currentRoom: Room, candidate: Room): boolean {
   const candidateEquipment = new Set(candidate.equipment.map(item => item.trim().toLowerCase()));
   return candidate.id !== currentRoom.id &&
@@ -44,7 +76,7 @@ export async function getBookingById(id: string): Promise<Booking | undefined> {
 }
 
 export function getBookingTimeCategory(booking: Booking, now = new Date()): 'UPCOMING' | 'USED' | 'CANCELLED' {
-  if (booking.status === 'CANCELLED' || booking.status === 'REJECTED') return 'CANCELLED';
+  if (booking.status === 'CANCELLED' || booking.status === 'REJECTED' || booking.status === 'NO_SHOW') return 'CANCELLED';
   if (toLocalDateTime(booking.date, booking.endTime) < now) {
     return booking.status === 'APPROVED' ? 'USED' : 'CANCELLED';
   }
@@ -79,13 +111,25 @@ function isStillActive(booking: Booking, now = new Date()) {
   return ACTIVE_STATUSES.includes(booking.status) && toLocalDateTime(booking.date, booking.endTime) > now;
 }
 
-async function validateBooking(input: CreateBookingInput, bookings: Booking[]) {
+function hasCheckInEvidence(booking: Booking): boolean {
+  return Boolean(
+    booking.checkedInAt ||
+    booking.checkedOutAt ||
+    booking.smartLockAccessEvents?.some(event => event.type === 'CHECK_IN'),
+  );
+}
+
+async function validateBooking(
+  input: CreateBookingInput,
+  bookings: Booking[],
+  options: { skipAdvanceWindowCheck?: boolean; skipUserLimitCheck?: boolean } = {},
+) {
   const room = await getRoomById(input.roomId);
   if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng không tồn tại hoặc đang tạm khóa/bảo trì.');
   const { start } = validateDateAndTime(input.date, input.startTime, input.endTime);
   const configuration = await getConfiguration();
   const dayDifference = calendarDayDifference(start, new Date());
-  if (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays) {
+  if (!options.skipAdvanceWindowCheck && (dayDifference < configuration.minAdvanceDays || dayDifference > configuration.maxAdvanceDays)) {
     throw new Error(`Chỉ được đặt trước từ ${configuration.minAdvanceDays} đến ${configuration.maxAdvanceDays} ngày.`);
   }
   if (await hasMaintenanceConflict(input.roomId, input.date, input.startTime, input.endTime)) {
@@ -98,7 +142,7 @@ async function validateBooking(input: CreateBookingInput, bookings: Booking[]) {
   if (activeBookings.some(item => item.requesterUsername === input.requesterUsername && overlaps(item, input.date, input.startTime, input.endTime))) {
     throw new Error('Bạn đã có lịch đặt khác trùng thời gian.');
   }
-  if (activeBookings.filter(item => item.requesterUsername === input.requesterUsername).length >= configuration.maxActiveBookingsPerUser) {
+  if (!options.skipUserLimitCheck && activeBookings.filter(item => item.requesterUsername === input.requesterUsername).length >= configuration.maxActiveBookingsPerUser) {
     throw new Error(`Mỗi người chỉ có tối đa ${configuration.maxActiveBookingsPerUser} yêu cầu đang chờ hoặc sắp dùng.`);
   }
   if (!input.purpose.trim()) throw new Error('Vui lòng nhập mục đích sử dụng phòng.');
@@ -112,17 +156,48 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     );
     return result.booking;
   }
+
+  const repeatWeekly = Boolean(input.repeatWeekly);
+  const repeatWeeks = Number.isInteger(input.repeatWeeks) ? Math.max(1, Math.min(8, input.repeatWeeks!)) : 1;
+  if (repeatWeekly && (!Number.isInteger(input.repeatWeeks) || input.repeatWeeks! < 1)) {
+    throw new Error('Số tuần lặp lại phải là số nguyên dương.');
+  }
+
   await assertAccountRole(input.requesterUsername, 'user');
   const bookings = await getBookings();
-  await validateBooking(input, bookings);
-  const booking: Booking = {
-    ...input, purpose: input.purpose.trim(), id: `booking-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    status: 'PENDING', createdAt: new Date().toISOString(),
-  };
-  await writeJson(BOOKINGS_KEY, [...bookings, booking]);
-  const room = await getRoomById(input.roomId);
-  await addNotification('admin', 'Có yêu cầu đặt phòng mới', `${input.requesterUsername} yêu cầu đặt phòng ${room?.name}.`);
-  return booking;
+  const recurringInputs = buildRecurringBookingInputs({ ...input, repeatWeekly, repeatWeeks });
+  const createdBookings: Booking[] = [];
+  const recurringSeriesId = repeatWeekly
+    ? `booking-series-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    : undefined;
+
+  for (const [index, item] of recurringInputs.entries()) {
+    await validateBooking(item, [...bookings, ...createdBookings], {
+      skipAdvanceWindowCheck: index > 0 && repeatWeekly,
+      skipUserLimitCheck: index > 0 && repeatWeekly,
+    });
+    const booking: Booking = {
+      ...item,
+      purpose: item.purpose.trim(),
+      recurringSeriesId,
+      recurringWeekIndex: repeatWeekly ? index : undefined,
+      id: `booking-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
+    createdBookings.push(booking);
+  }
+
+  await writeJson(BOOKINGS_KEY, [...bookings, ...createdBookings]);
+
+  const firstRoom = await getRoomById(createdBookings[0].roomId);
+  await addNotification(
+    'admin',
+    'Có yêu cầu đặt phòng mới',
+    `${input.requesterUsername} yêu cầu đặt phòng ${firstRoom?.name}${repeatWeekly ? ` và ${createdBookings.length} lịch lặp lại` : ''}.`,
+  );
+
+  return createdBookings[0];
 }
 
 export async function updateBooking(id: string, update: (booking: Booking) => Booking): Promise<Booking> {
@@ -186,6 +261,76 @@ export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED
   return updated;
 }
 
+export async function reviewRecurringSeries(
+  recurringSeriesId: string,
+  decision: 'APPROVED' | 'REJECTED',
+  adminUsername: string,
+): Promise<number> {
+  if (isRemoteApiEnabled()) {
+    throw new Error('Duyệt cả chuỗi hiện chỉ khả dụng khi app chạy ở chế độ local.');
+  }
+  await assertAccountRole(adminUsername, 'admin');
+  const bookings = await getBookings();
+  const pending = bookings.filter(item =>
+    item.recurringSeriesId === recurringSeriesId && item.status === 'PENDING',
+  );
+  if (pending.length === 0) throw new Error('Chuỗi này không còn yêu cầu chờ duyệt.');
+
+  if (decision === 'APPROVED') {
+    const pendingIds = new Set(pending.map(item => item.id));
+    const approvedCandidates: Booking[] = [];
+    const now = new Date();
+    for (const booking of pending) {
+      if (toLocalDateTime(booking.date, booking.startTime) <= now) {
+        throw new Error('Có lượt trong chuỗi đã đến giờ sử dụng; chưa lượt nào được duyệt.');
+      }
+      if (await hasMaintenanceConflict(booking.roomId, booking.date, booking.startTime, booking.endTime)) {
+        throw new Error('Có lượt trong chuỗi trùng lịch bảo trì; chưa lượt nào được duyệt.');
+      }
+      const conflictsWithApproved = bookings.some(item =>
+        !pendingIds.has(item.id) &&
+        item.status === 'APPROVED' &&
+        item.roomId === booking.roomId &&
+        overlaps(item, booking.date, booking.startTime, booking.endTime),
+      );
+      const conflictsWithinSeries = approvedCandidates.some(item =>
+        item.roomId === booking.roomId && overlaps(item, booking.date, booking.startTime, booking.endTime),
+      );
+      if (conflictsWithApproved || conflictsWithinSeries) {
+        throw new Error('Có lượt trong chuỗi trùng lịch đã duyệt; chưa lượt nào được duyệt.');
+      }
+      approvedCandidates.push(booking);
+    }
+  }
+
+  const reviewedAt = new Date().toISOString();
+  const pendingIds = new Set(pending.map(item => item.id));
+  const updated = bookings.map(item => pendingIds.has(item.id)
+    ? { ...item, status: decision, reviewedAt, reviewedBy: adminUsername }
+    : item);
+  await writeJson(BOOKINGS_KEY, updated);
+
+  if (decision === 'APPROVED') {
+    const pinRoomIds = new Set<string>();
+    for (const booking of pending) {
+      const room = await getRoomById(booking.roomId);
+      if (room?.lockType === 'PIN_CODE') pinRoomIds.add(booking.roomId);
+    }
+    for (const roomId of pinRoomIds) {
+      await grantRoomPinPermission(pending[0].requesterUsername, roomId, adminUsername);
+    }
+  }
+
+  const requesterUsername = pending[0].requesterUsername;
+  const decisionLabel = decision === 'APPROVED' ? 'đã được duyệt' : 'đã bị từ chối';
+  await addNotification(
+    requesterUsername,
+    `Các lượt đặt trong chuỗi ${decisionLabel}`,
+    `Admin đã ${decision === 'APPROVED' ? 'duyệt' : 'từ chối'} ${pending.length} lượt đặt phòng lặp lại.`,
+  );
+  return pending.length;
+}
+
 export async function cancelBooking(id: string, username: string): Promise<Booking> {
   await assertAccountRole(username, 'user');
   const configuration = await getConfiguration();
@@ -203,6 +348,93 @@ export async function cancelBooking(id: string, username: string): Promise<Booki
   const room = await getRoomById(updated.roomId);
   await addNotification('admin', 'Yêu cầu đã được hủy', `${username} đã hủy yêu cầu phòng ${room?.name}.`);
   return updated;
+}
+
+export async function updatePendingRecurringBookings(
+  bookingId: string,
+  username: string,
+  changes: Pick<Booking, 'startTime' | 'endTime' | 'purpose'>,
+): Promise<number> {
+  await assertAccountRole(username, 'user');
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === bookingId);
+  if (!target?.recurringSeriesId) throw new Error('Không tìm thấy chuỗi đặt lặp lại.');
+  if (target.requesterUsername !== username) throw new Error('Bạn không có quyền sửa chuỗi đặt này.');
+
+  const now = new Date();
+  const pendingFuture = bookings.filter(item =>
+    item.recurringSeriesId === target.recurringSeriesId &&
+    item.requesterUsername === username &&
+    item.status === 'PENDING' &&
+    toLocalDateTime(item.date, item.startTime) > now,
+  );
+  if (pendingFuture.length === 0) throw new Error('Không còn lượt chờ duyệt nào trong tương lai để sửa.');
+
+  const outsideSeries = bookings.filter(item => item.recurringSeriesId !== target.recurringSeriesId);
+  for (const booking of pendingFuture) {
+    await validateBooking({
+      requesterUsername: username,
+      roomId: booking.roomId,
+      date: booking.date,
+      startTime: changes.startTime,
+      endTime: changes.endTime,
+      purpose: changes.purpose,
+    }, outsideSeries, { skipAdvanceWindowCheck: true, skipUserLimitCheck: true });
+  }
+
+  const pendingIds = new Set(pendingFuture.map(item => item.id));
+  const updated = bookings.map(item => pendingIds.has(item.id)
+    ? { ...item, startTime: changes.startTime, endTime: changes.endTime, purpose: changes.purpose.trim() }
+    : item);
+  await writeJson(BOOKINGS_KEY, updated);
+  await addNotification(
+    'admin',
+    'Đã cập nhật chuỗi đặt phòng',
+    `${username} đã sửa ${pendingFuture.length} lượt đang chờ duyệt trong chuỗi đặt phòng.`,
+  );
+  return pendingFuture.length;
+}
+
+export async function cancelFutureRecurringBookings(bookingId: string, username: string): Promise<number> {
+  await assertAccountRole(username, 'user');
+  const configuration = await getConfiguration();
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === bookingId);
+  if (!target?.recurringSeriesId) throw new Error('Không tìm thấy chuỗi đặt lặp lại.');
+  if (target.requesterUsername !== username) throw new Error('Bạn không có quyền hủy chuỗi đặt này.');
+
+  const now = new Date();
+  const futureBookings = bookings.filter(item =>
+    item.recurringSeriesId === target.recurringSeriesId &&
+    item.requesterUsername === username &&
+    ACTIVE_STATUSES.includes(item.status) &&
+    toLocalDateTime(item.date, item.startTime) > now,
+  );
+  if (futureBookings.length === 0) throw new Error('Không còn lượt đặt nào trong tương lai để hủy.');
+
+  for (const booking of futureBookings) {
+    const minutesUntilStart = (toLocalDateTime(booking.date, booking.startTime).getTime() - now.getTime()) / 60_000;
+    if (booking.status === 'APPROVED' && minutesUntilStart < configuration.cancellationCutoffMinutes) {
+      throw new Error(`Có lượt đã duyệt không đủ hạn hủy trước ${configuration.cancellationCutoffMinutes} phút; chưa lượt nào bị hủy.`);
+    }
+  }
+
+  const futureIds = new Set(futureBookings.map(item => item.id));
+  const revokedAt = new Date().toISOString();
+  const updated = bookings.map(item => futureIds.has(item.id)
+    ? {
+      ...item,
+      status: 'CANCELLED' as const,
+      temporaryPin: item.temporaryPin ? { ...item.temporaryPin, revokedAt } : undefined,
+    }
+    : item);
+  await writeJson(BOOKINGS_KEY, updated);
+  await addNotification(
+    'admin',
+    'Đã hủy các lượt đặt lặp lại',
+    `${username} đã hủy ${futureBookings.length} lượt trong chuỗi đặt phòng.`,
+  );
+  return futureBookings.length;
 }
 
 export async function setPickupDelegate(id: string, username: string, fullName: string, studentId: string): Promise<Booking> {
@@ -406,6 +638,73 @@ export async function recordSmartLockAccessEvent(
     `SmartLock ghi nhận ${action} tại phòng ${room?.name ?? roomId}.`);
   await addNotification('admin', `SmartLock: ${action}`,
     `${updated.requesterUsername} · phòng ${room?.name ?? roomId} · ${new Date(event.occurredAt).toLocaleString('vi-VN')}.`);
+  return updated;
+}
+
+export async function confirmBookingCheckIn(
+  id: string,
+  adminUsername: string,
+  now = new Date(),
+): Promise<Booking> {
+  if (isRemoteApiEnabled()) throw new Error('Xác nhận check-in thủ công hiện chỉ khả dụng ở chế độ local.');
+  await assertAccountRole(adminUsername, 'admin');
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === id);
+  if (!target || target.status !== 'APPROVED') throw new Error('Chỉ xác nhận check-in cho booking đã duyệt.');
+  if (hasCheckInEvidence(target)) throw new Error('Booking này đã có check-in được ghi nhận.');
+  const room = await getRoomById(target.roomId);
+  if (room?.lockType !== 'PHYSICAL_KEY') throw new Error('Check-in thủ công chỉ áp dụng cho phòng khóa cơ/thẻ.');
+  const start = toLocalDateTime(target.date, target.startTime);
+  const end = toLocalDateTime(target.date, target.endTime);
+  if (now < start || now >= end) throw new Error('Chỉ xác nhận có mặt trong thời gian sử dụng phòng.');
+
+  const updated: Booking = { ...target, checkedInAt: now.toISOString(), checkInConfirmedBy: adminUsername };
+  const next = [...bookings];
+  next[bookings.findIndex(item => item.id === id)] = updated;
+  await writeJson(BOOKINGS_KEY, next);
+  await addNotification(
+    updated.requesterUsername,
+    'Đã xác nhận có mặt',
+    `Admin đã ghi nhận bạn có mặt tại phòng ${room?.name ?? updated.roomId}.`,
+  );
+  return updated;
+}
+
+export async function confirmBookingNoShow(
+  id: string,
+  adminUsername: string,
+  now = new Date(),
+): Promise<Booking> {
+  if (isRemoteApiEnabled()) throw new Error('Xác nhận vắng mặt hiện chỉ khả dụng ở chế độ local.');
+  await assertAccountRole(adminUsername, 'admin');
+  const bookings = await getBookings();
+  const target = bookings.find(item => item.id === id);
+  if (!target || target.status !== 'APPROVED') throw new Error('Chỉ xác nhận vắng mặt cho booking đã duyệt.');
+  if (hasCheckInEvidence(target)) throw new Error('Booking đã có check-in, không thể ghi nhận vắng mặt.');
+
+  const configuration = await getConfiguration();
+  const eligibleAt = toLocalDateTime(target.date, target.startTime).getTime() + configuration.noShowGraceMinutes * 60_000;
+  if (now.getTime() < eligibleAt) {
+    throw new Error(`Chỉ xác nhận vắng mặt sau ${configuration.noShowGraceMinutes} phút kể từ giờ bắt đầu.`);
+  }
+
+  const nowIso = now.toISOString();
+  const updated: Booking = {
+    ...target,
+    status: 'NO_SHOW',
+    noShowAt: nowIso,
+    noShowMarkedBy: adminUsername,
+    temporaryPin: target.temporaryPin ? { ...target.temporaryPin, revokedAt: nowIso } : undefined,
+  };
+  const next = [...bookings];
+  next[bookings.findIndex(item => item.id === id)] = updated;
+  await writeJson(BOOKINGS_KEY, next);
+  const room = await getRoomById(updated.roomId);
+  await addNotification(
+    updated.requesterUsername,
+    'Đã ghi nhận vắng mặt',
+    `Admin xác nhận không có check-in cho phòng ${room?.name ?? updated.roomId}; lượt đặt đã được đóng và mã truy cập thu hồi.`,
+  );
   return updated;
 }
 

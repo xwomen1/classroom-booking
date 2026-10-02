@@ -54,14 +54,22 @@ export function NotificationScreen({
           notifications.map(notification => (
             <Pressable
               key={notification.id}
+              testID={`notification-card-${notification.id}`}
               onPress={() => onOpen?.(notification)}
               style={[
                 styles.card,
-                !notification.read && styles.unreadCard,
+                isApprovalNotification(notification)
+                  ? styles.approvedCard
+                  : !notification.read && styles.unreadCard,
               ]}
             >
               <View style={styles.cardHeader}>
-                {!notification.read ? <View style={styles.unreadDot} /> : null}
+                {!notification.read ? (
+                  <View style={[
+                    styles.unreadDot,
+                    isApprovalNotification(notification) && styles.approvedDot,
+                  ]} testID={`notification-unread-dot-${notification.id}`} />
+                ) : null}
                 <Text style={styles.title}>{notification.title}</Text>
               </View>
               <Text style={styles.message}>{notification.message}</Text>
@@ -89,6 +97,7 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   unreadCard: { backgroundColor: '#FFF6F7', borderColor: '#E7B4BD' },
+  approvedCard: { backgroundColor: '#EAF7EF', borderColor: '#9BCFAE' },
   cardHeader: { alignItems: 'center', flexDirection: 'row' },
   unreadDot: {
     backgroundColor: '#B01432',
@@ -97,7 +106,14 @@ const styles = StyleSheet.create({
     marginRight: 8,
     width: 9,
   },
+  approvedDot: { backgroundColor: '#22864A' },
   title: { color: '#172033', flex: 1, fontSize: 15, fontWeight: '800' },
   message: { color: '#4F5C70', fontSize: 14, lineHeight: 20, marginTop: 7 },
   time: { color: '#8993A3', fontSize: 12, marginTop: 10 },
 });
+
+function isApprovalNotification(notification: NotificationItem): boolean {
+  return `${notification.title} ${notification.message}`
+    .toLocaleLowerCase('vi-VN')
+    .includes('được duyệt');
+}

@@ -3,14 +3,18 @@ export { BookingScheduleScreen } from './screens/BookingScheduleScreen';
 export { AdminBookingScreen } from './screens/AdminBookingScreen';
 export {
   cancelBooking,
+  cancelFutureRecurringBookings,
   acceptKeyPickupProposal,
   changeBookingRoom,
+  confirmBookingCheckIn,
+  confirmBookingNoShow,
   createBooking,
   getBookingTimeCategory,
   getBookingById,
   getBookings,
   getBookingsForUser,
   reviewBooking,
+  reviewRecurringSeries,
   proposeKeyPickup,
   recordSmartLockAccessEvent,
   saveTemporaryPin,
@@ -18,6 +22,7 @@ export {
   setPickupDelegate,
   toLocalDateTime,
   updateBooking,
+  updatePendingRecurringBookings,
 } from './services/bookingRepository';
 export type {
   Booking,

@@ -6,16 +6,18 @@
 
 - Tài khoản demo `admin/1`, `user/2`; đăng ký, đăng nhập/đăng xuất, đổi/khôi phục mật khẩu, hồ sơ và thông báo.
 - Tìm và đặt phòng trong một màn hình theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
+- Đặt phòng lặp hàng tuần; User có thể sửa các lượt đang chờ duyệt hoặc hủy các lượt tương lai, Admin có thể duyệt/từ chối cả chuỗi.
 - Kiểm tra trùng phòng, trùng lịch User, thời gian bảo trì, thời hạn đặt trước và giới hạn booking.
 - Admin duyệt/từ chối, đổi sang phòng đáp ứng tối thiểu loại khóa, sức chứa, thiết bị và thời gian.
+- Admin xác nhận check-in thủ công cho phòng khóa cơ/thẻ từ và ghi nhận `NO_SHOW` sau số phút ân hạn cấu hình nếu booking chưa có bằng chứng check-in; trạng thái này giải phóng lượt đặt và thu hồi quyền truy cập liên quan.
 - Lịch đặt phòng là màn chỉ đọc; thao tác hủy, truy cập và nhận khóa nằm trong Quản lý đặt phòng.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do. Admin xử lý trên màn hình quản lý phòng và bảo trì dùng chung: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch/hủy lịch bảo trì hoặc xem lịch sử dụng.
 - Với khóa cơ/thẻ từ, User đề xuất thời gian nhận trước. Admin chấp nhận hoặc đề xuất thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại đến khi thống nhất.
 - Với khóa số, booking đã duyệt cấp quyền tạo mã theo đúng cặp User–phòng. Admin có thể tạo mã hộ hoặc thu hồi quyền.
-- Admin gắn một SmartLock vào một phòng khóa số, dán token trong phiên và kiểm tra kết nối OneIoT.
+- Admin gắn một SmartLock vào một phòng khóa số, dán token trong phiên và kiểm tra kết nối OneIoT. User có quyền tạo mã cũng nhập token và kiểm tra kết nối ngay trong màn hình đặt phòng của mình trước khi gửi lệnh.
 - Module Android MQTT TLS dùng Tools Device ID làm danh tính kết nối, gửi `traitCreateTmpPasswordLock` tới SmartLock và lắng nghe bản tin SmartLock để ghi nhận check-in/check-out cho booking phù hợp.
 
-Token OneIoT chỉ tồn tại trong RAM. App ngắt MQTT khi đăng xuất, chuyển nền hoặc đóng. Token không được lưu trong Async Storage hay repository.
+Token OneIoT chỉ tồn tại trong RAM của từng phiên đăng nhập. Nút tạo mật khẩu bị khóa khi chưa kết nối và kiểm tra lại trạng thái MQTT trước khi gửi. App ngắt MQTT khi đăng xuất, chuyển nền hoặc đóng; token không được lưu trong Async Storage hay repository.
 
 ## Chế độ local và server
 

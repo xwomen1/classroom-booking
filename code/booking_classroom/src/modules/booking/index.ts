@@ -13,6 +13,7 @@ export {
   getBookingById,
   getBookings,
   getBookingsForUser,
+  isBookingStillActive,
   reviewBooking,
   reviewRecurringSeries,
   proposeKeyPickup,

@@ -14,6 +14,7 @@ import {
   confirmBookingCheckIn,
   confirmBookingNoShow,
   getBookings,
+  isBookingStillActive,
   meetsReplacementRoomRequirements,
   proposeKeyPickup,
   reviewBooking,
@@ -48,10 +49,10 @@ export function AdminBookingScreen({ username, onBack }: { username: string; onB
   const setChange = (id: string, field: keyof ChangeDraft, value: string) => setChanges(current => ({ ...current, [id]: { ...(current[id] ?? { roomId: '', reason: '' }), [field]: value } }));
   const toggleChangeFloor = (bookingId: string, floor: number) => setExpandedChangeFloors(current => ({ ...current, [bookingId]: current[bookingId] === floor ? null : floor }));
   const visible = bookings.filter(item => {
-    const ended = new Date(`${item.date}T${item.endTime}:00`) <= new Date();
+    const active = isBookingStillActive(item);
     return filter === 'ACTIVE'
-      ? ['PENDING', 'APPROVED'].includes(item.status) && !ended
-      : ['REJECTED', 'CANCELLED', 'NO_SHOW'].includes(item.status) || ended;
+      ? active
+      : !active;
   });
   return <View style={styles.page}><ScreenHeader title="Yêu cầu đặt phòng" onBack={onBack} /><View style={styles.tabs}><Tab label="Đang xử lý" on={filter === 'ACTIVE'} onPress={() => setFilter('ACTIVE')} /><Tab label="Đã đóng" on={filter === 'HISTORY'} onPress={() => setFilter('HISTORY')} /></View><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     {message ? <Text style={styles.message}>{message}</Text> : null}{visible.length === 0 ? <Text style={styles.empty}>Không có yêu cầu trong nhóm này.</Text> : visible.map(booking => {

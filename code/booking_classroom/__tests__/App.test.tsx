@@ -49,11 +49,14 @@ test('renders approved notifications with green styling', async () => {
 });
 
 test('shows 9+ on the Admin booking card when more than nine requests are pending', async () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const futureDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
   await writeJson('booking.records', Array.from({ length: 10 }, (_, index) => ({
     id: `pending-booking-${index}`,
     requesterUsername: 'user',
     roomId: 'room-a101',
-    date: '2026-10-03',
+    date: futureDate,
     startTime: '08:00',
     endTime: '09:00',
     purpose: 'Kiểm thử badge',
@@ -75,6 +78,33 @@ test('shows 9+ on the Admin booking card when more than nine requests are pendin
   const card = tree!.root.findByProps({ testID: 'admin-booking-requests-card' });
   const badge = card.findByProps({ testID: 'pending-booking-badge' });
   expect(badge.findByType(Text).props.children).toBe('9+');
+});
+
+test('does not count expired pending requests in the Admin dashboard badge', async () => {
+  await writeJson('booking.records', [{
+    id: 'expired-pending-booking',
+    requesterUsername: 'user',
+    roomId: 'room-a101',
+    date: '2020-01-01',
+    startTime: '08:00',
+    endTime: '09:00',
+    purpose: 'Kiểm thử yêu cầu hết hạn',
+    status: 'PENDING',
+    createdAt: new Date().toISOString(),
+  }]);
+
+  let tree: ReturnType<typeof ReactTestRenderer.create> | undefined;
+  await ReactTestRenderer.act(async () => {
+    tree = ReactTestRenderer.create(
+      <RoleDashboardScreen
+        session={{ username: 'admin', role: 'admin' }}
+        onLogout={() => {}}
+      />,
+    );
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  });
+
+  expect(tree!.root.findAllByProps({ testID: 'pending-booking-badge' })).toHaveLength(0);
 });
 
 test('collapses Admin booking details until the summary is pressed', async () => {

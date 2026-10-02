@@ -16,6 +16,7 @@ import {
   AdminBookingScreen,
   BookingScheduleScreen,
   getBookings,
+  isBookingStillActive,
   MyBookingsScreen,
 } from '../../modules/booking';
 import { ConfigurationScreen } from '../../modules/configuration';
@@ -90,7 +91,9 @@ export function RoleDashboardScreen({
   const refreshPendingBookingCount = useCallback(() => {
     if (!isAdmin) return;
     getBookings()
-      .then(bookings => setPendingBookingCount(bookings.filter(item => item.status === 'PENDING').length))
+      .then(bookings => setPendingBookingCount(bookings.filter(
+        item => item.status === 'PENDING' && isBookingStillActive(item),
+      ).length))
       .catch(() => {});
   }, [isAdmin]);
 

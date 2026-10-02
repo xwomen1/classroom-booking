@@ -107,8 +107,11 @@ function overlaps(booking: Booking, date: string, startTime: string, endTime: st
   return booking.date === date && startTime < booking.endTime && endTime > booking.startTime;
 }
 
-function isStillActive(booking: Booking, now = new Date()) {
-  return ACTIVE_STATUSES.includes(booking.status) && toLocalDateTime(booking.date, booking.endTime) > now;
+export function isBookingStillActive(booking: Booking, now = new Date()) {
+  if (booking.status === 'PENDING') {
+    return toLocalDateTime(booking.date, booking.startTime) > now;
+  }
+  return booking.status === 'APPROVED' && toLocalDateTime(booking.date, booking.endTime) > now;
 }
 
 function hasCheckInEvidence(booking: Booking): boolean {
@@ -135,7 +138,7 @@ async function validateBooking(
   if (await hasMaintenanceConflict(input.roomId, input.date, input.startTime, input.endTime)) {
     throw new Error('Phòng có lịch bảo trì trong khoảng thời gian này.');
   }
-  const activeBookings = bookings.filter(item => isStillActive(item));
+  const activeBookings = bookings.filter(item => isBookingStillActive(item));
   if (activeBookings.some(item => item.roomId === input.roomId && overlaps(item, input.date, input.startTime, input.endTime))) {
     throw new Error('Phòng đã có yêu cầu khác trong khoảng thời gian này.');
   }

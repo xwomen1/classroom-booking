@@ -12,6 +12,7 @@ import {
   confirmBookingNoShow,
   getBookingsForUser,
   getBookingTimeCategory,
+  isBookingStillActive,
   reviewBooking,
   reviewRecurringSeries,
   toLocalDateTime,
@@ -37,6 +38,27 @@ describe('local booking and temporary PIN flow', () => {
   beforeEach(async () => {
     await storage.clear();
     await assignSmartLockToRoom('room-a101', 'admin');
+  });
+
+  test('expires an unreviewed request when its session starts', () => {
+    const booking = {
+      id: 'pending-at-start',
+      requesterUsername: 'user',
+      roomId: 'room-a101',
+      date: '2030-01-01',
+      startTime: '08:00',
+      endTime: '09:00',
+      purpose: 'Kiểm thử thời hạn duyệt',
+      status: 'PENDING' as const,
+      createdAt: '2029-12-01T00:00:00.000Z',
+    };
+
+    expect(isBookingStillActive(booking, new Date('2030-01-01T07:59:00'))).toBe(true);
+    expect(isBookingStillActive(booking, new Date('2030-01-01T08:00:00'))).toBe(false);
+    expect(isBookingStillActive(
+      { ...booking, status: 'APPROVED' },
+      new Date('2030-01-01T08:30:00'),
+    )).toBe(true);
   });
 
   test('creates, approves and issues a six-digit PIN for the requester', async () => {

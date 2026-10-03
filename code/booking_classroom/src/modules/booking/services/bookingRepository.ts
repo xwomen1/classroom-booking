@@ -337,6 +337,10 @@ export async function reviewRecurringSeries(
 }
 
 export async function cancelBooking(id: string, username: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/cancel`, { method: 'POST' });
+    return result.booking;
+  }
   await assertAccountRole(username, 'user');
   const configuration = await getConfiguration();
   const updated = await updateBooking(id, booking => {
@@ -714,6 +718,13 @@ export async function confirmBookingNoShow(
 }
 
 export async function changeBookingRoom(id: string, newRoomId: string, adminUsername: string, reason: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/change-room`, {
+      method: 'POST',
+      body: { roomId: newRoomId, reason },
+    });
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const booking = bookings.find(item => item.id === id);

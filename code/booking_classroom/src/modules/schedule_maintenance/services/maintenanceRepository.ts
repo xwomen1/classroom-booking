@@ -43,6 +43,9 @@ export async function createMaintenance(input: {
   roomId: string; date: string; startTime: string; endTime: string;
   reason: string; createdBy: string;
 }): Promise<MaintenanceRecord> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<MaintenanceRecord>('/api/maintenance', { method: 'POST', body: input });
+  }
   await assertAccountRole(input.createdBy, 'admin');
   if (!(await getRoomById(input.roomId))) throw new Error('Không tìm thấy phòng.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !/^\d{2}:\d{2}$/.test(input.startTime) ||
@@ -69,6 +72,10 @@ export async function createMaintenance(input: {
 }
 
 export async function cancelMaintenance(id: string, adminUsername: string): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest(`/api/maintenance/${id}/cancel`, { method: 'POST' });
+    return;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const records = await getMaintenanceRecords();
   const index = records.findIndex(item => item.id === id);
@@ -84,6 +91,12 @@ export async function requestRoomMaintenance(
   reason: string,
   now = new Date(),
 ): Promise<MaintenanceRequest> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<MaintenanceRequest>('/api/maintenance/requests', {
+      method: 'POST',
+      body: { bookingId, reason },
+    });
+  }
   await assertAccountRole(username, 'user');
   if (!reason.trim()) throw new Error('Vui lòng nhập lý do yêu cầu bảo trì.');
   const bookings = await readJson<Booking[]>('booking.records', []);
@@ -138,6 +151,12 @@ export async function scheduleMaintenanceFromRequest(
     reason: string; createdBy: string;
   },
 ): Promise<MaintenanceRecord> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<MaintenanceRecord>(`/api/maintenance/requests/${requestId}/schedule`, {
+      method: 'POST',
+      body: input,
+    });
+  }
   await assertAccountRole(input.createdBy, 'admin');
   const request = (await getMaintenanceRequests()).find(item => item.id === requestId);
   if (!request || request.status !== 'PENDING') throw new Error('Yêu cầu bảo trì đã được xử lý.');
@@ -162,6 +181,12 @@ export async function rejectMaintenanceRequest(
   adminUsername: string,
   note = '',
 ): Promise<MaintenanceRequest> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<MaintenanceRequest>(`/api/maintenance/requests/${requestId}/reject`, {
+      method: 'POST',
+      body: { note },
+    });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const updated = await updateMaintenanceRequest(requestId, current => {
     if (current.status !== 'PENDING') throw new Error('Yêu cầu bảo trì đã được xử lý.');

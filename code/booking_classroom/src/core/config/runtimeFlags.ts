@@ -7,7 +7,7 @@
  * URL public mới nhất từ nhánh syncdata được giữ bên dưới nhưng không được gọi
  * khi ENABLE_REMOTE_SYNC = false.
  */
-export const ENABLE_REMOTE_SYNC = false;
+export const ENABLE_REMOTE_SYNC = true;
 
 export const REMOTE_API_BASE_URL =
   'https://dancing-shannon-johns-relaxation.trycloudflare.com';

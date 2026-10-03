@@ -25,6 +25,12 @@ export async function grantRoomPinPermission(
   roomId: string,
   adminUsername: string,
 ): Promise<RoomPinPermission> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<RoomPinPermission>('/api/pin-permissions', {
+      method: 'POST',
+      body: { username, roomId },
+    });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const room = await getRoomById(roomId);
   if (!room || room.lockType !== 'PIN_CODE') {
@@ -52,6 +58,12 @@ export async function revokeRoomPinPermission(
   roomId: string,
   adminUsername: string,
 ): Promise<RoomPinPermission> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<RoomPinPermission>('/api/pin-permissions/revoke', {
+      method: 'POST',
+      body: { username, roomId },
+    });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const permissions = await getRoomPinPermissions();
   const index = permissions.findIndex(

@@ -24,6 +24,7 @@ public final class Domain {
     @Id
     public String username;
     public String password;
+    public String recoveryCode;
     public String role;
     public boolean active = true;
   }
@@ -54,8 +55,8 @@ public final class Domain {
     public String date;
     public String startTime;
     public String endTime;
-    public boolean repeatWeekly;
-    public int repeatWeeks;
+    public Boolean repeatWeekly;
+    public Integer repeatWeeks;
     @Column(length = 1000)
     public String purpose;
     public String status;
@@ -105,6 +106,25 @@ public final class Domain {
     public String cancelledAt;
   }
 
+  @Entity(name = "MaintenanceRequest")
+  @Table(name = "maintenance_requests")
+  public static class MaintenanceRequest {
+    @Id
+    public String id;
+    public String bookingId;
+    public String roomId;
+    public String requesterUsername;
+    @Column(length = 1000)
+    public String reason;
+    public String requestedAt;
+    public String status;
+    public String reviewedAt;
+    public String reviewedBy;
+    @Column(length = 1000)
+    public String adminNote;
+    public String maintenanceRecordId;
+  }
+
   @Entity(name = "PinPermission")
   @Table(name = "pin_permissions")
   public static class PinPermission {
@@ -152,6 +172,7 @@ public final class Domain {
     public int cancellationCutoffMinutes;
     public int roomChangeCutoffMinutes;
     public int pinGraceMinutes;
+    public Integer noShowGraceMinutes;
     public boolean notificationsEnabled;
   }
 

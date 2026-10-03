@@ -40,6 +40,16 @@ public class DataSeeder implements CommandLineRunner {
       notify("admin", "Chào mừng đến ứng dụng đặt phòng", "Tài khoản của bạn đã sẵn sàng để sử dụng.");
       notify("user", "Chào mừng đến ứng dụng đặt phòng", "Tài khoản của bạn đã sẵn sàng để sử dụng.");
     }
+    em.createQuery("update Configuration c set c.noShowGraceMinutes = 15 where c.noShowGraceMinutes is null")
+        .executeUpdate();
+    em.createQuery("update Booking b set b.repeatWeekly = false where b.repeatWeekly is null")
+        .executeUpdate();
+    em.createQuery("update Booking b set b.repeatWeeks = 1 where b.repeatWeeks is null")
+        .executeUpdate();
+    em.createQuery("update Account a set a.recoveryCode = '111111' where a.username = 'admin' and a.recoveryCode is null")
+        .executeUpdate();
+    em.createQuery("update Account a set a.recoveryCode = '222222' where a.username = 'user' and a.recoveryCode is null")
+        .executeUpdate();
     refreshMaintenanceWindow();
   }
 
@@ -89,6 +99,7 @@ public class DataSeeder implements CommandLineRunner {
     configuration.cancellationCutoffMinutes = 30;
     configuration.roomChangeCutoffMinutes = 30;
     configuration.pinGraceMinutes = 10;
+    configuration.noShowGraceMinutes = 15;
     configuration.notificationsEnabled = true;
     em.persist(configuration);
   }

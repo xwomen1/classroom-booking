@@ -7,6 +7,9 @@ import { DEMO_ACCOUNTS, type AccountRecord } from '../model/demoAccounts';
 const ACCOUNTS_KEY = 'auth.accounts';
 
 export async function getAccounts(): Promise<AccountRecord[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AccountRecord[]>('/api/accounts');
+  }
   const stored = await readJson<AccountRecord[] | null>(ACCOUNTS_KEY, null);
   if (stored) {
     return stored.map(account => ({
@@ -57,6 +60,9 @@ export async function authenticate(
 }
 
 export async function assertAccountRole(username: string, role: AccountRecord['role']): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    return;
+  }
   const account = (await getAccounts()).find(item => item.username === username);
   if (!account || account.active === false || account.role !== role) {
     throw new Error(role === 'admin' ? 'Bạn không có quyền thực hiện thao tác này.' : 'Tài khoản không hoạt động hoặc không có quyền thực hiện thao tác này.');
@@ -74,6 +80,12 @@ export async function registerAccount({
   password,
   recoveryCode,
 }: RegisterInput): Promise<AuthenticatedUser> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AuthenticatedUser>('/api/auth/register', {
+      method: 'POST',
+      body: { username, password, recoveryCode: recoveryCode || '000000' },
+    });
+  }
   const normalizedUsername = username.trim().toLowerCase();
   const accounts = await getAccounts();
 
@@ -109,6 +121,9 @@ export async function createManagedAccount(input: {
   recoveryCode: string;
   role: AccountRecord['role'];
 }, actorUsername: string): Promise<AccountRecord> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AccountRecord>('/api/accounts', { method: 'POST', body: input });
+  }
   await assertAccountRole(actorUsername, 'admin');
   const username = input.username.trim().toLowerCase();
   if (!/^[a-z0-9._-]{3,30}$/.test(username)) {
@@ -138,6 +153,12 @@ export async function updateManagedAccount(
   changes: Partial<Pick<AccountRecord, 'role' | 'active' | 'password' | 'recoveryCode'>>,
   actorUsername: string,
 ): Promise<AccountRecord> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AccountRecord>(`/api/accounts/${encodeURIComponent(username)}`, {
+      method: 'PUT',
+      body: changes,
+    });
+  }
   await assertAccountRole(actorUsername, 'admin');
   const accounts = await getAccounts();
   const index = accounts.findIndex(account => account.username === username);
@@ -159,6 +180,10 @@ export async function updateManagedAccount(
 }
 
 export async function deleteManagedAccount(username: string, actorUsername: string): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest(`/api/accounts/${encodeURIComponent(username)}`, { method: 'DELETE' });
+    return;
+  }
   await assertAccountRole(actorUsername, 'admin');
   if (username === actorUsername) throw new Error('Không thể xóa tài khoản đang đăng nhập.');
   const accounts = await getAccounts();
@@ -176,6 +201,13 @@ export async function resetPasswordWithRecoveryCode(
   recoveryCode: string,
   newPassword: string,
 ): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest('/api/auth/reset-password', {
+      method: 'POST',
+      body: { username, recoveryCode, newPassword },
+    });
+    return;
+  }
   if (newPassword.length < 4) throw new Error('Mật khẩu mới cần ít nhất 4 ký tự.');
   const accounts = await getAccounts();
   const index = accounts.findIndex(account => account.username === username.trim().toLowerCase());
@@ -192,6 +224,13 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest('/api/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword },
+    });
+    return;
+  }
   if (newPassword.length < 4) {
     throw new Error('Mật khẩu mới cần ít nhất 4 ký tự.');
   }

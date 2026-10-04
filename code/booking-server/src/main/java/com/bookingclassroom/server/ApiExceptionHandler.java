@@ -22,4 +22,17 @@ public class ApiExceptionHandler {
   public ResponseEntity<Map<String, String>> unauthorized(BookingService.UnauthorizedException error) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", error.getMessage()));
   }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<Map<String, String>> unexpected(Exception error) {
+    Throwable cause = error;
+    while (cause.getCause() != null && cause.getCause() != cause) {
+      cause = cause.getCause();
+    }
+    String message = cause.getMessage();
+    if (message == null || message.isBlank()) {
+      message = "Máy chủ gặp lỗi khi xử lý yêu cầu.";
+    }
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", message));
+  }
 }

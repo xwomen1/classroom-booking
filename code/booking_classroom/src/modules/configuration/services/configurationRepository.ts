@@ -14,6 +14,9 @@ export async function getConfiguration(): Promise<AppConfiguration> {
 }
 
 export async function saveConfiguration(input: AppConfiguration, adminUsername: string): Promise<AppConfiguration> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<AppConfiguration>('/api/configuration', { method: 'PUT', body: input });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const values = [
     input.minAdvanceDays, input.maxAdvanceDays, input.maxActiveBookingsPerUser,

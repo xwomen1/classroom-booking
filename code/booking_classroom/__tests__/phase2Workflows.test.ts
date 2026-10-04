@@ -35,6 +35,7 @@ describe('phase 2 local workflows', () => {
 
   test('lets the current room user report maintenance and lets admin schedule it', async () => {
     const now = new Date();
+    now.setHours(12, 0, 0, 0);
     const start = new Date(now.getTime() - 20 * 60_000);
     const end = new Date(now.getTime() + 40 * 60_000);
     const booking: Booking = {

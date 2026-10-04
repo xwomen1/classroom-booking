@@ -11,6 +11,9 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +27,7 @@ public final class Domain {
     @Id
     public String username;
     public String password;
+    public String recoveryCode;
     public String role;
     public boolean active = true;
   }
@@ -42,6 +46,8 @@ public final class Domain {
     public List<String> equipment = new ArrayList<>();
     public String lockType;
     public String status;
+    public String createdAt;
+    public String updatedAt;
   }
 
   @Entity(name = "Booking")
@@ -54,14 +60,17 @@ public final class Domain {
     public String date;
     public String startTime;
     public String endTime;
-    public boolean repeatWeekly;
-    public int repeatWeeks;
+    public Boolean repeatWeekly;
+    public Integer repeatWeeks;
+    public String recurringSeriesId;
+    public Integer recurringWeekIndex;
     @Column(length = 1000)
     public String purpose;
     public String status;
     public String createdAt;
     public String reviewedAt;
     public String reviewedBy;
+    public Boolean userCanGeneratePin;
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "code", column = @Column(name = "temporary_pin_code")),
@@ -72,9 +81,31 @@ public final class Domain {
         @AttributeOverride(name = "lockPasswordId", column = @Column(name = "temporary_pin_lock_password_id")),
         @AttributeOverride(name = "lockCommandId", column = @Column(name = "temporary_pin_lock_command_id")),
         @AttributeOverride(name = "lockDeliveredAt", column = @Column(name = "temporary_pin_lock_delivered_at")),
+        @AttributeOverride(name = "lockDeliveryAttemptedAt", column = @Column(name = "temporary_pin_lock_delivery_attempted_at")),
+        @AttributeOverride(name = "lockDeliveryError", column = @Column(name = "temporary_pin_lock_delivery_error", length = 1000)),
         @AttributeOverride(name = "revokedAt", column = @Column(name = "temporary_pin_revoked_at"))
     })
     public TemporaryPin temporaryPin;
+    @Convert(converter = KeyPickupAppointmentConverter.class)
+    @Column(length = 10000)
+    public KeyPickupAppointment keyPickupAppointment;
+    @Convert(converter = KeyPickupNegotiationConverter.class)
+    @Column(length = 20000)
+    public KeyPickupNegotiation keyPickupNegotiation;
+    @Convert(converter = PickupDelegateConverter.class)
+    @Column(length = 10000)
+    public PickupDelegate pickupDelegate;
+    @Convert(converter = RoomChangeListConverter.class)
+    @Column(length = 20000)
+    public List<RoomChange> roomChanges = new ArrayList<>();
+    @Convert(converter = AccessEventListConverter.class)
+    @Column(length = 20000)
+    public List<SmartLockAccessEvent> smartLockAccessEvents = new ArrayList<>();
+    public String checkedInAt;
+    public String checkInConfirmedBy;
+    public String checkedOutAt;
+    public String noShowAt;
+    public String noShowMarkedBy;
   }
 
   @Embeddable
@@ -87,7 +118,91 @@ public final class Domain {
     public Integer lockPasswordId;
     public String lockCommandId;
     public String lockDeliveredAt;
+    public String lockDeliveryAttemptedAt;
+    @Column(length = 1000)
+    public String lockDeliveryError;
     public String revokedAt;
+  }
+
+  public static class KeyPickupAppointment {
+    public String date;
+    public String time;
+    public String location;
+    public String createdAt;
+    public String createdBy;
+    public String agreedAt;
+    public String agreedBy;
+  }
+
+  public static class KeyPickupProposal {
+    public String id;
+    public String date;
+    public String time;
+    public String location;
+    public String proposedAt;
+    public String proposedBy;
+    public String proposedByRole;
+  }
+
+  public static class KeyPickupNegotiation {
+    public String status;
+    public KeyPickupProposal currentProposal;
+    public List<KeyPickupProposal> history = new ArrayList<>();
+    public String agreedAt;
+    public String agreedBy;
+  }
+
+  public static class PickupDelegate {
+    public String fullName;
+    public String studentId;
+    public String delegatedAt;
+  }
+
+  public static class RoomChange {
+    public String fromRoomId;
+    public String toRoomId;
+    public String changedAt;
+    public String changedBy;
+    public String reason;
+  }
+
+  public static class SmartLockAccessEvent {
+    public String type;
+    public String occurredAt;
+    public String trait;
+    public String deviceId;
+    public String topic;
+  }
+
+  @Entity(name = "Profile")
+  @Table(name = "user_profiles")
+  public static class Profile {
+    @Id
+    public String username;
+    public String fullName;
+    public String email;
+    public String phone;
+    public String department;
+  }
+
+  @Entity(name = "ManagedSmartLock")
+  @Table(name = "managed_smart_locks")
+  public static class ManagedSmartLock {
+    @Id
+    public String id;
+    public String displayName;
+    public String model;
+    public String smartLockAeId;
+    public String smartLockDeviceId;
+    public String smartLockDeviceName;
+    public String oneIotBroker;
+    public int oneIotPort;
+    public String oneIotCseId;
+    public String toolDeviceId;
+    public String assignedRoomId;
+    public String assignedAt;
+    public String assignedBy;
+    public int nextPasswordId;
   }
 
   @Entity(name = "Maintenance")
@@ -103,6 +218,25 @@ public final class Domain {
     public String createdAt;
     public String createdBy;
     public String cancelledAt;
+  }
+
+  @Entity(name = "MaintenanceRequest")
+  @Table(name = "maintenance_requests")
+  public static class MaintenanceRequest {
+    @Id
+    public String id;
+    public String bookingId;
+    public String roomId;
+    public String requesterUsername;
+    @Column(length = 1000)
+    public String reason;
+    public String requestedAt;
+    public String status;
+    public String reviewedAt;
+    public String reviewedBy;
+    @Column(length = 1000)
+    public String adminNote;
+    public String maintenanceRecordId;
   }
 
   @Entity(name = "PinPermission")
@@ -130,6 +264,7 @@ public final class Domain {
     public String message;
     public String createdAt;
     public boolean read;
+    public String tone;
   }
 
   @Entity(name = "AuthSession")
@@ -152,6 +287,7 @@ public final class Domain {
     public int cancellationCutoffMinutes;
     public int roomChangeCutoffMinutes;
     public int pinGraceMinutes;
+    public Integer noShowGraceMinutes;
     public boolean notificationsEnabled;
   }
 
@@ -172,5 +308,86 @@ public final class Domain {
       }
       return new ArrayList<>(Arrays.asList(dbData.split("\n")));
     }
+  }
+
+  private static final ObjectMapper JSON = new ObjectMapper();
+
+  private abstract static class JsonConverter<T> implements AttributeConverter<T, String> {
+    private final Class<T> type;
+
+    JsonConverter(Class<T> type) {
+      this.type = type;
+    }
+
+    @Override
+    public String convertToDatabaseColumn(T attribute) {
+      if (attribute == null) return null;
+      try {
+        return JSON.writeValueAsString(attribute);
+      } catch (JsonProcessingException error) {
+        throw new IllegalArgumentException("Không thể lưu dữ liệu nghiệp vụ.", error);
+      }
+    }
+
+    @Override
+    public T convertToEntityAttribute(String dbData) {
+      if (dbData == null || dbData.isBlank()) return null;
+      try {
+        return JSON.readValue(dbData, type);
+      } catch (JsonProcessingException error) {
+        throw new IllegalArgumentException("Không thể đọc dữ liệu nghiệp vụ.", error);
+      }
+    }
+  }
+
+  @Converter
+  public static class KeyPickupAppointmentConverter extends JsonConverter<KeyPickupAppointment> {
+    public KeyPickupAppointmentConverter() { super(KeyPickupAppointment.class); }
+  }
+
+  @Converter
+  public static class KeyPickupNegotiationConverter extends JsonConverter<KeyPickupNegotiation> {
+    public KeyPickupNegotiationConverter() { super(KeyPickupNegotiation.class); }
+  }
+
+  @Converter
+  public static class PickupDelegateConverter extends JsonConverter<PickupDelegate> {
+    public PickupDelegateConverter() { super(PickupDelegate.class); }
+  }
+
+  private abstract static class JsonListConverter<T> implements AttributeConverter<List<T>, String> {
+    private final TypeReference<List<T>> type;
+
+    JsonListConverter(TypeReference<List<T>> type) { this.type = type; }
+
+    @Override
+    public String convertToDatabaseColumn(List<T> attribute) {
+      if (attribute == null || attribute.isEmpty()) return null;
+      try {
+        return JSON.writeValueAsString(attribute);
+      } catch (JsonProcessingException error) {
+        throw new IllegalArgumentException("Không thể lưu lịch sử nghiệp vụ.", error);
+      }
+    }
+
+    @Override
+    public List<T> convertToEntityAttribute(String dbData) {
+      if (dbData == null || dbData.isBlank()) return new ArrayList<>();
+      try {
+        return JSON.readValue(dbData, type);
+      } catch (JsonProcessingException error) {
+        throw new IllegalArgumentException("Không thể đọc lịch sử nghiệp vụ.", error);
+      }
+    }
+  }
+
+  @Converter
+  public static class RoomChangeListConverter extends JsonListConverter<RoomChange> {
+    public RoomChangeListConverter() { super(new TypeReference<List<RoomChange>>() {}); }
+  }
+
+  @Converter
+  public static class AccessEventListConverter extends JsonListConverter<SmartLockAccessEvent> {
+    public AccessEventListConverter() { super(new TypeReference<List<SmartLockAccessEvent>>() {}); }
   }
 }

@@ -206,6 +206,9 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
 }
 
 export async function updateBooking(id: string, update: (booking: Booking) => Booking): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    throw new Error('Không thể ghi trực tiếp booking local khi chế độ đồng bộ máy chủ đang bật.');
+  }
   const bookings = await getBookings();
   const index = bookings.findIndex(booking => booking.id === id);
   if (index < 0) throw new Error('Không tìm thấy yêu cầu đặt phòng.');
@@ -272,7 +275,11 @@ export async function reviewRecurringSeries(
   adminUsername: string,
 ): Promise<number> {
   if (isRemoteApiEnabled()) {
-    throw new Error('Duyệt cả chuỗi hiện chỉ khả dụng khi app chạy ở chế độ local.');
+    const result = await apiRequest<{ count: number }>(
+      `/api/booking-series/${encodeURIComponent(recurringSeriesId)}/review`,
+      { method: 'POST', body: { decision } },
+    );
+    return result.count;
   }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
@@ -337,6 +344,10 @@ export async function reviewRecurringSeries(
 }
 
 export async function cancelBooking(id: string, username: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/cancel`, { method: 'POST' });
+    return result.booking;
+  }
   await assertAccountRole(username, 'user');
   const configuration = await getConfiguration();
   const updated = await updateBooking(id, booking => {
@@ -360,6 +371,15 @@ export async function updatePendingRecurringBookings(
   username: string,
   changes: Pick<Booking, 'startTime' | 'endTime' | 'purpose'>,
 ): Promise<number> {
+  if (isRemoteApiEnabled()) {
+    const target = await getBookingById(bookingId);
+    if (!target?.recurringSeriesId) throw new Error('Không tìm thấy chuỗi đặt lặp lại.');
+    const result = await apiRequest<{ count: number }>(
+      `/api/booking-series/${encodeURIComponent(target.recurringSeriesId)}/pending`,
+      { method: 'PUT', body: changes },
+    );
+    return result.count;
+  }
   await assertAccountRole(username, 'user');
   const bookings = await getBookings();
   const target = bookings.find(item => item.id === bookingId);
@@ -401,6 +421,15 @@ export async function updatePendingRecurringBookings(
 }
 
 export async function cancelFutureRecurringBookings(bookingId: string, username: string): Promise<number> {
+  if (isRemoteApiEnabled()) {
+    const target = await getBookingById(bookingId);
+    if (!target?.recurringSeriesId) throw new Error('Không tìm thấy chuỗi đặt lặp lại.');
+    const result = await apiRequest<{ count: number }>(
+      `/api/booking-series/${encodeURIComponent(target.recurringSeriesId)}/cancel`,
+      { method: 'POST' },
+    );
+    return result.count;
+  }
   await assertAccountRole(username, 'user');
   const configuration = await getConfiguration();
   const bookings = await getBookings();
@@ -443,6 +472,12 @@ export async function cancelFutureRecurringBookings(bookingId: string, username:
 }
 
 export async function setPickupDelegate(id: string, username: string, fullName: string, studentId: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/delegate`, {
+      method: 'PUT', body: { fullName, studentId },
+    });
+    return result.booking;
+  }
   await assertAccountRole(username, 'user');
   const booking = await getBookingById(id);
   if (!booking || booking.requesterUsername !== username) throw new Error('Bạn không có quyền cập nhật yêu cầu này.');
@@ -459,6 +494,12 @@ export async function setPickupDelegate(id: string, username: string, fullName: 
 }
 
 export async function scheduleKeyPickup(id: string, adminUsername: string, date: string, time: string, location: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/pickup/schedule`, {
+      method: 'POST', body: { date, time, location },
+    });
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const booking = await getBookingById(id);
   if (!booking || booking.status !== 'APPROVED') throw new Error('Chỉ hẹn nhận khóa cho yêu cầu đã duyệt.');
@@ -509,6 +550,12 @@ export async function proposeKeyPickup(
   time: string,
   location = '',
 ): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/pickup/propose`, {
+      method: 'POST', body: { date, time, location },
+    });
+    return result.booking;
+  }
   await assertAccountRole(actorUsername, actorRole);
   const booking = await getBookingById(id);
   if (!booking || booking.status !== 'APPROVED') {
@@ -565,6 +612,12 @@ export async function acceptKeyPickupProposal(
   actorRole: UserRole,
   location = '',
 ): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/pickup/accept`, {
+      method: 'POST', body: { location },
+    });
+    return result.booking;
+  }
   await assertAccountRole(actorUsername, actorRole);
   const booking = await getBookingById(id);
   if (!booking || booking.status !== 'APPROVED') throw new Error('Không tìm thấy yêu cầu đã duyệt.');
@@ -608,7 +661,12 @@ export async function recordSmartLockAccessEvent(
   roomId: string,
   event: SmartLockAccessEvent,
 ): Promise<Booking | undefined> {
-  if (isRemoteApiEnabled()) return undefined;
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking } | undefined>('/api/bookings/access-event', {
+      method: 'POST', body: { roomId, event },
+    });
+    return result?.booking;
+  }
   const eventTime = new Date(event.occurredAt);
   if (Number.isNaN(eventTime.getTime())) return undefined;
   const configuration = await getConfiguration();
@@ -651,7 +709,10 @@ export async function confirmBookingCheckIn(
   adminUsername: string,
   now = new Date(),
 ): Promise<Booking> {
-  if (isRemoteApiEnabled()) throw new Error('Xác nhận check-in thủ công hiện chỉ khả dụng ở chế độ local.');
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/check-in`, { method: 'POST' });
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const target = bookings.find(item => item.id === id);
@@ -680,7 +741,10 @@ export async function confirmBookingNoShow(
   adminUsername: string,
   now = new Date(),
 ): Promise<Booking> {
-  if (isRemoteApiEnabled()) throw new Error('Xác nhận vắng mặt hiện chỉ khả dụng ở chế độ local.');
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/no-show`, { method: 'POST' });
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const target = bookings.find(item => item.id === id);
@@ -714,6 +778,13 @@ export async function confirmBookingNoShow(
 }
 
 export async function changeBookingRoom(id: string, newRoomId: string, adminUsername: string, reason: string): Promise<Booking> {
+  if (isRemoteApiEnabled()) {
+    const result = await apiRequest<{ booking: Booking }>(`/api/bookings/${id}/change-room`, {
+      method: 'POST',
+      body: { roomId: newRoomId, reason },
+    });
+    return result.booking;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const bookings = await getBookings();
   const booking = bookings.find(item => item.id === id);

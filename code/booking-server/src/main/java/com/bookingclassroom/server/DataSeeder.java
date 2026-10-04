@@ -35,16 +35,30 @@ public class DataSeeder implements CommandLineRunner {
     if (accounts == 0) {
       account("admin", "1", "admin");
       account("user", "2", "user");
+      profile("admin", "Cán bộ quản lý cơ sở vật chất");
+      profile("user", "Giảng viên");
+      seedSmartLock();
       seedRooms();
       seedConfiguration();
       notify("admin", "Chào mừng đến ứng dụng đặt phòng", "Tài khoản của bạn đã sẵn sàng để sử dụng.");
       notify("user", "Chào mừng đến ứng dụng đặt phòng", "Tài khoản của bạn đã sẵn sàng để sử dụng.");
     }
-    refreshMaintenanceWindow();
+    em.createQuery("update Configuration c set c.noShowGraceMinutes = 15 where c.noShowGraceMinutes is null")
+        .executeUpdate();
+    em.createQuery("update Booking b set b.repeatWeekly = false where b.repeatWeekly is null")
+        .executeUpdate();
+    em.createQuery("update Booking b set b.repeatWeeks = 1 where b.repeatWeeks is null")
+        .executeUpdate();
+    em.createQuery("update Account a set a.recoveryCode = '111111' where a.username = 'admin' and a.recoveryCode is null")
+        .executeUpdate();
+    em.createQuery("update Account a set a.recoveryCode = '222222' where a.username = 'user' and a.recoveryCode is null")
+        .executeUpdate();
+    seedMaintenanceWindowIfEmpty();
   }
 
-  private void refreshMaintenanceWindow() {
-    em.createQuery("delete from Maintenance").executeUpdate();
+  private void seedMaintenanceWindowIfEmpty() {
+    Long count = em.createQuery("select count(m) from Maintenance m", Long.class).getSingleResult();
+    if (count > 0) return;
     LocalDate today = LocalDate.now(BookingService.ZONE);
     for (int offset = 1; offset <= 3; offset += 1) {
       Domain.Maintenance record = new Domain.Maintenance();
@@ -75,6 +89,7 @@ public class DataSeeder implements CommandLineRunner {
         room.equipment = List.of(EQUIPMENT[roomIndex]);
         room.lockType = legacyB202 || roomIndex % 3 == 2 ? "PHYSICAL_KEY" : "PIN_CODE";
         room.status = "AVAILABLE";
+        room.createdAt = Instant.now().toString();
         em.persist(room);
       }
     }
@@ -89,6 +104,7 @@ public class DataSeeder implements CommandLineRunner {
     configuration.cancellationCutoffMinutes = 30;
     configuration.roomChangeCutoffMinutes = 30;
     configuration.pinGraceMinutes = 10;
+    configuration.noShowGraceMinutes = 15;
     configuration.notificationsEnabled = true;
     em.persist(configuration);
   }
@@ -97,9 +113,36 @@ public class DataSeeder implements CommandLineRunner {
     Domain.Account account = new Domain.Account();
     account.username = username;
     account.password = password;
+    account.recoveryCode = "admin".equals(username) ? "111111" : "222222";
     account.role = role;
     account.active = true;
     em.persist(account);
+  }
+
+  private void profile(String username, String fullName) {
+    Domain.Profile profile = new Domain.Profile();
+    profile.username = username;
+    profile.fullName = fullName;
+    profile.email = "";
+    profile.phone = "";
+    profile.department = "";
+    em.persist(profile);
+  }
+
+  private void seedSmartLock() {
+    Domain.ManagedSmartLock lock = new Domain.ManagedSmartLock();
+    lock.id = "primary-smart-lock";
+    lock.displayName = "SmartLock DLWA12";
+    lock.model = "DLWA12";
+    lock.smartLockAeId = "Sdd6f3763-b655-43ad-87d0-3862be2a1201";
+    lock.smartLockDeviceId = "Sdd6f3763-b655-43ad-87d0-3862be2a1201";
+    lock.smartLockDeviceName = "smartlock_0001";
+    lock.oneIotBroker = "oneiot.com.vn";
+    lock.oneIotPort = 2111;
+    lock.oneIotCseId = "/in-cse";
+    lock.toolDeviceId = "Sf391c192-3997-4e6c-a31b-abffac140b4c";
+    lock.nextPasswordId = 1;
+    em.persist(lock);
   }
 
   private void notify(String username, String title, String message) {

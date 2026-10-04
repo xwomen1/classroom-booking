@@ -62,9 +62,12 @@ function normalizeRoom(input: RoomInput): RoomInput {
 }
 
 export async function createRoom(input: RoomInput, adminUsername: string): Promise<Room> {
+  const normalized = normalizeRoom(input);
+  if (isRemoteApiEnabled()) {
+    return apiRequest<Room>('/api/rooms', { method: 'POST', body: normalized });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const rooms = await getRooms();
-  const normalized = normalizeRoom(input);
   if (rooms.some(room => room.name.toLowerCase() === normalized.name.toLowerCase())) {
     throw new Error('Tên phòng đã tồn tại.');
   }
@@ -82,11 +85,14 @@ export async function updateRoom(
   input: Omit<Room, 'id' | 'createdAt' | 'updatedAt'>,
   adminUsername: string,
 ): Promise<Room> {
+  const normalized = normalizeRoom(input);
+  if (isRemoteApiEnabled()) {
+    return apiRequest<Room>(`/api/rooms/${id}`, { method: 'PUT', body: normalized });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const rooms = await getRooms();
   const index = rooms.findIndex(room => room.id === id);
   if (index < 0) throw new Error('Không tìm thấy phòng.');
-  const normalized = normalizeRoom(input);
   if (rooms.some(room => room.id !== id && room.name.toLowerCase() === normalized.name.toLowerCase())) {
     throw new Error('Tên phòng đã tồn tại.');
   }
@@ -98,6 +104,10 @@ export async function updateRoom(
 }
 
 export async function deleteRoom(id: string, adminUsername: string): Promise<void> {
+  if (isRemoteApiEnabled()) {
+    await apiRequest(`/api/rooms/${id}`, { method: 'DELETE' });
+    return;
+  }
   await assertAccountRole(adminUsername, 'admin');
   const rooms = await getRooms();
   if (!rooms.some(room => room.id === id)) throw new Error('Không tìm thấy phòng.');

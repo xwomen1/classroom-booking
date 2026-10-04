@@ -1,4 +1,5 @@
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
+import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import type { ManagedSmartLock } from '../model/managedSmartLock';
@@ -33,6 +34,9 @@ const DEFAULT_SMART_LOCK: ManagedSmartLock = {
 };
 
 export async function getManagedSmartLock(): Promise<ManagedSmartLock> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<ManagedSmartLock>('/api/smart-lock');
+  }
   const stored = await readJson<Partial<ManagedSmartLock> | null>(SMART_LOCK_KEY, null);
   if (!stored) {
     await writeJson(SMART_LOCK_KEY, DEFAULT_SMART_LOCK);
@@ -89,6 +93,11 @@ export async function assignSmartLockToRoom(
   roomId: string,
   adminUsername: string,
 ): Promise<ManagedSmartLock> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<ManagedSmartLock>('/api/smart-lock/assign', {
+      method: 'POST', body: { roomId },
+    });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const room = await getRoomById(roomId);
   if (!room) throw new Error('Không tìm thấy phòng được chọn.');
@@ -109,6 +118,9 @@ export async function assignSmartLockToRoom(
 export async function unassignSmartLock(
   adminUsername: string,
 ): Promise<ManagedSmartLock> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<ManagedSmartLock>('/api/smart-lock/unassign', { method: 'POST' });
+  }
   await assertAccountRole(adminUsername, 'admin');
   const lock = await getManagedSmartLock();
   const updated: ManagedSmartLock = { ...lock };
@@ -129,6 +141,12 @@ export async function getSmartLockForRoom(
 export async function reserveSmartLockPasswordId(
   roomId: string,
 ): Promise<{ lock: ManagedSmartLock; passwordId: number }> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<{ lock: ManagedSmartLock; passwordId: number }>(
+      '/api/smart-lock/reserve-password-id',
+      { method: 'POST', body: { roomId } },
+    );
+  }
   const lock = await getSmartLockForRoom(roomId);
   if (!lock) {
     throw new Error('Phòng chưa được gắn với SmartLock đang quản lý.');

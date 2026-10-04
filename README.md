@@ -5,7 +5,7 @@
 ## Thành phần
 
 - `code/booking_classroom`: ứng dụng React Native Android.
-- `code/booking-server`: mã Java/Spring Boot từ nhánh `syncdata`; mặc định dùng H2 local, profile `remote` mới bật H2 SSL từ xa.
+- `code/booking-server`: Java/Spring Boot API; mặc định dùng H2 local, profile `remote` mới bật H2 SSL từ xa.
 - `tunghv2`: chương trình giả lập SmartLock.
 - `tunghv3`: gateway HTTP–MQTT cũ được giữ để tham khảo; app hiện kết nối OneIoT trực tiếp.
 - `du_an_dat_phong.tex/.pdf`: đề xuất dự án.
@@ -57,7 +57,7 @@ export const ENABLE_REMOTE_SYNC = false;
 
 Giữ giá trị `false` để dùng app mà không cần booking server.
 
-URL Cloudflare và cấu hình cơ sở dữ liệu từ nhánh `syncdata` vẫn được giữ trong source. Cách bật server local hoặc profile database từ xa nằm tại [`code/booking-server/README.md`](code/booking-server/README.md).
+URL phát triển mặc định là `http://127.0.0.1:8080`. Cách chạy H2 giả lập, nối điện thoại bằng `adb reverse` và bật profile database từ xa nằm tại [`code/booking-server/README.md`](code/booking-server/README.md).
 
 ## Phát triển và kiểm tra
 

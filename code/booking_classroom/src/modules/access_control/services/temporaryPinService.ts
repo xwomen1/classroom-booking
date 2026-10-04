@@ -176,6 +176,11 @@ export async function grantUserPinPermission(
   if (!booking) throw new Error('Không tìm thấy yêu cầu đặt phòng.');
   if (booking.status !== 'APPROVED') throw new Error('Chỉ cấp quyền cho yêu cầu đã được duyệt.');
   await grantRoomPinPermission(booking.requesterUsername, booking.roomId, adminUsername);
+  if (isRemoteApiEnabled()) {
+    const refreshed = await getBookingById(bookingId);
+    if (!refreshed) throw new Error('Không tìm thấy yêu cầu đặt phòng sau khi cấp quyền.');
+    return refreshed;
+  }
   return updateBooking(bookingId, current => ({ ...current, userCanGeneratePin: true }));
 }
 

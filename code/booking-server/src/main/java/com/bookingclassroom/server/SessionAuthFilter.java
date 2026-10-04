@@ -20,7 +20,10 @@ public class SessionAuthFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     String path = request.getRequestURI();
-    if (!path.startsWith("/api/") || path.equals("/api/auth/login")) {
+    if (!path.startsWith("/api/")
+        || path.equals("/api/auth/login")
+        || path.equals("/api/auth/register")
+        || path.equals("/api/auth/reset-password")) {
       filterChain.doFilter(request, response);
       return;
     }

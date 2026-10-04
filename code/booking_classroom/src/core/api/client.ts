@@ -4,6 +4,7 @@ import {
 } from '../config/runtimeFlags';
 
 export const API_BASE_URL = REMOTE_API_BASE_URL;
+const REQUEST_TIMEOUT_MS = 12_000;
 
 export function isRemoteApiEnabled(): boolean {
   const nodeEnv = (
@@ -32,28 +33,48 @@ export async function apiRequest<T>(
   options?: { method?: string; body?: unknown },
 ): Promise<T> {
   let response: Response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    const baseUrl = API_BASE_URL.trim().replace(/\/+$/, '');
+    if (!/^https?:\/\//i.test(baseUrl)) {
+      throw new Error('Địa chỉ máy chủ đặt phòng không hợp lệ.');
+    }
+    response = await fetch(`${baseUrl}${path.startsWith('/') ? path : `/${path}`}`, {
       method: options?.method ?? 'GET',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-Pinggy-No-Screen': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: options?.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal,
     });
-  } catch {
-    throw new Error('Không kết nối được máy chủ đặt phòng. Hãy kiểm tra địa chỉ public và trạng thái server.');
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Địa chỉ máy chủ đặt phòng không hợp lệ.') throw error;
+    const timedOut = error instanceof Error && error.name === 'AbortError';
+    throw new Error(timedOut
+      ? 'Máy chủ đặt phòng không phản hồi trong 12 giây.'
+      : 'Không kết nối được máy chủ đặt phòng. Hãy kiểm tra địa chỉ và trạng thái server.');
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (response.status === 204) {
     return undefined as T;
   }
   const text = await response.text();
-  const payload = text ? (JSON.parse(text) as T & ErrorBody) : ({} as T & ErrorBody);
+  let payload: T & ErrorBody;
+  try {
+    payload = text ? (JSON.parse(text) as T & ErrorBody) : ({} as T & ErrorBody);
+  } catch {
+    throw new Error(response.ok
+      ? 'Máy chủ trả về dữ liệu không đúng định dạng JSON.'
+      : `Máy chủ trả về lỗi HTTP ${response.status} không đúng định dạng.`);
+  }
   if (!response.ok) {
-    throw new Error(payload.message || 'Máy chủ từ chối yêu cầu.');
+    if (response.status === 401) clearApiSession();
+    throw new Error(payload.message || `Máy chủ từ chối yêu cầu (HTTP ${response.status}).`);
   }
   return payload;
 }

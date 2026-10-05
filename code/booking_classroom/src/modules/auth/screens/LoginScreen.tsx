@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   BackHandler,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -74,9 +75,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       style={styles.flex}
     >
       <View style={styles.loginPage}>
-        <View style={styles.brandMark}>
-          <Text style={styles.brandMarkText}>BC</Text>
-        </View>
+        <Image
+          accessibilityLabel="RoomHub"
+          resizeMode="contain"
+          source={require('../../../assets/roomhub-logo.png')}
+          style={styles.brandLogo}
+        />
         <Text style={styles.appName}>Đặt phòng học</Text>
         <Text style={styles.subtitle}>Đăng nhập để tiếp tục</Text>
 
@@ -158,17 +162,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
   },
-  brandMark: {
-    alignItems: 'center',
+  brandLogo: {
     alignSelf: 'center',
-    backgroundColor: '#B01432',
-    borderRadius: 18,
-    height: 64,
-    justifyContent: 'center',
-    marginBottom: 14,
-    width: 64,
+    height: 300,
+    marginBottom: 4,
+    width: 260,
   },
-  brandMarkText: { color: '#FFFFFF', fontSize: 24, fontWeight: '800' },
   appName: {
     color: '#172033',
     fontSize: 28,

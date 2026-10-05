@@ -1,0 +1,197 @@
+
+\section{Tổng quan hệ thống}
+\label{section:components}
+
+Hệ thống RoomHub gồm ứng dụng di động, dịch vụ đồng bộ và hai công cụ hỗ trợ tích hợp khóa thông minh. Bảng \ref{tab:components} nêu vai trò của từng thành phần; cấu trúc thư mục chi tiết được trình bày tại Phụ lục \ref{appendix:components}.
+
+\begin{table}[H]
+\centering
+\caption{Các thành phần chính của hệ thống RoomHub}
+\label{tab:components}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{2.7cm} X}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Vai trò} \\
+\midrule
+Ứng dụng di động & React Native, TypeScript, Kotlin & Giao diện cho hai vai trò, nghiệp vụ đặt phòng, lưu dữ liệu cục bộ và giao tiếp OneIoT qua module native. \\
+Dịch vụ đồng bộ & Java, Spring Boot, H2 & REST API cho tài khoản, phòng, lịch đặt, bảo trì, quyền truy cập và thông báo. \\
+Mô phỏng SmartLock & Python & Mô phỏng khóa để kiểm tra bản tin tạo mật khẩu và sự kiện truy cập. \\
+Công cụ giao tiếp & Python, MQTT & Tham chiếu cơ chế kết nối và định dạng bản tin trao đổi với OneIoT. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Hình \ref{fig:architecture} mô tả kiến trúc tổng thể. Ứng dụng được tổ chức theo ba lớp: lớp màn hình (\textit{screens}), lớp dịch vụ nghiệp vụ (\textit{services}) và lớp lưu trữ.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{kien_truc.pdf}
+\caption{Kiến trúc tổng thể của hệ thống RoomHub}
+\label{fig:architecture}
+\end{figure}
+
+\section{Phạm vi MVP}
+\label{section:mvp}
+
+Tiêu chí hoàn thành MVP gồm: (i) luồng nghiệp vụ chính chạy được trên thiết bị thật, (ii) bản cài đặt Release tái lập được từ mã nguồn, (iii) các quy tắc nghiệp vụ quan trọng có kiểm thử tự động, và (iv) không còn lỗi nghiêm trọng đã biết trong luồng chính. Bảng \ref{tab:mvp} phân định rõ phần thuộc MVP và phần để lại cho giai đoạn sau.
+
+\begin{table}[H]
+\centering
+\caption{Phạm vi MVP đã chốt}
+\label{tab:mvp}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} X >{\centering\arraybackslash}p{1.9cm}}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Nhóm chức năng} & \textbf{Nội dung} & \textbf{Trạng thái} \\
+\midrule
+Tài khoản & Đăng nhập, đăng ký, đổi/khôi phục mật khẩu bằng mã khôi phục, hồ sơ, điều hướng theo vai trò; quản trị viên quản lý tài khoản. & Đã triển khai \\
+Tìm phòng & Lọc theo tầng, ngày giờ, sức chứa, thiết bị, loại khóa; sơ đồ tầng với màu trạng thái. & Đã triển khai \\
+Đặt và duyệt & Tạo yêu cầu, kiểm tra quy tắc; quản trị viên duyệt, từ chối hoặc đổi phòng; người dùng hủy theo hạn. & Đã triển khai \\
+Đặt lặp tuần & Tạo chuỗi tối đa 8 tuần, sửa/hủy các lượt tương lai, duyệt cả chuỗi. & Đã triển khai \\
+Phòng và bảo trì & Quản lý phòng, lịch bảo trì, yêu cầu bảo trì từ người dùng và lịch sử sử dụng. & Đã triển khai \\
+Truy cập phòng & Khóa cơ/thẻ từ: thỏa thuận lịch nhận khóa, ủy quyền nhận hộ. Khóa số: cấp quyền, tạo PIN 7 chữ số, gửi lệnh qua OneIoT. & Đã triển khai \\
+Điểm danh & Ghi nhận check-in/check-out và no-show sau thời gian ân hạn. & Đã triển khai \\
+Thông báo, cấu hình & Thông báo theo sự kiện, thông báo nổi ưu tiên; quản trị viên cấu hình quy tắc. & Đã triển khai \\
+\midrule
+Đồng bộ nhiều thiết bị & Dùng booking server làm nguồn dữ liệu chung; đã kiểm thử với máy chủ H2 cục bộ. & Đang hoàn thiện \\
+Kiểm chứng khóa thật & Xác nhận SmartLock thật nhận và áp dụng mật khẩu. & Giai đoạn sau \\
+Mở rộng & QR check-in, thống kê mức sử dụng, gợi ý phòng nâng cao. & Giai đoạn sau \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các quy tắc nghiệp vụ của MVP được tham số hóa trong kiểu \texttt{AppConfiguration} để quản trị viên thay đổi ngay trong ứng dụng. Cấu hình mặc định yêu cầu đặt trước từ 1 đến 3 ngày; khi cần cho phép đặt cùng ngày, quản trị viên có thể đặt giá trị tối thiểu về 0. Mỗi người dùng có tối đa 2 yêu cầu đang chờ hoặc sắp dùng; hạn hủy và hạn đổi phòng là 30 phút trước giờ bắt đầu; mã PIN có hiệu lực từ 10 phút trước đến 10 phút sau phiên; thời gian ân hạn trước khi ghi nhận no-show là 15 phút. Vòng đời trạng thái của một booking được thể hiện ở Hình \ref{fig:state}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{trang_thai_booking.pdf}
+\caption{Vòng đời trạng thái của một booking}
+\label{fig:state}
+\end{figure}
+
+\section{Tổ chức mã nguồn ứng dụng}
+
+Mã nguồn ứng dụng được chia thành ba vùng. Vùng \texttt{src/core} chứa thành phần hạ tầng dùng chung: kiểu người dùng, lớp bọc Async Storage, tham số \texttt{ENABLE\_REMOTE\_SYNC} và hàm \texttt{apiRequest} gắn token phiên. Vùng \texttt{src/shared} chứa các thành phần giao diện dùng chung như \texttt{ScreenHeader} và \texttt{PasswordInput}. Vùng \texttt{src/modules} chứa mười module nghiệp vụ; mỗi module sử dụng cấu trúc \texttt{screens/}, \texttt{components/}, \texttt{services/}, \texttt{model/} và công khai API qua \texttt{index.ts}. Quy ước này giúp các thành viên phát triển độc lập và giảm xung đột khi hợp nhất mã. Đoạn mã \ref{lst:dualmode} minh họa cách lớp dịch vụ lựa chọn nguồn dữ liệu.
+
+\begin{code}[H]
+\caption{Hàm dịch vụ lựa chọn nguồn dữ liệu (rút gọn)}\label{lst:dualmode}
+\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
+export async function createBooking(input: CreateBookingInput) {
+  if (isRemoteApiEnabled()) {          // chế độ đồng bộ qua server
+    const r = await apiRequest<{booking: Booking}>('/api/bookings',
+                                 {method: 'POST', body: input});
+    return r.booking;
+  }
+  await assertAccountRole(input.requesterUsername, 'user');
+  const bookings = await getBookings(); // chế độ local: Async Storage
+  ...
+}
+\end{Verbatim}
+\end{code}
+
+\section{Lập trình theo từng module}
+\label{section:modules}
+
+Bảng \ref{tab:modules} tổng hợp mười module, khóa lưu trữ và người phụ trách chính. Các mục con sau đó phân tích những điểm lập trình quan trọng của từng module.
+
+\begin{table}[H]
+\centering
+\caption{Danh sách module của ứng dụng}
+\label{tab:modules}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} X >{\raggedright\arraybackslash}p{3.1cm}}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Module} & \textbf{Phạm vi} & \textbf{Dữ liệu cục bộ} \\
+\midrule
+\texttt{auth} & Đăng nhập, đăng ký, đổi/khôi phục mật khẩu & \texttt{auth.accounts} \\
+\path{account_management} & Quản lý và phân quyền tài khoản & dùng \texttt{auth} \\
+\path{room_management} & CRUD phòng, tìm phòng, sơ đồ tầng & \texttt{rooms.records} \\
+\texttt{booking} & Đặt, duyệt, hủy, lặp tuần, đổi phòng, điểm danh & \texttt{booking.records} \\
+\path{schedule_maintenance} & Lịch và yêu cầu bảo trì & \texttt{maintenance.*} \\
+\texttt{access\_control} & Quyền tạo mã, PIN tạm thời & \path{access.roomPinPermissions} \\
+\texttt{smart\_lock} & Gắn khóa vào phòng, OneIoT, sự kiện khóa & \path{smartLock.primary} \\
+\texttt{notifications} & Thông báo và thông báo nổi ưu tiên & theo người dùng \\
+\texttt{profile} & Hồ sơ cá nhân & theo người dùng \\
+\texttt{configuration} & Tham số quy tắc nghiệp vụ & \path{configuration.app} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Module auth và account\_management}
+
+Module \texttt{auth} lưu tài khoản dưới kiểu \texttt{AccountRecord}, gồm tên đăng nhập, mật khẩu, mã khôi phục tùy chọn, vai trò và trạng thái hoạt động. Lần chạy đầu, hệ thống khởi tạo hai tài khoản thử nghiệm cho hai vai trò. Khi đăng ký, tên đăng nhập, mật khẩu và xác nhận mật khẩu là các trường bắt buộc; thông tin cá nhân và mã khôi phục được đặt ở nhóm tùy chọn. Hàm \texttt{registerAccount} kiểm tra định dạng tên, độ dài mật khẩu và tên không trùng. Hàm \texttt{resetPasswordWithRecoveryCode} chỉ hoạt động với tài khoản đã thiết lập mã khôi phục. Các thao tác nghiệp vụ quan trọng gọi \texttt{assertAccountRole} để xác nhận tài khoản còn hoạt động và có đúng vai trò. Trong \texttt{account\_management}, quản trị viên không thể tự khóa, tự đổi vai trò hoặc xóa tài khoản còn lịch đặt đang hoạt động.
+
+\subsection{Module room\_management}
+
+Dữ liệu khởi tạo gồm 56 phòng, bảy phòng trên mỗi tầng của tòa nhà tám tầng, với sức chứa và thiết bị khác nhau. Các hàm \texttt{createRoom}, \texttt{updateRoom}, \texttt{deleteRoom} kiểm tra tầng trong khoảng 1--8, sức chứa nguyên dương, tên không trùng và không cho xóa phòng còn yêu cầu đang hoạt động. Hàm \texttt{searchRooms} lọc theo từ khóa, tầng, sức chứa tối thiểu, thiết bị và loại khóa. \texttt{RoomSearchScreen} hiển thị kết quả trên sơ đồ tầng theo trạng thái khả dụng. \texttt{RoomManagementScreen} hợp nhất quản lý phòng và bảo trì: quản trị viên chọn tầng, chọn phòng rồi sửa, xóa, lên lịch bảo trì hoặc xem lịch sử sử dụng.
+
+\subsection{Module booking}
+
+Đây là module lớn nhất (\texttt{bookingRepository.ts}, khoảng 760 dòng), tập trung toàn bộ quy tắc đặt phòng. Hàm \texttt{validateBooking} ở Đoạn mã \ref{lst:validate} kiểm tra lần lượt: phòng tồn tại và sẵn sàng, định dạng ngày giờ, cửa sổ đặt trước, khoảng thời gian chưa kết thúc, không trùng bảo trì, không trùng booking khác của phòng, không trùng lịch của chính người đặt, giới hạn số yêu cầu đang hoạt động và mục đích sử dụng không rỗng. Hai khoảng thời gian được coi là trùng khi cùng ngày và \texttt{start < other.end} và \texttt{end > other.start}.
+
+\begin{code}[H]
+\caption{Kiểm tra quy tắc khi tạo booking (rút gọn)}\label{lst:validate}
+\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
+if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng không tồn tại...');
+if (dayDiff < cfg.minAdvanceDays || dayDiff > cfg.maxAdvanceDays)
+  throw new Error(`Chỉ được đặt trước từ ${cfg.minAdvanceDays} đến ...`);
+if (await hasMaintenanceConflict(roomId, date, startTime, endTime))
+  throw new Error('Phòng có lịch bảo trì trong khoảng thời gian này.');
+const active = bookings.filter(b => isBookingStillActive(b));
+if (active.some(b => b.roomId === roomId && overlaps(b, date, startTime, endTime)))
+  throw new Error('Phòng đã có yêu cầu khác trong khoảng thời gian này.');
+if (active.filter(b => b.requesterUsername === user).length >= cfg.maxActiveBookingsPerUser)
+  throw new Error('Mỗi người chỉ có tối đa ... yêu cầu');
+if (!input.purpose.trim()) throw new Error('Vui lòng nhập mục đích sử dụng phòng.');
+\end{Verbatim}
+\end{code}
+
+Chức năng đặt lặp hàng tuần sinh tối đa 8 lượt cách nhau 7 ngày, gán chung \texttt{recurringSeriesId} và chỉ áp dụng cửa sổ đặt trước, giới hạn số yêu cầu cho lượt đầu tiên. Các hàm \path{reviewRecurringSeries}, \path{updatePendingRecurringBookings} và \path{cancelFutureRecurringBookings} tuân theo nguyên tắc ``tất cả hoặc không'': hệ thống kiểm tra toàn bộ chuỗi trước và chỉ ghi dữ liệu khi không lượt nào vi phạm. Khi duyệt, \texttt{reviewBooking} kiểm tra lại lịch đã duyệt và lịch bảo trì, sau đó cấp quyền tạo mã nếu phòng dùng khóa số. \texttt{changeBookingRoom} chỉ chấp nhận phòng có cùng loại khóa, sức chứa không nhỏ hơn và đủ thiết bị so với phòng cũ. \texttt{confirmBookingNoShow} chỉ ghi nhận vắng mặt sau thời gian ân hạn và khi chưa có bằng chứng check-in; hệ thống đồng thời giải phóng khung giờ và thu hồi mã.
+
+\subsection{Module schedule\_maintenance}
+
+Module quản lý hai loại dữ liệu: lịch bảo trì (\texttt{MaintenanceRecord}) do quản trị viên tạo và yêu cầu bảo trì (\texttt{MaintenanceRequest}) do người dùng gửi. \texttt{createMaintenance} từ chối lịch trùng với bảo trì khác hoặc lịch đặt đã duyệt, yêu cầu quản trị viên đổi phòng trước khi tạo lịch bảo trì. \texttt{requestRoomMaintenance} chỉ cho phép báo sự cố trong thời gian sử dụng một lịch đặt đã duyệt của chính người gửi; mỗi lượt sử dụng có tối đa một yêu cầu chờ xử lý. Phòng có yêu cầu đang chờ được đánh dấu trên sơ đồ quản trị.
+
+\subsection{Module access\_control}
+
+Quyền tự tạo mã được lưu theo cặp người dùng--phòng (\texttt{RoomPinPermission}), không gắn cố định với toàn bộ hệ thống. Vì vậy, quản trị viên có thể thu hồi quyền tại một phòng mà không ảnh hưởng phòng khác. \texttt{createTemporaryPin} kiểm tra lịch đặt đã duyệt, loại khóa, mã còn hiệu lực, chủ lịch đặt và quyền tại phòng. Mã gồm 7 chữ số, có hiệu lực từ \texttt{start - pinGraceMinutes} đến \texttt{end + pinGraceMinutes}. Mã được lưu cục bộ trước; nếu phiên OneIoT đang mở thì gửi ngay, nếu chưa thì \texttt{deliverPendingTemporaryPins} gửi các mã còn chờ khi kết nối (Đoạn mã \ref{lst:pin}). Cách làm này cho phép ứng dụng hiển thị mã ngay cả khi tạm thời mất kết nối.
+
+\begin{code}[H]
+\caption{Lưu mã trước, gửi tới khóa khi có kết nối (rút gọn)}\label{lst:pin}
+\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
+const code = generateSevenDigitPin();
+const validFrom = addMinutes(start, -cfg.pinGraceMinutes);
+const validUntil = addMinutes(end, cfg.pinGraceMinutes);
+const { lock, passwordId } = await reserveSmartLockPasswordId(booking.roomId);
+let updated = await saveTemporaryPin(bookingId, { code, validFrom, validUntil,
+                                                  lockPasswordId: passwordId, ... });
+const status = await getOneIoTConnectionStatus().catch(() => ({connected:false}));
+if (status.connected) updated = await deliverTemporaryPin(updated, lock);
+\end{Verbatim}
+\end{code}
+
+\subsection{Module smart\_lock và tích hợp OneIoT}
+
+Ứng dụng giao tiếp với SmartLock thông qua nền tảng OneIoT bằng giao thức MQTT bảo mật. Hệ thống cho phép gửi mã PIN tạm thời tới khóa và nhận các sự kiện truy cập để cập nhật trạng thái booking. Thông tin xác thực OneIoT chỉ được lưu trong phiên làm việc và được xóa khi người dùng đăng xuất hoặc ứng dụng ngừng kết nối.
+
+\subsection{Module notifications, profile và configuration}
+
+Hàm \texttt{addNotification} được gọi khi phát sinh sự kiện như tạo yêu cầu, duyệt, từ chối, cấp mã hoặc đổi phòng. Hàm \texttt{getNotificationTone} phân loại thông báo thành tích cực, tiêu cực, cần chú ý hoặc trung tính để sử dụng màu sắc nhất quán. Sự kiện ưu tiên được hiển thị bằng thông báo nổi thông qua module native \texttt{PriorityNotificationPackage}. Module \texttt{profile} lưu họ tên, email, số điện thoại và đơn vị theo tài khoản. Module \texttt{configuration} kiểm tra các tham số là số nguyên không âm, số ngày tối thiểu không lớn hơn tối đa và giới hạn yêu cầu ít nhất là 1 trước khi lưu.
+
+\subsection{Booking server}
+
+Booking server gồm các lớp chính: \texttt{ApiController} công khai API cho tài khoản, phòng, cấu hình, bảo trì, lịch đặt, quyền tạo mã và thông báo; \texttt{BookingService} thực thi quy tắc nghiệp vụ; \texttt{SessionAuthFilter} kiểm tra token Bearer; \texttt{ApiExceptionHandler} chuẩn hóa lỗi; \texttt{DataSeeder} tạo dữ liệu ban đầu. Mặc định server dùng H2 dạng tệp cục bộ; cấu hình \texttt{remote} cho phép kết nối cơ sở dữ liệu từ xa qua SSL. Mã nguồn đã sẵn sàng cho kiểm thử đồng bộ, trong khi bản trình diễn đặt \texttt{ENABLE\_REMOTE\_SYNC = false}.
+
+\section{Điều hướng giao diện}
+
+Hình \ref{fig:ui-flow} tóm tắt cấu trúc điều hướng được đối chiếu với mã nguồn hiện tại. Ở vai trò người dùng, thao tác tìm phòng và gửi yêu cầu nằm trong cùng màn hình \texttt{RoomSearchScreen}: sau khi chọn khung giờ và phòng, người dùng nhập mục đích rồi gửi yêu cầu trực tiếp. Ở vai trò quản trị viên, \texttt{RoomManagementScreen} gộp thông tin phòng và bảo trì; quản trị viên chọn tầng, chọn phòng rồi thực hiện thao tác tương ứng. Các chức năng khác được mở từ màn hình chính theo vai trò. Ảnh chụp giao diện ứng dụng hiện tại được trình bày tại Phụ lục \ref{appendix:ui-archive}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{dieu_huong_giao_dien.pdf}
+\caption{Luồng điều hướng giao diện theo hai vai trò}
+\label{fig:ui-flow}
+\end{figure}

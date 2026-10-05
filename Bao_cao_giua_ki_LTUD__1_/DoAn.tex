@@ -1,0 +1,244 @@
+% =====================================================================
+% Báo cáo giữa kỳ dự án RoomHub
+% Biên dịch bằng XeLaTeX, tối thiểu hai lần để cập nhật mục lục/tham chiếu.
+% =====================================================================
+\documentclass[a4paper,12pt,oneside]{report}
+
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+  \setmainfont{texgyretermes}[
+    Extension=.otf,
+    UprightFont=*-regular,
+    BoldFont=*-bold,
+    ItalicFont=*-italic,
+    BoldItalicFont=*-bolditalic
+  ]
+  \setmonofont{texgyrecursor}[
+    Scale=0.86,
+    Extension=.otf,
+    UprightFont=*-regular,
+    BoldFont=*-bold,
+    ItalicFont=*-italic,
+    BoldItalicFont=*-bolditalic
+  ]
+\else
+  \PackageError{RoomHub}{Tài liệu phải được biên dịch bằng XeLaTeX}{Hãy chọn XeLaTeX làm trình biên dịch.}
+\fi
+
+\usepackage[top=2.4cm,bottom=2.4cm,left=3.2cm,right=2.4cm]{geometry}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{chngcntr}
+\usepackage{fancyhdr}
+\usepackage{appendix}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage[table]{xcolor}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{xurl}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{fvextra}
+\usepackage{newfloat}
+
+\definecolor{RoomHubBlue}{HTML}{174A7E}
+\definecolor{RoomHubLight}{HTML}{EAF2F8}
+\definecolor{RoomHubGray}{HTML}{4B5563}
+
+\def\TITLE{BÁO CÁO GIỮA KỲ DỰ ÁN ROOMHUB}
+\def\AUTHOR{Hoàng Văn Tùng; Đỗ Thùy Linh; Nguyễn Đình Phúc; Nguyễn Việt Dũng}
+
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=RoomHubBlue,
+  citecolor=RoomHubBlue,
+  urlcolor=RoomHubBlue,
+  pdftitle={\TITLE},
+  pdfauthor={\AUTHOR},
+  pdfsubject={Ứng dụng đặt phòng học và phòng họp RoomHub}
+}
+
+\graphicspath{{Hinhve/}}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\DeclareFloatingEnvironment[
+  name=Đoạn mã,
+  listname={DANH MỤC ĐOẠN MÃ},
+  within=chapter
+]{code}
+\captionsetup[code]{skip=5pt}
+
+\titleformat{\chapter}[display]
+  {\centering\bfseries\color{RoomHubBlue}}
+  {\large CHƯƠNG \thechapter}
+  {5pt}
+  {\LARGE}
+  [\vspace{5pt}\color{RoomHubBlue}\titlerule]
+\titlespacing*{\chapter}{0pt}{-12pt}{22pt}
+
+\titleformat{\section}
+  {\large\bfseries\color{RoomHubBlue}}
+  {\thesection}{0.65em}{}
+\titlespacing*{\section}{0pt}{16pt}{7pt}
+
+\titleformat{\subsection}
+  {\normalsize\bfseries}
+  {\thesubsection}{0.65em}{}
+\titlespacing*{\subsection}{0pt}{12pt}{5pt}
+
+\renewcommand\thesubsubsection{\alph{subsubsection})}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\itshape}
+  {\thesubsubsection}{0.5em}{}
+
+\renewcommand{\chaptername}{Chương}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\appendixname}{Phụ lục}
+\renewcommand{\appendixpagename}{PHỤ LỤC}
+\renewcommand{\appendixtocname}{PHỤ LỤC}
+
+\setstretch{1.28}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\headheight}{16pt}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.18}
+\setlist{leftmargin=1.6em,itemsep=2pt,topsep=4pt,parsep=0pt}
+\emergencystretch=2em
+\raggedbottom
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\fancypagestyle{roomhub}{%
+  \fancyhf{}
+  \fancyhead[L]{\small\color{RoomHubGray}ROOMHUB}
+  \fancyhead[R]{\small\color{RoomHubGray}\nouppercase{\leftmark}}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+
+\begin{document}
+
+\input{Bia}
+
+\clearpage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\pagestyle{plain}
+
+\chapter*{TÓM TẮT}
+\addcontentsline{toc}{chapter}{Tóm tắt}
+RoomHub là ứng dụng Android hỗ trợ quản lý vòng đời mượn phòng học và phòng họp, từ tìm phòng, gửi yêu cầu, phê duyệt, bàn giao quyền truy cập đến check-in, check-out và xử lý bảo trì. Ứng dụng phục vụ hai vai trò: giảng viên và cán bộ quản lý cơ sở vật chất. Dữ liệu có thể hoạt động hoàn toàn cục bộ trên một thiết bị; dịch vụ Java Spring Boot cung cấp nền tảng đồng bộ khi chế độ trực tuyến được kích hoạt. Với phòng dùng khóa số, hệ thống tạo mã PIN tạm thời theo lịch đặt và giao tiếp với nền tảng OneIoT.
+
+Báo cáo trình bày phạm vi MVP, kiến trúc và tổ chức mã nguồn theo module, các quy tắc nghiệp vụ chính, kết quả giao diện và quy trình kiểm thử. Phiên bản hiện tại đã vượt qua 36 ca kiểm thử Jest, kiểm tra kiểu TypeScript, ESLint, kiểm thử tích hợp với Spring Boot/H2 và kiểm tra cài đặt bản Release trên điện thoại Android. Chế độ cục bộ được chọn cho bản trình diễn để ứng dụng hoạt động ổn định mà không phụ thuộc máy chủ.
+
+\clearpage
+\renewcommand*\contentsname{MỤC LỤC}
+\tableofcontents
+
+\clearpage
+\renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
+\listoffigures
+
+\clearpage
+\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}
+\listoftables
+
+\clearpage
+\chapter*{DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
+\addcontentsline{toc}{chapter}{Danh mục thuật ngữ và từ viết tắt}
+\begin{longtable}{>{\bfseries\raggedright\arraybackslash}p{2.7cm}@{\hspace{0.45cm}}>{\raggedright\arraybackslash}p{10.4cm}}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Thuật ngữ} & \textbf{Ý nghĩa} \\
+\midrule
+\endhead
+API & Giao diện lập trình ứng dụng (Application Programming Interface) \\
+APK & Gói cài đặt ứng dụng Android (Android Package) \\
+Booking & Yêu cầu đặt phòng gồm phòng, ngày, khung giờ và mục đích sử dụng \\
+CRUD & Các thao tác tạo, đọc, cập nhật và xóa dữ liệu \\
+IoT & Internet vạn vật (Internet of Things) \\
+MQTT & Giao thức truyền thông điệp theo mô hình publish/subscribe \\
+MVP & Sản phẩm khả dụng tối thiểu (Minimum Viable Product) \\
+No-show & Trường hợp người đặt không đến sử dụng phòng đã được duyệt \\
+PIN & Mã số dùng để mở khóa (Personal Identification Number) \\
+TLS & Giao thức bảo mật tầng vận chuyển (Transport Layer Security) \\
+UAT & Kiểm thử chấp nhận người dùng (User Acceptance Testing) \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{roomhub}
+
+\chapter{GIỚI THIỆU}
+\label{chapter:Introduction}
+\input{Chuong/1_Gioi_thieu}
+
+\chapter{TRIỂN KHAI HỆ THỐNG}
+\label{chapter:Implementation}
+\input{Chuong/2_Trien_khai}
+
+\chapter{KIỂM THỬ VÀ ĐÁNH GIÁ}
+\label{chapter:Testing}
+\input{Chuong/3_Kiem_thu}
+
+\chapter*{KẾT LUẬN}
+\addcontentsline{toc}{chapter}{Kết luận}
+\markboth{KẾT LUẬN}{}
+\input{Chuong/4_Ket_luan}
+
+\clearpage
+\renewcommand\bibname{TÀI LIỆU THAM KHẢO}
+\phantomsection
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\begin{thebibliography}{9}
+\bibitem{reactnative} Meta Platforms, ``React Native Documentation.'' \url{https://reactnative.dev/docs/getting-started}. Truy cập 10/2026.
+\bibitem{asyncstorage} React Native Community, ``Async Storage Documentation.'' \url{https://react-native-async-storage.github.io/async-storage/}. Truy cập 10/2026.
+\bibitem{springboot} Broadcom, ``Spring Boot Reference Documentation.'' \url{https://docs.spring.io/spring-boot/}. Truy cập 10/2026.
+\bibitem{mqtt} OASIS, ``MQTT Version 3.1.1, OASIS Standard,'' 2014. \url{https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html}.
+\bibitem{onem2m} oneM2M Partners, ``oneM2M TS-0010: MQTT Protocol Binding.'' \url{https://www.onem2m.org/technical/published-specifications}. Truy cập 10/2026.
+\bibitem{istqb} ISTQB, ``Certified Tester Foundation Level Syllabus v4.0,'' 2023. \url{https://www.istqb.org/}.
+\bibitem{jest} OpenJS Foundation, ``Jest Documentation.'' \url{https://jestjs.io/docs/getting-started}. Truy cập 10/2026.
+\end{thebibliography}
+
+\clearpage
+\appendix
+\titleformat{\chapter}[display]
+  {\centering\bfseries\color{RoomHubBlue}}
+  {\large PHỤ LỤC \thechapter}
+  {5pt}
+  {\LARGE}
+  [\vspace{5pt}\color{RoomHubBlue}\titlerule]
+\chapter{THÀNH PHẦN VÀ CẤU TRÚC DỰ ÁN}
+\label{appendix:components}
+\input{Chuong/Phu_luc_A}
+
+\chapter{PROMPT HỖ TRỢ QUÁ TRÌNH PHÁT TRIỂN}
+\label{appendix:prompt}
+\input{Chuong/Phu_luc_B}
+
+\chapter{ẢNH GIAO DIỆN ỨNG DỤNG HIỆN TẠI}
+\label{appendix:ui-archive}
+\input{Chuong/Phu_luc_C}
+
+\end{document}

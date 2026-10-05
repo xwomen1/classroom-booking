@@ -1,0 +1,65 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{ABSTRACT}}\\
+\end{center}
+\vspace{1cm}
+Classrooms and meeting rooms in an eight-floor university building are borrowed every day, yet reservations are still handled manually. Requesters cannot easily see which rooms are free for a given time slot, capacity and equipment, nor where a room is located on each floor, while facility staff must reconcile schedules by hand, hand over access cards or change door passwords on site. Shared calendars record events but do not enforce business rules such as the booking window, per-user limits, maintenance periods or the access rights granted after approval.
+
+The team chose an object-oriented solution consisting of a React Native mobile application written in TypeScript and a Java business service built with Spring Boot, JPA and an H2 database. This approach separates the presentation, service and persistence layers and re-validates every operation on the server. The resulting product, RoomHub, supports two roles. Users search rooms on a U-shaped floor map, filter by time, capacity, equipment and lock type, and submit a request on the same screen. Administrators approve, reject or relocate bookings and manage accounts, rooms, maintenance schedules and business parameters.
+
+The main contributions are (i) a booking rule engine based on time-interval intersection combined with pessimistic locking inside a transaction to prevent double booking, (ii) a room-scoped permission model that lets an approved user generate a time-limited PIN which is delivered to a smart lock through an MQTT gateway, and (iii) a modular architecture that switches between local storage and server synchronisation with a single configuration flag. The application has been packaged as a release APK and runs standalone on a Samsung M21 phone; the device verification record of 26 September 2026 reports 13 out of 13 automated test cases passing, and a further test case for the smart lock binding was added afterwards.
+
+\newpage
+
+\begin{center}
+    \Large{\textbf{PHÂN CÔNG NHIỆM VỤ}}\\
+\end{center}
+
+\vspace{0.8cm}
+
+Bảng dưới đây tổng hợp phân công công việc và đóng góp chính của các thành viên trong quá trình thực hiện đề tài RoomHub.
+
+\vspace{0.3cm}
+
+\begin{table}[H]
+\centering
+\caption{Phân công công việc trong nhóm}
+\label{tab:contrib}
+\small
+\renewcommand{\arraystretch}{1.2}
+
+\begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.8cm}
+    >{\raggedright\arraybackslash}X
+}
+\toprule
+\textbf{Thành viên} & \textbf{Phần việc chính} \\
+\midrule
+Đỗ Thùy Linh &
+Xây dựng dịch vụ Booking Server bằng Spring Boot; cấu hình cơ sở dữ liệu
+H2 từ xa; phát triển banner thông báo ưu tiên; thiết kế logo;
+xây dựng chức năng ẩn/hiện mật khẩu. \\
+
+Hoàng Văn Tùng &
+Xây dựng khung ứng dụng và kiến trúc module; phát triển phần lớn giao diện
+và nghiệp vụ; tích hợp OneIoT và chức năng PIN tạm thời; xây dựng mô phỏng
+SmartLock và gateway; thực hiện build Release.\\
+
+Nguyễn Việt Dũng &
+Xây dựng quy trình và các kịch bản kiểm thử; thực hiện kiểm thử thủ công
+toàn bộ các luồng chức năng; tổng hợp và phân loại 14 nhóm lỗi của hệ thống.Xây dựng hệ thống nghiệp vụ và tài liệu dự án. \\
+
+Nguyễn Đình Phúc &
+Phát triển chức năng đặt phòng lặp hàng tuần và quản lý chuỗi đặt phòng;
+xây dựng cơ chế thông báo phê duyệt; quản lý trường hợp no-show;
+xây dựng kiểm thử tự động cho chức năng booking. \\
+
+
+
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}

@@ -1,0 +1,22 @@
+\documentclass[border=4pt]{standalone}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\begin{document}
+\fontsize{13pt}{16pt}\selectfont
+\begin{tikzpicture}[
+  st/.style={draw, rounded corners=8pt, font=\small\ttfamily, minimum height=0.75cm, minimum width=2.3cm, fill=white},
+  arr/.style={-{Stealth[length=2mm]}, thick}, font=\scriptsize]
+\node[st] (p) {PENDING};
+\node[st, right=2.2cm of p] (a) {APPROVED};
+\node[st, below=0.9cm of p] (r) {REJECTED};
+\node[st, right=2.2cm of a] (n) {NO\_SHOW};
+\node[st, below=0.9cm of a] (c) {CANCELLED};
+\draw[arr] (p) -- node[above]{Quản trị viên duyệt} (a);
+\draw[arr] (p) -- node[left]{Từ chối} (r);
+\draw[arr] (a) -- node[right]{Người dùng hủy} (c);
+\draw[arr] (p) -- node[below, sloped]{Người dùng hủy} (c);
+\draw[arr] (a) -- node[above]{quá ân hạn} node[below]{không check-in} (n);
+\end{tikzpicture}
+\end{document}

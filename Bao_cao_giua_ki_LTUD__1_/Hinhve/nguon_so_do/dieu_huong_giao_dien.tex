@@ -1,0 +1,53 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\definecolor{RoomHubBlue}{HTML}{174A7E}
+\definecolor{RoomHubLight}{HTML}{EAF2F8}
+\begin{document}
+\begin{tikzpicture}[
+  box/.style={draw=RoomHubBlue!65, rounded corners=3pt, fill=white,
+    align=left, text width=5.45cm, minimum height=1.1cm, inner sep=7pt,
+    font=\small},
+  head/.style={box, fill=RoomHubLight, font=\small\bfseries},
+  arr/.style={-{Stealth[length=2.2mm]}, thick, draw=RoomHubBlue},
+  node distance=0.47cm]
+
+\node[head] (user) at (0,0) {NGƯỜI DÙNG};
+\node[head, right=0.72cm of user] (admin)
+  {QUẢN TRỊ VIÊN};
+\coordinate (rolesmid) at ($(user.north)!0.5!(admin.north)$);
+\node[head, text width=12.0cm, align=center, above=0.72cm of rolesmid] (login)
+  {Đăng nhập và điều hướng theo vai trò};
+
+\node[box, below=of user] (u1)
+  {\textbf{Tìm và đặt phòng}\\Chọn ngày, giờ; lọc theo tầng, sức chứa, thiết bị và loại khóa.};
+\node[box, below=of u1] (u2)
+  {\textbf{Sơ đồ phòng}\\Xem trạng thái phòng, chọn phòng hoặc nhập tên phòng.};
+\node[box, below=of u2] (u3)
+  {\textbf{Gửi yêu cầu}\\Nhập mục đích, chọn đặt một lần hoặc lặp theo tuần rồi gửi.};
+\node[box, below=of u3] (u4)
+  {\textbf{Theo dõi}\\Xem lịch đặt và trạng thái trong mục Đặt phòng của tôi.};
+
+\node[box, below=of admin] (a1)
+  {\textbf{Quản lý phòng và bảo trì}\\Mở danh sách tám tầng; chọn tầng để xem các phòng.};
+\node[box, below=of a1] (a2)
+  {\textbf{Thao tác theo phòng}\\Chọn phòng để sửa, xóa, xem lịch sử hoặc lên lịch bảo trì.};
+\node[box, below=of a2] (a3)
+  {\textbf{Xử lý yêu cầu}\\Duyệt, từ chối hoặc đề xuất đổi phòng khi phù hợp.};
+\node[box, below=of a3] (a4)
+  {\textbf{Quản lý hệ thống}\\Quản lý tài khoản, khóa và quy định đặt phòng.};
+
+\draw[arr] (login.south) -- ++(0,-0.3) -| (user.north);
+\draw[arr] (login.south) -- ++(0,-0.3) -| (admin.north);
+\draw[arr] (user) -- (u1);
+\draw[arr] (u1) -- (u2);
+\draw[arr] (u2) -- (u3);
+\draw[arr] (u3) -- (u4);
+\draw[arr] (admin) -- (a1);
+\draw[arr] (a1) -- (a2);
+\draw[arr] (a2) -- (a3);
+\draw[arr] (a3) -- (a4);
+\end{tikzpicture}
+\end{document}

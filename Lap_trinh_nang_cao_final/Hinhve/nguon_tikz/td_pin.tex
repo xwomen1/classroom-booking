@@ -1,0 +1,46 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\input{seqlib}
+\begin{document}
+\begin{tikzpicture}
+ \def\B{-15.4}
+ \actor{ad}{(0,0.1)}{}
+ \node[font=\scriptsize\bfseries] at (0,-0.75) {Admin};
+ \draw[dashed,gray] (0,-0.95) -- (0,\B);
+ \actor{us}{(2.4,0.1)}{}
+ \node[font=\scriptsize\bfseries] at (2.4,-0.75) {Giảng viên};
+ \draw[dashed,gray] (2.4,-0.95) -- (2.4,\B);
+ \lifeline{app}{5.1}{Ứng dụng\\(temporaryPin\\Service)}{\B}
+ \lifeline{svc}{9.2}{BookingService\\(Java)}{\B}
+ \lifeline{gw}{14.2}{SmartLock\\Gateway}{\B}
+ \lifeline{lk}{17.4}{OneIoT /\\SmartLock}{\B}
+
+ \node[font=\tiny\bfseries,text=navy,anchor=west] at (-0.4,-1.25) {Giai đoạn 1: phê duyệt};
+ \m{0}{5.1}{-1.6}{1: bấm ``Duyệt''}
+ \m{5.1}{9.2}{-2.1}{2: POST /api/bookings/\{id\}/review\\\{decision: APPROVED\}}
+ \act{9.2}{-2.1}{-6.1}
+ \self{9.2}{-2.45}{3: role = admin; find(id, PESSIMISTIC\_WRITE);\\status = PENDING; chưa đến giờ bắt đầu}
+ \self{9.2}{-3.35}{4: hasMaintenanceConflict() = false;\\không trùng booking APPROVED khác}
+ \self{9.2}{-4.25}{5: status = APPROVED; reviewedBy = admin}
+ \self{9.2}{-4.95}{6: [lockType = PIN\_CODE] grantPin(user, room)}
+ \rt{9.2}{5.1}{-5.75}{7: BookingResult + thông báo cho người đặt}
+ \rt{5.1}{2.4}{-6.1}{8: ``Yêu cầu đã được duyệt''}
+
+ \node[font=\tiny\bfseries,text=navy,anchor=west] at (-0.4,-6.75) {Giai đoạn 2: tạo mã PIN tạm thời};
+ \m{2.4}{5.1}{-7.1}{9: createTemporaryPin(id)}
+ \act{5.1}{-7.1}{-14.9}
+ \self{5.1}{-7.45}{10: APPROVED, PIN\_CODE, có quyền phòng;\\sinh mã 6 chữ số; validFrom = T\textsubscript{bđ} $-$ 10',\\validUntil = T\textsubscript{kt} $+$ 10'}
+ \self{5.1}{-8.75}{11: reserveSmartLockPasswordId(roomId)\\ (phòng phải đang gắn khóa; ID 1..255)}
+ \m{5.1}{14.2}{-9.75}{12: POST /api/lock/temp-password \{code, passwordId, startTime, endTime\}}
+ \act{14.2}{-9.75}{-11.45}
+ \self{14.2}{-10.1}{13: AES-CTR(code)}
+ \m{14.2}{17.4}{-10.95}{14: publish MQTT\\traitCreateTmpPasswordLock}
+ \rt{14.2}{5.1}{-11.45}{15: \{accepted, requestId, passwordId, publishedAt\}}
+ \m{5.1}{9.2}{-12.15}{16: POST /api/bookings/\{id\}/temporary-pin}
+ \act{9.2}{-12.15}{-13.75}
+ \self{9.2}{-12.5}{17: chủ booking + PinPermission active;\\mã 4--12 chữ số; lưu TemporaryPin}
+ \rt{9.2}{5.1}{-13.75}{18: BookingResult}
+ \rt{5.1}{2.4}{-14.9}{19: hiển thị mã và thời gian hiệu lực}
+ \draw[fr,dashed] (-0.6,-6.45) -- (19.0,-6.45);
+\end{tikzpicture}
+\end{document}

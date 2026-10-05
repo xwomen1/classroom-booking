@@ -1,0 +1,106 @@
+\section{Mục tiêu và phạm vi kiểm thử}
+
+Hoạt động kiểm thử tập trung vào ba mục tiêu: xác nhận quy tắc nghiệp vụ, kiểm tra khả năng hoạt động độc lập của bản Release và đánh giá luồng đồng bộ khi có máy chủ. Mỗi thay đổi chỉ được chấp nhận khi vượt qua kiểm tra mã nguồn, kiểm thử tự động và kiểm tra khởi động trên thiết bị thật. Cách tiếp cận này giúp tách lỗi nghiệp vụ khỏi lỗi môi trường hoặc lỗi kết nối \cite{istqb}.
+
+Phạm vi kiểm thử bao gồm tài khoản, tìm và đặt phòng, phê duyệt, đặt lặp, bảo trì, quyền tạo PIN, thông báo, cấu hình và đồng bộ dữ liệu. Việc xác nhận mã PIN trên khóa vật lý và vận hành với máy chủ triển khai diện rộng nằm ngoài lượt kiểm thử được ghi nhận trong báo cáo này.
+
+\section{Môi trường kiểm thử}
+
+\begin{table}[H]
+\centering
+\caption{Môi trường kiểm thử của phiên bản báo cáo}
+\label{tab:env}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.5cm}>{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Hạng mục} & \textbf{Cấu hình và mục đích} \\
+\midrule
+Ứng dụng di động & React Native/TypeScript; dữ liệu cục bộ bằng Async Storage; \texttt{ENABLE\_REMOTE\_SYNC=false} cho bản cài trên điện thoại. \\
+Thiết bị & Điện thoại Android thật, cài trực tiếp bản APK Release. \\
+Kiểm thử tự động & Jest cho lớp nghiệp vụ và giao diện; TypeScript kiểm tra kiểu; ESLint kiểm tra quy ước mã nguồn. \\
+Máy chủ kiểm thử & Spring Boot khởi động trên cổng ngẫu nhiên, cơ sở dữ liệu H2 trong bộ nhớ; không phụ thuộc máy chủ đang triển khai. \\
+Theo dõi thiết bị & ADB, UI Automator và logcat để xác nhận màn hình, tiến trình và lỗi nghiêm trọng. \\
+Tài khoản trình diễn & Hai tài khoản thử nghiệm tương ứng với vai trò quản trị viên và người dùng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Quy trình kiểm thử}
+
+Quy trình kiểm thử được thực hiện theo năm bước ở Hình \ref{fig:testprocess}. Khi một bước không đạt, nhóm sửa nguyên nhân tại module liên quan và chạy lại từ bước kiểm tra mã nguồn. Cách tổ chức này ngăn việc tạo APK từ phiên bản chưa vượt qua kiểm thử hồi quy.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{quy_trinh_kiem_thu.pdf}
+\caption{Quy trình kiểm thử và xác nhận bản Release}
+\label{fig:testprocess}
+\end{figure}
+
+\begin{enumerate}
+  \item Kiểm tra kiểu dữ liệu và quy ước mã nguồn bằng TypeScript và ESLint.
+  \item Chạy toàn bộ bộ kiểm thử Jest ở chế độ tuần tự.
+  \item Khởi động Spring Boot với H2 trong bộ nhớ và chạy kiểm thử tích hợp REST API.
+  \item Build APK Release, cài đè lên thiết bị và khởi động ứng dụng.
+  \item Đăng nhập, kiểm tra màn hình theo vai trò và đọc logcat để phát hiện lỗi nghiêm trọng.
+\end{enumerate}
+
+\section{Nhóm ca kiểm thử chính}
+
+Bảng \ref{tab:testcases} tóm tắt các nhóm ca kiểm thử được duy trì trong mã nguồn. Các ca được tổ chức theo nghiệp vụ thay vì phụ thuộc vào thứ tự thao tác trên giao diện, nhờ đó có thể chạy lặp lại sau mỗi lần hợp nhất nhánh.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{1.2cm}>{\raggedright\arraybackslash}p{4.1cm}>{\raggedright\arraybackslash}p{7.4cm}}
+\caption{Các nhóm ca kiểm thử chính}\label{tab:testcases}\\
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Mã} & \textbf{Phạm vi} & \textbf{Nội dung xác nhận} \\
+\midrule
+\endfirsthead
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Mã} & \textbf{Phạm vi} & \textbf{Nội dung xác nhận} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+TC-01 & Tài khoản và vai trò & Khởi tạo hai tài khoản trình diễn; đăng nhập đúng/sai; đăng ký; đổi và khôi phục mật khẩu; chặn tài khoản bị vô hiệu hóa. \\
+TC-02 & Phân loại thông báo & Thông báo phê duyệt, cấp mã và check-in dùng trạng thái tích cực; từ chối, hủy và lỗi dùng trạng thái tiêu cực; huy hiệu chỉ đếm yêu cầu còn hiệu lực. \\
+TC-03 & Tìm và quản lý phòng & Lọc theo tầng, thời gian, sức chứa và thiết bị; quản lý phòng theo từng tầng; kết hợp thông tin phòng và bảo trì trên cùng màn hình. \\
+TC-04 & Quy tắc đặt phòng & Kiểm tra cửa sổ đặt trước, thời gian đã kết thúc, trùng phòng, trùng lịch người dùng, bảo trì và giới hạn số yêu cầu đang hoạt động. \\
+TC-05 & Phê duyệt và đổi phòng & Duyệt/từ chối; cấp quyền tạo mã theo phòng; chỉ đề xuất phòng thay thế có cùng loại khóa, đủ sức chứa và thiết bị. \\
+TC-06 & Đặt lặp hàng tuần & Tạo chuỗi đặt phòng, duyệt cả chuỗi, sửa hoặc hủy các lượt tương lai và giữ dữ liệu nhất quán. \\
+TC-07 & Bảo trì và sự cố & Người dùng chỉ được báo sự cố trong phiên đã duyệt; quản trị viên nhận yêu cầu và phòng liên quan được đánh dấu để xử lý. \\
+TC-08 & PIN tạm thời & Sinh đúng 7 chữ số, tính thời hạn theo lịch đặt, lưu trước khi gửi và duy trì trạng thái chờ khi chưa có phiên OneIoT. \\
+TC-09 & Đồng bộ REST API & Đăng nhập, cấu hình, hồ sơ, lịch đặt lặp, phê duyệt, gắn khóa, lưu PIN và cô lập dữ liệu theo tài khoản trên Spring Boot/H2. \\
+TC-10 & Bản Release trên thiết bị & Cài APK, mở ứng dụng không cần Metro, đăng nhập tài khoản thử nghiệm, hiển thị màn hình theo vai trò và không phát sinh lỗi nghiêm trọng. \\
+\end{longtable}
+
+\section{Kết quả}
+
+Kết quả gần nhất được tổng hợp tại Bảng \ref{tab:results}. Các lệnh được chạy trên cùng mã nguồn dùng để tạo PDF này và trước khi hợp nhất nội dung báo cáo vào nhánh chính.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả kiểm thử gần nhất}
+\label{tab:results}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm}>{\centering\arraybackslash}p{2.2cm}X}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Hạng mục} & \textbf{Kết quả} & \textbf{Bằng chứng} \\
+\midrule
+TypeScript & Đạt & \texttt{npx tsc --noEmit} kết thúc với mã 0. \\
+ESLint & Đạt & \texttt{npm run lint} không phát hiện lỗi. \\
+Jest & Đạt & 6 bộ kiểm thử, 36/36 ca đạt. \\
+Spring Boot/H2 & Đạt & \texttt{RemoteSyncIntegrationTest}: 1/1 ca tích hợp đạt. \\
+Build Release & Đạt & Gradle hoàn thành và tạo \texttt{app-release.apk}. \\
+Thiết bị Android & Đạt & Cài đặt thành công; ứng dụng mở độc lập; đăng nhập tài khoản thử nghiệm; không có lỗi nghiêm trọng trong logcat. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Giới hạn và hướng kiểm chứng tiếp theo}
+
+Bộ kiểm thử hiện tại chứng minh luồng cục bộ hoạt động ổn định và lớp REST API có thể đồng bộ với máy chủ Spring Boot/H2 trong môi trường kiểm thử. Kết quả này chưa thay thế kiểm thử tải, kiểm thử đồng thời trên nhiều điện thoại hoặc kiểm thử với máy chủ triển khai thật. Bước tiếp theo là chạy cùng kịch bản trên ít nhất hai thiết bị dùng chung máy chủ, mô phỏng mất kết nối giữa giao dịch và xác nhận dữ liệu sau khi kết nối lại.
+
+Đối với OneIoT, ứng dụng đã có cơ chế nhập token theo phiên, kiểm tra kết nối, xếp hàng lệnh tạo PIN và ngắt phiên khi đóng ứng dụng. Việc xác nhận khóa vật lý nhận lệnh, áp dụng đúng thời hạn và phát sự kiện check-in/check-out cần được thực hiện khi thiết bị khóa thật sẵn sàng.

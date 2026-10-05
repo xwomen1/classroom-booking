@@ -1,0 +1,75 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+\section{Danh sách REST API của dịch vụ Java}
+Mọi điểm cuối trừ đăng nhập yêu cầu tiêu đề \texttt{Authorization: Bearer <token>}. Lỗi nghiệp vụ trả về mã 400, thiếu hoặc sai token trả 401, không đủ quyền trả 403, thân phản hồi có dạng \texttt{\{"message": "..."\}}.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Danh sách REST API của booking-server}
+\label{tab:api}
+\begin{tabularx}{\textwidth}{|p{1.3cm}|p{6.4cm}|X|}
+\hline
+\textbf{Phương thức} & \textbf{Đường dẫn} & \textbf{Chức năng} \\ \hline
+POST & \texttt{/api/auth/login} & Đăng nhập, trả \texttt{token}, \texttt{username}, \texttt{role} \\ \hline
+GET & \texttt{/api/rooms} & Danh sách phòng theo tầng, tên \\ \hline
+GET & \texttt{/api/configuration} & Tham số nghiệp vụ hiện hành \\ \hline
+GET & \texttt{/api/maintenance} & Danh sách lịch bảo trì \\ \hline
+GET & \texttt{/api/bookings} & Danh sách booking, mới nhất trước \\ \hline
+POST & \texttt{/api/bookings} & Tạo yêu cầu đặt phòng (User) \\ \hline
+POST & \texttt{/api/bookings/\{id\}/review} & Duyệt hoặc từ chối (Admin), thân \texttt{\{"decision": "APPROVED"|"REJECTED"\}} \\ \hline
+POST & \texttt{/api/bookings/\{id\}/temporary-pin} & Lưu mã PIN tạm thời đã gửi tới khóa \\ \hline
+GET & \texttt{/api/pin-permissions} & Quyền tạo mã (Admin xem tất cả, User xem của mình) \\ \hline
+GET & \texttt{/api/notifications} & Thông báo của người đang đăng nhập \\ \hline
+POST & \texttt{/api/notifications/read} & Đánh dấu tất cả đã đọc \\ \hline
+POST & \texttt{/api/notifications} & Tạo thông báo cho chính mình \\ \hline
+\end{tabularx}
+\end{table}
+
+Gateway khóa cung cấp thêm hai điểm cuối: \texttt{GET /api/lock/status} trả trạng thái kết nối OneIoT, lệnh và phản hồi gần nhất; \texttt{POST /api/lock/temp-password} nhận \texttt{\{roomId, roomName, code, passwordId, startTime, endTime\}} và trả mã 202 kèm \texttt{\{accepted, trait, requestId, passwordId, publishedAt\}}.
+
+\section{Hướng dẫn cài đặt và chạy thử}
+\paragraph{Cài bản dùng ngay.} Tải mã nguồn và cài APK có sẵn lên điện thoại Android đã bật gỡ lỗi USB:
+\begin{lstlisting}[language=bash,numbers=none]
+git clone https://github.com/xwomen1/classroom-booking.git
+cd classroom-booking
+adb devices -l
+adb install -r \
+  ./code/booking_classroom/release/booking_classroom-v1.0.apk
+\end{lstlisting}
+Có thể gửi trực tiếp tệp APK sang điện thoại và cho phép cài ứng dụng không rõ nguồn gốc. Tài khoản mẫu: quản trị viên \texttt{admin/1}, giảng viên \texttt{user/2}.
+
+\paragraph{Chạy bản phát triển.} Trong thư mục \texttt{code/booking\_classroom} chạy \texttt{npm ci}, \texttt{npm start}; ở cửa sổ khác chạy \texttt{adb reverse tcp:8081 tcp:8081} và \texttt{npm run android}. Kiểm tra mã nguồn bằng \texttt{npm test -{}- -{}-runInBand}, \texttt{npm run lint} và \texttt{npx tsc -{}-noEmit}.
+
+\paragraph{Chạy dịch vụ Java.} Trong thư mục \texttt{code/booking-server} chạy \texttt{mvn spring-boot:run}; dịch vụ lắng nghe cổng 8080, dữ liệu lưu tại \texttt{./data/booking}, giao diện quản trị cơ sở dữ liệu ở \texttt{/h2-console}. Để ứng dụng dùng máy chủ, đặt \texttt{ENABLE\_REMOTE\_SYNC = true} và sửa \texttt{REMOTE\_API\_BASE\_URL} trong \texttt{src/core/config/runtimeFlags.ts} thành địa chỉ LAN của máy chạy dịch vụ.
+
+\paragraph{Chạy gateway khóa.} Trong thư mục \texttt{tunghv3}, nhập token thử nghiệm vào \texttt{ONEIOT\_TOKEN} của \texttt{gateway\_config.py}, cài thư viện bằng \texttt{python -m pip install -r requirements.txt} rồi chạy \texttt{run\_gateway.ps1}. Trong màn ``Quản lý khóa'' của ứng dụng, nhập địa chỉ \texttt{http://<IP máy tính>:8135}.
+
+\section{Biên bản kiểm tra trên thiết bị}
+Bảng~\ref{tab:bienban} trích biên bản kiểm tra bản Release ngày 26/09/2026 trên Samsung SM-M215F.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.1}
+\caption{Trích biên bản kiểm tra bản Release trên Samsung M21}
+\label{tab:bienban}
+\begin{tabularx}{\textwidth}{|X|p{2.2cm}|}
+\hline
+\textbf{Hạng mục kiểm tra} & \textbf{Kết quả} \\ \hline
+Gói \texttt{com.bookingclassroom} 1.0, cờ debuggable = false & Xác nhận \\ \hline
+Dừng hẳn và khởi động lạnh khi không có Metro, không có \texttt{adb reverse} & PASS \\ \hline
+Đăng nhập Admin và điều hướng giao diện Admin & PASS \\ \hline
+Xác thực User và điều hướng theo vai trò trên dữ liệu mới & PASS (tự động) \\ \hline
+Quản lý tài khoản, trạng thái, mật khẩu, thu hồi quyền phòng & PASS \\ \hline
+Form CRUD phòng và danh sách 8 tầng dạng mở rộng & PASS \\ \hline
+Màn duyệt yêu cầu và kiểm soát truy cập & PASS \\ \hline
+Lịch sử dụng, bảo trì với bộ chọn 8 tầng; màn cấu hình nghiệp vụ & PASS \\ \hline
+Sơ đồ tầng 1--8 và bộ chọn ngày giờ cuộn dọc & PASS \\ \hline
+Chọn phòng -- nhập mục đích -- gửi trên một màn hình & PASS \\ \hline
+Lịch đặt phòng chỉ đọc tách khỏi màn thao tác & PASS \\ \hline
+Admin tạo mã tạm thời; duyệt cấp quyền theo phòng; thu hồi chặn User tạo mã & PASS \\ \hline
+Kiểm thử mã nguồn Jest; TypeScript và ESLint & 13/13 PASS \\ \hline
+Lỗi nghiêm trọng hoặc lỗi kết nối Metro trong logcat & 0 \\ \hline
+\end{tabularx}
+\end{table}
+\end{document}

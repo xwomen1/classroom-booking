@@ -1,0 +1,31 @@
+\section{Bối cảnh và bài toán}
+
+Nhu cầu sử dụng phòng học và phòng họp của giảng viên diễn ra thường xuyên, trong khi quy trình đăng ký tại nhiều đơn vị vẫn phụ thuộc vào trao đổi trực tiếp với cán bộ quản lý cơ sở vật chất. Người mượn khó tra cứu nhanh phòng còn trống theo thời gian, sức chứa và thiết bị. Người quản lý cũng phải theo dõi thủ công lịch sử dụng, lịch bảo trì, việc bàn giao chìa khóa hoặc thẻ từ và các trường hợp người đặt không đến.
+
+Các hạn chế trên dễ dẫn đến trùng lịch, lựa chọn phòng không phù hợp và lãng phí tài nguyên. Khi số lượng phòng và lượt đăng ký tăng, việc kiểm tra bằng bảng tính hoặc tin nhắn riêng lẻ không còn bảo đảm tính nhất quán của dữ liệu.
+
+\section{Mục tiêu}
+
+Dự án xây dựng ứng dụng di động \textbf{RoomHub} nhằm quản lý xuyên suốt một lượt mượn phòng, từ tìm kiếm, gửi yêu cầu, phê duyệt đến bàn giao quyền truy cập, sử dụng và kết thúc phiên. Hệ thống hướng tới các mục tiêu sau:
+
+\begin{itemize}
+  \item giúp giảng viên tìm và đặt phòng theo tầng, thời gian, sức chứa và thiết bị;
+  \item hỗ trợ cán bộ quản lý phê duyệt, đổi phòng, quản lý phòng và lịch bảo trì;
+  \item ngăn các trường hợp trùng lịch, vượt giới hạn đặt phòng hoặc đặt vào thời gian bảo trì;
+  \item hỗ trợ cả phòng dùng khóa cơ/thẻ từ và phòng dùng khóa mã số;
+  \item lưu vết các sự kiện quan trọng như phê duyệt, cấp mã, check-in, check-out và no-show.
+\end{itemize}
+
+\section{Phạm vi}
+
+RoomHub phục vụ hai vai trò. \textbf{Quản trị viên} là cán bộ quản lý cơ sở vật chất, có quyền quản lý tài khoản, phòng, yêu cầu đặt phòng, lịch bảo trì, khóa thông minh và các tham số nghiệp vụ. \textbf{Người dùng} là giảng viên, có quyền tìm phòng, tạo và quản lý yêu cầu của mình, thỏa thuận thời gian nhận khóa, tạo mã tạm thời khi được cấp quyền và báo sự cố trong thời gian sử dụng phòng.
+
+Mô hình dữ liệu thử nghiệm gồm tám tầng, mỗi tầng bảy phòng. Mỗi phòng có sức chứa, danh sách thiết bị, trạng thái và một trong hai loại khóa: khóa cơ/thẻ từ hoặc khóa mã số. Với khóa mã số, ứng dụng có thể gửi lệnh tạo PIN tạm thời tới nền tảng OneIoT theo thời gian của lịch đặt.
+
+\section{Định hướng giải pháp và cấu trúc báo cáo}
+
+Ứng dụng Android được phát triển bằng React Native và TypeScript \cite{reactnative}. Ở chế độ cục bộ, dữ liệu được lưu bằng Async Storage \cite{asyncstorage}, cho phép bản Release hoạt động độc lập trên một điện thoại. Dịch vụ Java Spring Boot \cite{springboot} cung cấp REST API và cơ sở dữ liệu H2 để kiểm thử cơ chế đồng bộ. Chế độ dữ liệu được lựa chọn thông qua tham số \texttt{ENABLE\_REMOTE\_SYNC}; bản trình diễn trong báo cáo sử dụng chế độ cục bộ để không phụ thuộc trạng thái của máy chủ.
+
+Đối với phòng dùng khóa mã số, ứng dụng giao tiếp với OneIoT qua MQTT trên TLS \cite{mqtt} và định dạng bản tin oneM2M \cite{onem2m}. Mã PIN được tạo và lưu theo lịch đặt trước khi gửi; khi chưa có kết nối, lệnh được giữ ở trạng thái chờ và được gửi khi phiên kết nối hợp lệ được thiết lập.
+
+Chương \ref{chapter:Implementation} trình bày phạm vi MVP, kiến trúc và tổ chức mã nguồn. Chương \ref{chapter:Testing} mô tả phương pháp kiểm thử và kết quả của phiên bản hiện tại. Phụ lục \ref{appendix:components} chỉ ra vị trí các thành phần chính trong kho mã nguồn; Phụ lục \ref{appendix:prompt} tổng hợp cách nhóm sử dụng trợ lý lập trình và kiểm soát đầu ra.

@@ -1,0 +1,5 @@
+Phiên bản giữa kỳ của RoomHub đã hình thành một ứng dụng Android có thể trình diễn trọn vẹn luồng cục bộ trên một thiết bị. Người dùng có thể tìm và đặt phòng, theo dõi lịch, xử lý quyền truy cập và báo sự cố; quản trị viên có thể quản lý tài khoản, phòng, bảo trì, yêu cầu đặt phòng, cấu hình nghiệp vụ và khóa thông minh. Mã nguồn được chia thành mười module nghiệp vụ, tách phần giao diện, dịch vụ và mô hình dữ liệu để thuận lợi cho phát triển theo nhóm.
+
+Bộ kiểm thử hiện tại gồm 36 ca Jest, kiểm tra TypeScript, ESLint và một ca tích hợp Spring Boot/H2 cho các luồng đồng bộ quan trọng. Bản Release đã được build, cài và đăng nhập thành công trên điện thoại Android thật ở chế độ cục bộ, không phụ thuộc Metro hoặc máy chủ. Đây là cấu hình phù hợp cho buổi trình diễn khi hạ tầng trực tuyến chưa được bảo đảm.
+
+Trong giai đoạn tiếp theo, nhóm sẽ kiểm thử đồng bộ trên nhiều thiết bị với máy chủ triển khai thật, bổ sung kịch bản mất kết nối và xung đột cập nhật, đồng thời xác nhận đầu cuối với SmartLock vật lý. Các chức năng mở rộng như thống kê mức sử dụng phòng, gợi ý phòng và phương án check-in bổ sung sẽ được xem xét sau khi ba luồng trên ổn định.

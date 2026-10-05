@@ -1,0 +1,244 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương~\ref{chapter:Introduction} đã nêu bài toán mượn phòng học, phòng họp và phạm vi của hệ thống RoomHub. Chương này trình bày kết quả khảo sát hiện trạng từ ba nguồn là người dùng, quy trình đang áp dụng và các công cụ tương tự; từ đó xác định các tác nhân, biểu đồ use case tổng quát và phân rã, quy trình nghiệp vụ, đặc tả các use case quan trọng cùng bộ quy tắc nghiệp vụ và yêu cầu phi chức năng. Đây là cơ sở để lựa chọn công nghệ ở Chương~\ref{chapter:Methodology} và thiết kế ở Chương~\ref{chapter:Experiment}.
+
+\section{Khảo sát hiện trạng}
+\label{section:2.1}
+
+\subsection{Khảo sát người dùng và quy trình hiện hành}
+Nguồn khảo sát thứ nhất là trao đổi với giảng viên và cán bộ quản lý cơ sở vật chất của tòa nhà tám tầng. Nhu cầu mượn phòng phát sinh thường xuyên nhưng thiếu công cụ trực quan; người mượn cần biết đồng thời bốn thông tin là phòng còn trống theo khung giờ, sức chứa, trang thiết bị và vị trí phòng trên tầng. Do đa số người dùng đi thang máy, sơ đồ tầng cần thể hiện rõ phòng số lẻ và số chẵn nằm ở hai phía hành lang để người dùng tìm đúng vị trí.
+
+Nguồn thứ hai là tài liệu \emph{Quy trình nghiệp vụ đặt phòng học/phòng họp} phiên bản 1.1 ngày 18/09/2026 do nhóm xây dựng cùng đơn vị quản lý phòng \cite{quytrinh2026}. Tài liệu mô tả quy trình tổng thể gồm tám bước: tra cứu phòng, chọn phòng và thời gian, gửi yêu cầu, phê duyệt, chuẩn bị tiếp cận, check-in và sử dụng, check-out và trả thẻ, đóng booking. Điểm đặc thù của hiện trạng là phòng được tiếp cận theo hai phương thức: \emph{thẻ từ} được bàn giao tại quầy CSVC và \emph{pass} của khóa mã số. Loại khóa mã số cũ không có kết nối điều khiển từ xa nên nhân viên phải lên tận nơi để đặt hoặc đổi mật khẩu. Bảng~\ref{tab:loaiphong} tóm tắt bốn cấu hình phòng theo phương thức tiếp cận được nêu trong tài liệu.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Cấu hình phòng theo phương thức tiếp cận trong quy trình hiện hành}
+\label{tab:loaiphong}
+\begin{tabularx}{\textwidth}{|p{1.6cm}|p{4.2cm}|X|}
+\hline
+\textbf{Loại} & \textbf{Phương thức} & \textbf{Quy trình tiếp cận} \\ \hline
+Loại A & Chỉ dùng pass & Nhân viên CSVC đặt pass tại khóa trước giờ sử dụng và đổi pass sau khi kết thúc. \\ \hline
+Loại B & Chỉ dùng thẻ từ & Người dùng nhận thẻ tại điểm bàn giao, sử dụng và trả thẻ sau khi kết thúc. \\ \hline
+Loại C & Có cả pass và thẻ, booking dùng pass & Áp dụng quy trình cấp pass, không mặc nhiên bàn giao thẻ. \\ \hline
+Loại D & Có cả pass và thẻ, booking dùng thẻ & Áp dụng quy trình nhận/trả thẻ, không mặc nhiên cấp pass. \\ \hline
+\end{tabularx}
+\end{table}
+
+Trong quá trình khảo sát, nhóm được tiếp cận một khóa thông minh DLWA12 kết nối nền tảng OneIoT, cho phép tạo mật khẩu tạm thời từ xa bằng bản tin MQTT. Vì vậy, RoomHub khái quát bốn cấu hình trên thành hai loại khóa: \emph{khóa cơ/thẻ từ} (PHYSICAL\_KEY), tương ứng nghiệp vụ hẹn lịch bàn giao, và \emph{khóa mã số quản lý online} (PIN\_CODE), tương ứng nghiệp vụ cấp mật khẩu tạm thời có thời hạn. Cách khái quát này giữ nguyên nguyên tắc của tài liệu nghiệp vụ là mỗi booking chỉ dùng một phương thức tiếp cận, đồng thời loại bỏ bước nhân viên phải lên tận khóa đối với phòng đã gắn khóa thông minh.
+
+\subsection{Khảo sát các giải pháp tương tự}
+Nguồn thứ ba là các công cụ đang được dùng để quản lý lịch phòng. Bảng~\ref{tab:sosanh} so sánh bốn nhóm giải pháp theo các tiêu chí rút ra từ khảo sát người dùng.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\caption{So sánh các nhóm giải pháp quản lý đặt phòng}
+\label{tab:sosanh}
+\begin{tabularx}{\textwidth}{|p{3.6cm}|X|X|X|X|}
+\hline
+\textbf{Tiêu chí} & \textbf{Sổ ghi / bảng tính} & \textbf{Lịch tài nguyên trực tuyến} & \textbf{Phần mềm đặt chỗ thương mại} & \textbf{RoomHub} \\ \hline
+Trạng thái phòng theo khung giờ & Thủ công & Có & Có & Có \\ \hline
+Sơ đồ tầng, vị trí phòng & Không & Không & Thường có & Có (chữ U, 8 tầng) \\ \hline
+Lọc sức chứa, thiết bị & Không & Hạn chế & Có & Có \\ \hline
+Quy tắc riêng (hạn đặt trước, giới hạn yêu cầu, bảo trì) & Không & Hạn chế & Có, cấu hình theo gói & Có, Admin chỉnh trong ứng dụng \\ \hline
+Quy trình phê duyệt & Thủ công & Tự động chấp nhận hoặc từ chối & Có & Có, kèm đổi phòng \\ \hline
+Cấp quyền tiếp cận theo loại khóa & Không & Không & Qua tích hợp riêng & Hẹn nhận khóa / mã PIN tạm thời \\ \hline
+Chi phí, khả năng tùy biến & Thấp, không kiểm soát & Theo gói dịch vụ & Thuê bao cao & Tự phát triển \\ \hline
+\end{tabularx}
+\end{table}
+
+Kết quả so sánh cho thấy các công cụ phổ biến giải quyết tốt việc ghi lịch nhưng chưa gắn quy tắc riêng của nhà trường và chưa nối liền bước đặt phòng với bước tiếp cận phòng. Từ đó, nhóm xác định các tính năng quan trọng cần phát triển gồm: tìm phòng trực quan trên sơ đồ tầng với màu trạng thái trống, đã đặt, bảo trì; gửi yêu cầu ngay tại phòng đã chọn; kiểm tra tự động các quy tắc đặt phòng; phê duyệt và đổi phòng có điều kiện; cấp quyền tiếp cận theo loại khóa; thông báo kịp thời; và cho phép quản trị viên chỉnh tham số nghiệp vụ mà không phải sửa mã nguồn.
+
+\section{Tổng quan chức năng}
+\label{section:2.2}
+Mục này tóm tắt chức năng của hệ thống ở mức tổng quan; đặc tả chi tiết được trình bày trong mục~\ref{section:2.3}.
+
+\subsection{Biểu đồ use case tổng quát}
+\label{subsection:2.2.1}
+Hệ thống có ba tác nhân. \textbf{Giảng viên (User)} là người mượn phòng, có nhu cầu tra cứu, đặt, theo dõi và hủy yêu cầu, ủy quyền người nhận khóa hộ và tạo mã PIN cho phòng khóa số. \textbf{Quản trị viên (Admin)} là cán bộ CSVC, chịu trách nhiệm quản lý tài khoản, phòng, lịch bảo trì, cấu hình nghiệp vụ, khóa thông minh và xử lý các yêu cầu đặt phòng. \textbf{SmartLock Gateway} là tác nhân hệ thống ngoài, nhận lệnh tạo mật khẩu tạm thời và chuyển tới khóa. Hình~\ref{fig:uc_tongquat} thể hiện biểu đồ use case tổng quát. Người dùng không tự chọn vai trò khi đăng nhập; hệ thống đọc vai trò từ tài khoản và mở đúng giao diện tương ứng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Hinhve/uc_tongquat.pdf}
+    \caption{Biểu đồ use case tổng quát của hệ thống RoomHub}
+    \label{fig:uc_tongquat}
+\end{figure}
+
+Các use case dùng chung gồm đăng nhập, đăng ký, khôi phục mật khẩu, xem thông báo và cập nhật hồ sơ. Phía User có bốn use case chính là tìm và đặt phòng, xem lịch đặt phòng (chỉ đọc, phân nhóm sắp tới, đã sử dụng, đã đóng), quản lý đặt phòng của tôi và hai use case mở rộng là ủy quyền người nhận khóa hộ, tạo mã PIN tạm thời. Phía Admin có bảy use case quản lý, trong đó use case duyệt, từ chối, đổi phòng là trung tâm của nghiệp vụ.
+
+\subsection{Biểu đồ use case phân rã ``Tìm và đặt phòng''}
+\label{subsection:2.2.2}
+Use case ``Tìm và đặt phòng'' được phân rã như Hình~\ref{fig:uc_datphong}. Người dùng bắt buộc chọn khung thời gian, chọn tầng, xem trạng thái phòng trên sơ đồ, chọn phòng và gửi yêu cầu; việc lọc theo sức chứa, thiết bị và loại khóa là tùy chọn. Khi gửi, hệ thống luôn thực hiện use case ``Kiểm tra quy tắc nghiệp vụ'' với các quy tắc trong Bảng~\ref{tab:br}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Hinhve/uc_datphong.pdf}
+    \caption{Biểu đồ use case phân rã ``Tìm và đặt phòng''}
+    \label{fig:uc_datphong}
+\end{figure}
+
+\subsection{Biểu đồ use case phân rã ``Duyệt / từ chối / đổi phòng''}
+\label{subsection:2.2.3}
+Hình~\ref{fig:uc_quanly} phân rã use case quản lý yêu cầu đặt phòng của Admin. Admin xem danh sách yêu cầu chờ duyệt, sau đó có thể duyệt, từ chối, đổi sang phòng thay thế, hẹn lịch nhận khóa cơ/thẻ, tạo mã PIN hộ người đặt hoặc thu hồi quyền tự tạo mã. Khi duyệt yêu cầu tại phòng khóa số, hệ thống tự động cấp quyền tự tạo mã cho đúng cặp người dùng -- phòng; quyền này không làm thay đổi vai trò của tài khoản.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Hinhve/uc_quanly.pdf}
+    \caption{Biểu đồ use case phân rã ``Duyệt / từ chối / đổi phòng''}
+    \label{fig:uc_quanly}
+\end{figure}
+
+\subsection{Quy trình nghiệp vụ}
+\label{subsection:2.2.4}
+Quy trình nghiệp vụ đặt phòng kết hợp nhiều use case của cả hai vai trò, được minh họa bằng biểu đồ hoạt động ở Hình~\ref{fig:hoatdong}. Giảng viên chọn khung giờ và bộ lọc, ứng dụng tô màu sơ đồ tầng; giảng viên chọn phòng, nhập mục đích và gửi. Nếu vi phạm quy tắc, ứng dụng hiển thị lý do để người dùng chọn lại. Yêu cầu hợp lệ được lưu với trạng thái chờ duyệt và thông báo tới Admin. Khi Admin duyệt, hệ thống kiểm tra lại xung đột với các booking đã duyệt và lịch bảo trì trước khi chuyển sang trạng thái đã duyệt. Quy trình sau đó rẽ nhánh theo loại khóa: với khóa số, hệ thống cấp quyền và giảng viên tự tạo mã PIN được gửi tới khóa qua gateway; với khóa cơ hoặc thẻ từ, Admin hẹn lịch và bàn giao cho người đặt hoặc người được ủy quyền.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.84\textheight,keepaspectratio]{Hinhve/hoatdong.pdf}
+    \caption{Biểu đồ hoạt động của quy trình đặt phòng và cấp quyền tiếp cận}
+    \label{fig:hoatdong}
+\end{figure}
+
+Vòng đời của một booking được mô tả bằng biểu đồ trạng thái ở Hình~\ref{fig:trangthai}. Tài liệu nghiệp vụ \cite{quytrinh2026} đề xuất mười trạng thái (Nháp, Chờ duyệt, Đã duyệt, Chờ bàn giao, Đã nhận thẻ/Đã cấp pass, Đang sử dụng, Hoàn tất, Từ chối, Đã hủy, No-show). Phiên bản hiện tại hiện thực bốn trạng thái lưu trữ là PENDING, APPROVED, REJECTED, CANCELLED; trạng thái ``Đã sử dụng'' được suy ra khi booking đã duyệt qua giờ kết thúc. Tiến trình tiếp cận không được mã hóa thành trạng thái booking mà gắn với đối tượng riêng là mã PIN tạm thời (có bốn trạng thái hiển thị) hoặc lịch hẹn nhận khóa. Cách tách này phù hợp với khuyến nghị của tài liệu nghiệp vụ là coi phương thức tiếp cận phòng như một phần độc lập của booking.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Hinhve/trangthai.pdf}
+    \caption{Biểu đồ trạng thái của booking và của mã PIN tạm thời}
+    \label{fig:trangthai}
+\end{figure}
+
+\section{Đặc tả chức năng}
+\label{section:2.3}
+Mục này đặc tả năm use case quan trọng nhất. Các use case còn lại gồm hủy đặt phòng, hẹn lịch nhận khóa và ủy quyền, quản lý lịch bảo trì, cấu hình nghiệp vụ và quản lý SmartLock được đặc tả tại Phụ lục~\ref{appendix:usecase}. Trước hết, Bảng~\ref{tab:br} liệt kê các quy tắc nghiệp vụ mà hệ thống đã hiện thực; các quy tắc được đánh mã để tham chiếu trong đặc tả và kiểm thử.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Các quy tắc nghiệp vụ đã hiện thực trong RoomHub}
+\label{tab:br}
+\begin{tabularx}{\textwidth}{|p{1.3cm}|X|p{3.4cm}|}
+\hline
+\textbf{Mã} & \textbf{Quy tắc} & \textbf{Tham số mặc định} \\ \hline
+BR-01 & Phòng phải tồn tại và ở trạng thái khả dụng (AVAILABLE). & -- \\ \hline
+BR-02 & Ngày có dạng YYYY-MM-DD, giờ có dạng HH:mm và giờ bắt đầu nhỏ hơn giờ kết thúc. & -- \\ \hline
+BR-03 & Chỉ được đặt trước trong khoảng [min, max] ngày tính theo ngày lịch. & 1 đến 3 ngày \\ \hline
+BR-04 & Không được đặt phòng trùng với lịch bảo trì chưa bị hủy của phòng đó. & -- \\ \hline
+BR-05 & Không trùng với yêu cầu PENDING hoặc APPROVED khác của cùng phòng; một User không có hai yêu cầu chồng thời gian. & -- \\ \hline
+BR-06 & Tổng số yêu cầu đang chờ hoặc sắp sử dụng của một User không vượt quá giới hạn; mục đích sử dụng không được để trống. & 2 yêu cầu \\ \hline
+BR-07 & Chỉ duyệt yêu cầu PENDING chưa đến giờ bắt đầu; kiểm tra lại bảo trì và trùng với booking đã duyệt. & -- \\ \hline
+BR-08 & User chỉ hủy booking đã duyệt nếu còn ít nhất một khoảng thời gian trước giờ bắt đầu. & 30 phút \\ \hline
+BR-09 & Admin chỉ đổi phòng trước giờ bắt đầu một khoảng tối thiểu; phòng thay thế phải cùng loại khóa, sức chứa không nhỏ hơn, có đủ thiết bị, không bảo trì và không trùng lịch. & 30 phút \\ \hline
+BR-10 & Mã PIN chỉ tạo cho booking APPROVED tại phòng PIN\_CODE đang gắn SmartLock; hiệu lực từ trước giờ bắt đầu đến sau giờ kết thúc một khoảng đệm; bị thu hồi khi hủy hoặc đổi phòng. & 10 phút \\ \hline
+BR-11 & User chỉ tự tạo mã khi có quyền đang hiệu lực cho đúng phòng; Admin có thể thu hồi quyền theo từng phòng. & -- \\ \hline
+BR-12 & Ủy quyền nhận hộ và hẹn nhận khóa chỉ áp dụng cho booking đã duyệt tại phòng PHYSICAL\_KEY; lịch hẹn phải trước giờ sử dụng. & -- \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Đặc tả use case ``Đăng nhập''}
+\begin{dacta}{Đặc tả use case UC01 -- Đăng nhập}{tab:uc01}
+Mã use case & UC01 \\ \hline
+Tác nhân & User, Admin \\ \hline
+Mô tả & Người dùng xác thực bằng tên đăng nhập và mật khẩu; hệ thống xác định vai trò và mở giao diện tương ứng. \\ \hline
+Tiền điều kiện & Tài khoản đã tồn tại và đang ở trạng thái hoạt động. \\ \hline
+Luồng chính &
+\begin{buoc}
+\item Người dùng mở ứng dụng, nhập tài khoản và mật khẩu, bấm ``Đăng nhập''.
+\item Hệ thống chuẩn hóa tên đăng nhập (bỏ khoảng trắng, chuyển chữ thường).
+\item Hệ thống tìm tài khoản khớp mật khẩu và đang hoạt động; ở chế độ máy chủ, dịch vụ Java tạo phiên AuthSession và trả token.
+\item Hệ thống mở ``Chế độ quản trị viên'' nếu vai trò là admin, hoặc ``Chế độ người dùng'' nếu vai trò là user.
+\end{buoc} \\ \hline
+Luồng phát sinh & 3a. Sai thông tin hoặc tài khoản bị khóa: hiển thị ``Sai tài khoản hoặc mật khẩu'' và giữ nguyên màn hình. 3b. Người dùng chọn ``Đăng ký'' hoặc ``Quên mật khẩu?'' để tạo tài khoản User mới hoặc đặt lại mật khẩu bằng mã khôi phục. \\ \hline
+Hậu điều kiện & Phiên đăng nhập được thiết lập; mọi yêu cầu tiếp theo tới máy chủ mang token Bearer. \\
+\end{dacta}
+
+\subsection{Đặc tả use case ``Tìm và đặt phòng''}
+\begin{dacta}{Đặc tả use case UC02 -- Tìm và đặt phòng}{tab:uc02}
+Mã use case & UC02 \\ \hline
+Tác nhân & User \\ \hline
+Tiền điều kiện & User đã đăng nhập, tài khoản hoạt động. \\ \hline
+Luồng chính &
+\begin{buoc}
+\item User mở ``Tìm và đặt phòng''; hệ thống sinh danh sách ngày được phép theo cấu hình (mặc định từ ngày mai đến ba ngày sau).
+\item User vuốt chọn ngày, giờ bắt đầu, giờ kết thúc và chọn tầng T1--T8.
+\item User nhập tùy chọn sức chứa tối thiểu, thiết bị cần có và loại khóa (mọi khóa, mã số, cơ/thẻ).
+\item Hệ thống hiển thị bảy phòng của tầng trên sơ đồ chữ U, mỗi ô ghi sức chứa, thiết bị và tô màu trống, đã đặt, bảo trì hoặc không khớp lọc; đồng thời báo số phòng phù hợp đang trống.
+\item User chạm chọn một phòng trống (hoặc nhập tên phòng để nhảy tới đúng tầng), nhập mục đích và bấm ``Gửi yêu cầu đặt phòng''.
+\item Hệ thống kiểm tra BR-01 đến BR-06, lưu booking trạng thái PENDING, tạo thông báo cho Admin và làm mới sơ đồ.
+\end{buoc} \\ \hline
+Luồng phát sinh & 5a. Phòng được chọn không ở trạng thái trống: hiển thị ``Hãy chọn một phòng đang trống và phù hợp bộ lọc''. 6a. Vi phạm một quy tắc: hiển thị thông điệp tương ứng, ví dụ ``Phòng có lịch bảo trì trong khoảng thời gian này'' và không lưu booking. \\ \hline
+Hậu điều kiện & Booking PENDING được lưu; phòng hiển thị màu ``đã đặt'' trong khung giờ đó; Admin nhận thông báo. \\
+\end{dacta}
+
+\subsection{Đặc tả use case ``Duyệt yêu cầu đặt phòng''}
+\begin{dacta}{Đặc tả use case UC03 -- Duyệt yêu cầu đặt phòng}{tab:uc03}
+Mã use case & UC03 \\ \hline
+Tác nhân & Admin \\ \hline
+Tiền điều kiện & Admin đã đăng nhập; tồn tại booking ở trạng thái PENDING. \\ \hline
+Luồng chính &
+\begin{buoc}
+\item Admin mở ``Yêu cầu đặt phòng'' (hoặc chạm vào thông báo ``Có yêu cầu đặt phòng mới'').
+\item Hệ thống hiển thị thông tin người đặt, phòng, ngày giờ, mục đích.
+\item Admin chọn ``Duyệt''.
+\item Hệ thống khóa bản ghi booking, kiểm tra BR-07: yêu cầu còn PENDING, chưa đến giờ bắt đầu, không trùng bảo trì, không trùng booking đã duyệt khác.
+\item Hệ thống chuyển trạng thái APPROVED, ghi người duyệt và thời điểm duyệt.
+\item Nếu phòng dùng khóa mã số, hệ thống cấp quyền tự tạo mã cho cặp User -- phòng.
+\item Hệ thống gửi thông báo ``Yêu cầu đã được duyệt'' cho người đặt.
+\end{buoc} \\ \hline
+Luồng phát sinh & 3a. Admin chọn ``Từ chối'': hệ thống chuyển REJECTED và thông báo ``Yêu cầu bị từ chối''. 4a. Vi phạm BR-07: hiển thị lý do, trạng thái không đổi. \\ \hline
+Hậu điều kiện & Booking ở trạng thái APPROVED hoặc REJECTED; người đặt nhận thông báo; với phòng khóa số, bản ghi PinPermission được kích hoạt. \\
+\end{dacta}
+
+\subsection{Đặc tả use case ``Đổi phòng thay thế''}
+\begin{dacta}{Đặc tả use case UC04 -- Đổi phòng thay thế}{tab:uc04}
+Mã use case & UC04 \\ \hline
+Tác nhân & Admin \\ \hline
+Tiền điều kiện & Booking đã APPROVED và còn ít nhất 30 phút (theo cấu hình) trước giờ bắt đầu. \\ \hline
+Luồng chính &
+\begin{buoc}
+\item Admin chọn booking cần đổi, ví dụ khi phòng cũ phải phục vụ sự kiện ưu tiên.
+\item Hệ thống chỉ đề xuất phòng thỏa mãn hàm \texttt{meetsReplacementRoomRequirements}: khác phòng cũ, khả dụng, cùng loại khóa, sức chứa không nhỏ hơn và có đủ thiết bị của phòng cũ.
+\item Admin chọn phòng thay thế và nhập lý do.
+\item Hệ thống kiểm tra BR-09 cùng lịch bảo trì và các yêu cầu chờ/đã duyệt của phòng mới.
+\item Hệ thống cập nhật phòng, ghi lịch sử đổi phòng, thu hồi mã PIN cũ và lịch hẹn nhận khóa cũ; nếu phòng mới dùng khóa số thì cấp quyền tạo mã cho phòng mới.
+\item Hệ thống thông báo cho người đặt kèm lý do đổi phòng.
+\end{buoc} \\ \hline
+Luồng phát sinh & 4a. Phòng thay thế khác loại khóa: báo ``Phòng thay thế phải có cùng loại khóa với phòng hiện tại''. 4b. Quá hạn đổi phòng hoặc thiếu lý do: báo lỗi tương ứng. \\ \hline
+Hậu điều kiện & Booking trỏ tới phòng mới, danh sách \texttt{roomChanges} có thêm một bản ghi; quyền tiếp cận phòng cũ bị vô hiệu. \\
+\end{dacta}
+
+\subsection{Đặc tả use case ``Tạo mã PIN tạm thời''}
+\begin{dacta}{Đặc tả use case UC05 -- Tạo mã PIN tạm thời}{tab:uc05}
+Mã use case & UC05 \\ \hline
+Tác nhân & User (chủ booking) hoặc Admin; SmartLock Gateway \\ \hline
+Tiền điều kiện & Booking APPROVED tại phòng PIN\_CODE; phòng đang được gắn SmartLock; User có quyền tự tạo mã cho phòng; gateway đang hoạt động. \\ \hline
+Luồng chính &
+\begin{buoc}
+\item User mở ``Đặt phòng của tôi'', chọn booking và bấm tạo mã.
+\item Hệ thống kiểm tra BR-10, BR-11 và booking chưa có mã đang hiệu lực.
+\item Hệ thống sinh mã sáu chữ số, tính thời điểm hiệu lực từ giờ bắt đầu trừ 10 phút đến giờ kết thúc cộng 10 phút.
+\item Hệ thống cấp một passwordId (1--255) của khóa và gửi lệnh tới gateway.
+\item Gateway mã hóa mật khẩu, phát trait \texttt{traitCreateTmpPasswordLock} qua MQTT và trả mã yêu cầu.
+\item Hệ thống lưu TemporaryPin vào booking và thông báo ``Đã cấp mã mở cửa tạm thời''.
+\end{buoc} \\ \hline
+Luồng phát sinh & 2a. Quyền đã bị thu hồi: báo ``Quyền tự tạo mã tại phòng này đã bị thu hồi hoặc chưa được cấp''. 4a. Phòng chưa gắn khóa: báo ``Phòng chưa được gắn với SmartLock đang quản lý''. 5a. Gateway không phản hồi: báo lỗi kết nối, mã không được lưu. \\ \hline
+Hậu điều kiện & Khóa lưu mật khẩu tạm thời có thời hạn; người dùng xem mã và trạng thái hiệu lực trong chi tiết booking. \\
+\end{dacta}
+
+\section{Yêu cầu phi chức năng}
+\label{section:2.4}
+Về \textbf{tính đúng đắn và độ tin cậy}, hệ thống không được xác nhận hai booking chồng thời gian trên cùng một phòng, kể cả khi nhiều yêu cầu đến đồng thời; ở máy chủ, bước đọc danh sách booking, kiểm tra và ghi booking mới phải nằm trong cùng một giao dịch có khóa ghi. Mọi thao tác quản trị phải được kiểm tra quyền ở tầng dịch vụ chứ không chỉ dựa vào việc ẩn nút trên giao diện.
+
+Về \textbf{bảo mật}, các API ngoại trừ đăng nhập yêu cầu token Bearer hợp lệ; token OneIoT không được lưu trong kho mã nguồn; mật khẩu gửi tới khóa phải được mã hóa trước khi phát lên broker; mã PIN chỉ hiển thị cho chủ booking và Admin.
+
+Về \textbf{tính khả dụng}, giao diện tiếng Việt, tối ưu cho điện thoại Android màn hình khoảng 6,4 inch; các thao tác chọn ngày giờ dùng cột cuộn dọc để tránh gõ phím; thông điệp lỗi nêu rõ quy tắc bị vi phạm. Ứng dụng phải chạy được độc lập không cần máy tính phát triển (bản Release).
+
+Về \textbf{tính dễ bảo trì và mở rộng}, mã nguồn được chia theo module nghiệp vụ, các tham số chính sách được lưu dưới dạng cấu hình thay vì hằng số trong giao diện, và việc chuyển giữa lưu cục bộ với đồng bộ máy chủ chỉ phụ thuộc một cờ cấu hình.
+
+Về \textbf{yêu cầu kỹ thuật}, máy chủ dùng Java 17, Spring Boot 3.4.4, JPA/Hibernate và H2 ở chế độ tệp; ứng dụng dùng React Native 0.86.2, React 19.2.3, TypeScript 5.8; gateway khóa viết bằng Python với thư viện paho-mqtt và cryptography.
+
+Chương này đã xác định ba tác nhân, mười lăm use case, quy trình đặt phòng hai nhánh theo loại khóa, mười hai quy tắc nghiệp vụ và các yêu cầu phi chức năng. Những yêu cầu về kiểm tra quyền phía máy chủ, chống trùng lịch khi truy cập đồng thời và tích hợp khóa thông minh là cơ sở để lựa chọn các công nghệ được trình bày trong Chương~\ref{chapter:Methodology}.
+
+\end{document}

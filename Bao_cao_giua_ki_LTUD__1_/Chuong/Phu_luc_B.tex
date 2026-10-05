@@ -1,0 +1,44 @@
+Nhóm sử dụng trợ lý lập trình để hỗ trợ phân tích yêu cầu, rà soát mã, đề xuất kiểm thử và soạn tài liệu. Trợ lý không tự quyết định phạm vi sản phẩm hoặc xác nhận một chức năng đã hoàn thành. Mọi thay đổi đều phải được thành viên phụ trách đọc lại, chạy kiểm thử và kiểm tra trên nhánh làm việc trước khi hợp nhất.
+
+\section{Nguyên tắc sử dụng}
+
+\begin{enumerate}
+  \item Nêu rõ mục tiêu, module, tệp liên quan và quy tắc nghiệp vụ cần giữ.
+  \item Giới hạn phạm vi thay đổi để tránh tác động ngoài ý muốn tới module khác.
+  \item Yêu cầu chỉ ra giả định và đối chiếu với mã nguồn trước khi sửa.
+  \item Luôn kèm bước kiểm tra phù hợp như Jest, TypeScript, ESLint, kiểm thử tích hợp hoặc build APK.
+  \item Không đưa token, mật khẩu thật hoặc dữ liệu nhạy cảm vào mã nguồn và lịch sử Git.
+  \item Chỉ commit sau khi xem lại diff; chỉ push khi người phụ trách cho phép.
+\end{enumerate}
+
+\section{Các nhóm prompt tiêu biểu}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{10.0cm}}
+\caption{Prompt tiêu biểu trong quá trình phát triển}\label{tab:prompts}\\
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Mục đích} & \textbf{Nội dung rút gọn} \\
+\midrule
+\endfirsthead
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Mục đích} & \textbf{Nội dung rút gọn} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Phân tích nghiệp vụ & ``Đối chiếu yêu cầu đặt phòng với mã hiện tại; xác định thực thể, trạng thái và quy tắc còn thiếu. Không tự bổ sung yêu cầu chưa có căn cứ.'' \\
+Tổ chức module & ``Sắp xếp mã theo module để các thành viên phát triển độc lập; chỉ rõ màn hình, dịch vụ, mô hình dữ liệu và API công khai của từng module.'' \\
+Triển khai chức năng & ``Cài đặt luồng tạo PIN tạm thời: mã gồm 7 chữ số, thời hạn lấy từ lịch đặt, lưu cục bộ trước và chỉ gửi khi phiên OneIoT đã kết nối.'' \\
+Rà soát đồng bộ & ``So sánh repository cục bộ với REST API; tìm sai khác về quyền, trạng thái và cấu trúc dữ liệu; kiểm thử bằng Spring Boot/H2 cục bộ khi máy chủ thật chưa hoạt động.'' \\
+Kiểm thử & ``Viết hoặc cập nhật ca kiểm thử cho quy tắc vừa sửa; chạy Jest, TypeScript và ESLint; báo rõ lệnh, kết quả và giới hạn chưa kiểm chứng.'' \\
+Hợp nhất nhánh & ``Đọc toàn bộ xung đột; ưu tiên thay đổi mới của nhánh được hợp nhất, nhưng giữ chức năng hiện có nếu nhánh đó làm mất endpoint hoặc quy tắc đã triển khai.'' \\
+Build thiết bị & ``Build APK Release với chế độ cục bộ, cài lên điện thoại thật, mở ứng dụng, đăng nhập tài khoản trình diễn và kiểm tra log lỗi nghiêm trọng.'' \\
+Rà soát tài liệu & ``Đối chiếu báo cáo với mã nguồn và kết quả kiểm thử; loại bỏ khẳng định không có bằng chứng; chuẩn hóa thuật ngữ, bảng biểu, hình và tham chiếu.'' \\
+\end{longtable}
+
+\section{Quy trình kiểm soát đầu ra}
+
+Đầu ra từ trợ lý được kiểm soát qua bốn bước: (1) xem danh sách tệp thay đổi; (2) đọc diff và đối chiếu quy tắc nghiệp vụ; (3) chạy bộ kiểm tra tương ứng; (4) kiểm tra thủ công luồng chính trên bản Release nếu thay đổi ảnh hưởng giao diện hoặc tích hợp thiết bị. Nếu một bước không đạt, thay đổi được sửa tại nhánh làm việc và kiểm tra lại trước khi commit.
+
+Các nội dung chưa thể kiểm chứng, chẳng hạn máy chủ thật đang tắt hoặc khóa vật lý chưa sẵn sàng, phải được ghi rõ là giới hạn. Báo cáo không coi kết quả mô phỏng là bằng chứng cho hoạt động của hạ tầng thật.

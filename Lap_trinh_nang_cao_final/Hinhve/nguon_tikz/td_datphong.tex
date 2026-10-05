@@ -1,0 +1,49 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\input{seqlib}
+\begin{document}
+\begin{tikzpicture}
+ \def\B{-14.2}
+ \actor{gv}{(0,0.1)}{}
+ \node[font=\scriptsize\bfseries] at (0,-0.75) {Giảng viên};
+ \draw[dashed,gray] (0,-0.95) -- (0,\B);
+ \lifeline{scr}{2.7}{RoomSearch\\Screen}{\B}
+ \lifeline{rep}{5.4}{bookingRepository\\(TypeScript)}{\B}
+ \lifeline{flt}{8.1}{SessionAuth\\Filter}{\B}
+ \lifeline{ctl}{10.8}{ApiController}{\B}
+ \lifeline{svc}{13.5}{BookingService}{\B}
+ \lifeline{db}{18.4}{EntityManager\\/ H2}{\B}
+
+ \act{2.7}{-1.3}{-13.6}
+ \act{5.4}{-1.8}{-13.2}
+ \act{8.1}{-2.3}{-3.4}
+ \act{10.8}{-3.6}{-12.5}
+ \act{13.5}{-4.1}{-12.1}
+
+ \m{0}{2.7}{-1.3}{1: chọn phòng, nhập\\mục đích, bấm Gửi}
+ \m{2.7}{5.4}{-1.8}{2: createBooking(input)}
+ \m{5.4}{8.1}{-2.3}{3: POST /api/bookings\\Authorization: Bearer token}
+ \m{8.1}{13.5}{-2.75}{4: requireAccount(token)}
+ \rt{13.5}{8.1}{-3.15}{5: Account (role = user)}
+ \m{8.1}{10.8}{-3.6}{6: chuyển tiếp, gắn thuộc tính ``account''}
+ \m{10.8}{13.5}{-4.1}{7: createBooking(actor, input)}
+ \self{13.5}{-4.5}{8: kiểm tra role = user,\\requester = actor}
+ \m{13.5}{18.4}{-5.4}{9: select b.id from Booking\\LockMode PESSIMISTIC\_WRITE}
+ \rt{18.4}{13.5}{-5.85}{danh sách booking (đã khóa)}
+ \self{13.5}{-6.2}{10: validateBooking(): phòng AVAILABLE,\\định dạng ngày giờ, đặt trước 1--3 ngày,\\bảo trì, trùng phòng, trùng lịch User,\\giới hạn 2 booking hoạt động}
+ % alt frame
+ \draw[fr] (4.6,-7.45) rectangle (19.4,-9.45);
+ \node[fill=hust,text=white,font=\tiny\bfseries,anchor=north west,inner sep=2pt] at (4.6,-7.45) {alt};
+ \node[font=\tiny,text=hust,anchor=north west] at (5.2,-7.5) {[vi phạm quy tắc]};
+ \rt{13.5}{10.8}{-8.0}{throw IllegalArgumentException}
+ \rt{10.8}{5.4}{-8.35}{400 \{message\} (ApiExceptionHandler)};
+ \draw[fr,dashed] (4.6,-8.7) -- (19.4,-8.7);
+ \node[font=\tiny,text=hust,anchor=north west] at (5.2,-8.72) {[hợp lệ] tiếp tục bước 11};
+ \m{13.5}{18.4}{-10.1}{11: persist(Booking PENDING)}
+ \m{13.5}{18.4}{-10.8}{12: storeNotification(``admin'', ...)}
+ \rt{13.5}{10.8}{-11.5}{13: BookingResult(booking, notification)}
+ \rt{10.8}{5.4}{-12.2}{14: 200 OK (JSON)}
+ \rt{5.4}{2.7}{-12.9}{15: Booking}
+ \rt{2.7}{0}{-13.6}{16: thông báo gửi thành công}
+\end{tikzpicture}
+\end{document}

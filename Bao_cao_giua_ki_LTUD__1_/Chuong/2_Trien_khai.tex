@@ -2,7 +2,7 @@
 \section{Tổng quan hệ thống}
 \label{section:components}
 
-Hệ thống RoomHub gồm năm thành phần nằm chung trong kho mã nguồn \texttt{classroom-booking}, được tóm tắt ở Bảng \ref{tab:components}. Thành phần trung tâm là ứng dụng di động; các thành phần còn lại phục vụ đồng bộ dữ liệu, giả lập thiết bị và lưu trữ tài liệu. Danh mục thư mục chi tiết được trình bày tại Phụ lục \ref{appendix:components}.
+Hệ thống RoomHub gồm hai thành phần nằm chung trong kho mã nguồn \texttt{classroom-booking}, được tóm tắt ở Bảng \ref{tab:components}. Thành phần trung tâm là ứng dụng di động; các thành phần còn lại phục vụ đồng bộ dữ liệu, giả lập thiết bị và lưu trữ tài liệu. Danh mục thư mục chi tiết được trình bày tại Phụ lục \ref{appendix:components}.
 
 \begin{table}[H]
 \centering
@@ -69,7 +69,7 @@ Các quy tắc nghiệp vụ của MVP được tham số hóa trong kiểu \tex
 
 \section{Tổ chức mã nguồn ứng dụng}
 
-Mã nguồn ứng dụng được chia thành ba vùng. Vùng \texttt{src/core} chứa phần dùng chung ở mức hạ tầng: kiểu người dùng, hàm \texttt{readJson}/\texttt{writeJson} bọc Async Storage, cờ \texttt{ENABLE\_REMOTE\_SYNC} và hàm \texttt{apiRequest} gắn token phiên. Vùng \texttt{src/shared} chứa component giao diện dùng chung như \texttt{ScreenHeader} và \texttt{PasswordInput}. Vùng \texttt{src/modules} chứa mười module nghiệp vụ; mỗi module tuân theo cùng cấu trúc \texttt{screens/}, \texttt{components/}, \texttt{services/}, \texttt{model/} và chỉ công khai API qua \texttt{index.ts}. Quy ước này giúp mỗi thành viên phụ trách một module mà ít xung đột khi hợp nhất mã. Đoạn mã \ref{lst:dualmode} minh họa cách một hàm dịch vụ hỗ trợ đồng thời hai chế độ dữ liệu.
+Mã nguồn ứng dụng được chia thành ba vùng. Vùng \texttt{src/core} chứa phần dùng chung ở mức hạ tầng: kiểu người dùng, hàm \texttt{readJson}/\texttt{writeJson} bọc Async Storage. Vùng \texttt{src/shared} chứa component giao diện dùng chung như \texttt{ScreenHeader} và \texttt{PasswordInput}. Vùng \texttt{src/modules} chứa mười module nghiệp vụ; mỗi module tuân theo cùng cấu trúc \texttt{screens/}, \texttt{components/}, \texttt{services/}, \texttt{model/} và chỉ công khai API qua \texttt{index.ts}. Quy ước này giúp mỗi thành viên phụ trách một module mà ít xung đột khi hợp nhất mã. Đoạn mã \ref{lst:dualmode} minh họa cách một hàm dịch vụ hỗ trợ đồng thời hai chế độ dữ liệu.
 
 \begin{code}[H]
 \caption{Hàm dịch vụ chọn nguồn dữ liệu theo cờ cấu hình (rút gọn)}\label{lst:dualmode}
@@ -178,7 +178,7 @@ Hàm \texttt{addNotification} được các module nghiệp vụ gọi tại m�
 
 \subsection{Booking server}
 
-Booking server gồm bảy lớp Java: \texttt{ApiController} khai báo các endpoint \texttt{/auth/login}, \texttt{/rooms}, \texttt{/configuration}, \texttt{/maintenance}, \texttt{/bookings}, \texttt{/bookings/\{id\}/review}, \texttt{/bookings/\{id\}/temporary-pin}, \texttt{/pin-permissions}, \texttt{/notifications}; \texttt{BookingService} cài đặt lại quy tắc nghiệp vụ phía server; \texttt{SessionAuthFilter} kiểm tra token Bearer; \texttt{ApiExceptionHandler} chuẩn hóa thông báo lỗi; \texttt{DataSeeder} tạo dữ liệu mẫu. Mặc định server dùng H2 dạng tệp cục bộ, profile \texttt{remote} kết nối H2 từ xa qua SSL. Trong MVP, server ở trạng thái sẵn sàng tích hợp nhưng ứng dụng đặt \texttt{ENABLE\_REMOTE\_SYNC = false}.
+Booking server gồm bảy lớp Java: \texttt{ApiController} khai báo các endpoint \texttt{/auth/login}, \texttt{/rooms}, \texttt{/configuration}, \texttt{/maintenance}, \texttt{/bookings}, \texttt{/bookings/\{id\}/review}, \texttt{/bookings/\{id\}/temporary-pin}, \texttt{/pin-permissions}, \texttt{/notifications}; \texttt{BookingService} cài đặt lại quy tắc nghiệp vụ phía server; \texttt{SessionAuthFilter} kiểm tra token Bearer; \texttt{ApiExceptionHandler} chuẩn hóa thông báo lỗi; \texttt{DataSeeder} tạo dữ liệu mẫu. Mặc định server dùng H2 dạng tệp cục bộ, profile \texttt{remote} kết nối H2 từ xa qua SSL. 
 
 \section{Kết quả giao diện}
 

@@ -1388,13 +1388,17 @@ public class BookingService {
 
   @Transactional
   public void changePassword(Domain.Account actor, String currentPassword, String newPassword) {
-    if (currentPassword == null || !currentPassword.equals(actor.password)) {
+    Domain.Account account = actor == null ? null : em.find(Domain.Account.class, actor.username);
+    if (account == null) {
+      throw new IllegalArgumentException("Không tìm thấy tài khoản.");
+    }
+    if (currentPassword == null || !currentPassword.equals(account.password)) {
       throw new IllegalArgumentException("Mật khẩu hiện tại không đúng.");
     }
     if (newPassword == null || newPassword.length() < 4) {
       throw new IllegalArgumentException("Mật khẩu mới cần ít nhất 4 ký tự.");
     }
-    actor.password = newPassword;
+    account.password = newPassword;
   }
 
   @Transactional

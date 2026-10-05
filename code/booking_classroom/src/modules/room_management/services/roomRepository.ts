@@ -2,6 +2,7 @@ import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { DEMO_ROOMS } from '../model/demoRooms';
+import { roomHasAllEquipment, roomMeetsMinCapacity } from '../model/roomFilters';
 import type { LockType, Room } from '../model/room';
 
 const ROOMS_KEY = 'rooms.records';
@@ -122,19 +123,19 @@ export type RoomSearchFilters = {
   keyword?: string;
   floor?: number;
   minCapacity?: number;
-  equipment?: string;
+  equipment?: readonly string[];
   lockType?: LockType | 'ALL';
 };
 
 export async function searchRooms(filters: RoomSearchFilters): Promise<Room[]> {
   const rooms = await getRooms();
   const keyword = filters.keyword?.trim().toLowerCase() ?? '';
-  const equipment = filters.equipment?.trim().toLowerCase() ?? '';
+  const equipment = filters.equipment ?? [];
   return rooms.filter(room =>
     (!filters.floor || room.floor === filters.floor) &&
     (!keyword || `${room.name} ${room.location}`.toLowerCase().includes(keyword)) &&
-    (!filters.minCapacity || room.capacity >= filters.minCapacity) &&
-    (!equipment || room.equipment.some(item => item.toLowerCase().includes(equipment))) &&
+    roomMeetsMinCapacity(room.capacity, filters.minCapacity ?? null) &&
+    roomHasAllEquipment(room.equipment, equipment) &&
     (!filters.lockType || filters.lockType === 'ALL' || room.lockType === filters.lockType),
   );
 }

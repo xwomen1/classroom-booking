@@ -1,0 +1,37 @@
+\contentsline {table}{\numberline {0.1}{\ignorespaces Phân công công việc trong nhóm}}{}{table.caption.1}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Cấu hình phòng theo phương thức tiếp cận trong quy trình hiện hành}}{4}{table.caption.7}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces So sánh các nhóm giải pháp quản lý đặt phòng}}{5}{table.caption.8}%
+\contentsline {table}{\numberline {2.3}{\ignorespaces Các quy tắc nghiệp vụ đã hiện thực trong RoomHub}}{11}{table.caption.14}%
+\contentsline {table}{\numberline {2.4}{\ignorespaces Đặc tả use case UC01 -- Đăng nhập}}{12}{table.caption.15}%
+\contentsline {table}{\numberline {2.5}{\ignorespaces Đặc tả use case UC02 -- Tìm và đặt phòng}}{13}{table.caption.16}%
+\contentsline {table}{\numberline {2.6}{\ignorespaces Đặc tả use case UC03 -- Duyệt yêu cầu đặt phòng}}{14}{table.caption.17}%
+\contentsline {table}{\numberline {2.7}{\ignorespaces Đặc tả use case UC04 -- Đổi phòng thay thế}}{15}{table.caption.18}%
+\contentsline {table}{\numberline {2.8}{\ignorespaces Đặc tả use case UC05 -- Tạo mã PIN tạm thời}}{16}{table.caption.19}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Tổng hợp lựa chọn công nghệ theo yêu cầu}}{22}{table.caption.20}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Nhiệm vụ các module nghiệp vụ của ứng dụng di động}}{25}{table.caption.23}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Thiết kế chi tiết lớp BookingService}}{28}{table.caption.26}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Cấu trúc bảng bookings}}{32}{table.caption.30}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Danh sách thư viện và công cụ sử dụng}}{33}{table.caption.31}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Thống kê mã nguồn và sản phẩm đóng gói}}{34}{table.caption.32}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces Ca kiểm thử chức năng tạo yêu cầu đặt phòng}}{36}{table.caption.39}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces Ca kiểm thử chức năng duyệt yêu cầu và tạo mã PIN}}{37}{table.caption.40}%
+\contentsline {table}{\numberline {4.8}{\ignorespaces Ca kiểm thử chức năng quản trị và phân quyền}}{37}{table.caption.41}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Đối chiếu tầng dịch vụ TypeScript và dịch vụ Java}}{47}{table.caption.50}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {A.1}{\ignorespaces Đặc tả use case UC06 -- Hủy đặt phòng}}{53}{table.caption.54}%
+\contentsline {table}{\numberline {A.2}{\ignorespaces Đặc tả use case UC07 -- Hẹn lịch nhận khóa và ủy quyền nhận hộ}}{54}{table.caption.55}%
+\contentsline {table}{\numberline {A.3}{\ignorespaces Đặc tả use case UC08 -- Quản lý lịch sử dụng và bảo trì}}{54}{table.caption.56}%
+\contentsline {table}{\numberline {A.4}{\ignorespaces Đặc tả use case UC09 -- Cấu hình nghiệp vụ}}{55}{table.caption.57}%
+\contentsline {table}{\numberline {A.5}{\ignorespaces Đặc tả use case UC10 -- Quản lý SmartLock}}{55}{table.caption.58}%
+\contentsline {table}{\numberline {A.6}{\ignorespaces Đặc tả use case UC11 -- Quản lý tài khoản và quyền theo phòng}}{56}{table.caption.59}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {B.1}{\ignorespaces Danh sách REST API của booking-server}}{57}{table.caption.60}%
+\contentsline {table}{\numberline {B.2}{\ignorespaces Trích biên bản kiểm tra bản Release trên Samsung M21}}{59}{table.caption.65}%
+\contentsfinish 
+\contentsfinish 

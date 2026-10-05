@@ -1,0 +1,25 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Biểu đồ use case tổng quát của hệ thống RoomHub}}{6}{figure.caption.9}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Biểu đồ use case phân rã ``Tìm và đặt phòng''}}{7}{figure.caption.10}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Biểu đồ use case phân rã ``Duyệt / từ chối / đổi phòng''}}{8}{figure.caption.11}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Biểu đồ hoạt động của quy trình đặt phòng và cấp quyền tiếp cận}}{9}{figure.caption.12}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Biểu đồ trạng thái của booking và của mã PIN tạm thời}}{10}{figure.caption.13}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Kiến trúc tổng thể của hệ thống RoomHub}}{23}{figure.caption.21}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Biểu đồ gói của ứng dụng di động RoomHub}}{24}{figure.caption.22}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Màn hình đăng nhập và bảng điều khiển theo vai trò}}{26}{figure.caption.24}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Biểu đồ lớp của dịch vụ nghiệp vụ Java \texttt {booking-server}}}{27}{figure.caption.25}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Biểu đồ trình tự ca sử dụng ``Tìm và đặt phòng'' qua dịch vụ Java}}{29}{figure.caption.27}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Biểu đồ trình tự ca sử dụng ``Duyệt yêu cầu'' và ``Tạo mã PIN tạm thời''}}{30}{figure.caption.28}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Biểu đồ thực thể liên kết của cơ sở dữ liệu RoomHub}}{31}{figure.caption.29}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Màn hình tìm phòng theo sơ đồ tầng và gửi yêu cầu đặt phòng}}{34}{figure.caption.34}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Màn hình quản lý phòng và lịch bảo trì của Admin}}{35}{figure.caption.36}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Màn hình quản lý quyền theo phòng và cấu hình tham số nghiệp vụ}}{36}{figure.caption.38}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsfinish 
+\contentsfinish 

@@ -53,7 +53,33 @@ public class DataSeeder implements CommandLineRunner {
         .executeUpdate();
     em.createQuery("update Account a set a.recoveryCode = '222222' where a.username = 'user' and a.recoveryCode is null")
         .executeUpdate();
+    renameLegacyRooms();
     seedMaintenanceWindowIfEmpty();
+  }
+
+  private void renameLegacyRooms() {
+    for (Domain.Room room : em.createQuery("select r from Room r", Domain.Room.class).getResultList()) {
+      String renamed = numericRoomName(room.name);
+      if (renamed != null && !renamed.equals(room.name)) {
+        room.name = renamed;
+      }
+    }
+  }
+
+  private static String numericRoomName(String name) {
+    if (name == null) {
+      return null;
+    }
+    String trimmed = name.trim().toUpperCase();
+    if ("B202".equals(trimmed)) {
+      return "202";
+    }
+    if (!trimmed.matches("A[1-8]0[1-7]")) {
+      return null;
+    }
+    int floor = trimmed.charAt(1) - '0';
+    int ordinal = trimmed.charAt(3) - '0';
+    return Integer.toString(floor * 100 + ordinal);
   }
 
   private void seedMaintenanceWindowIfEmpty() {
@@ -82,7 +108,7 @@ public class DataSeeder implements CommandLineRunner {
         boolean legacyB202 = floor == 2 && ordinal == 2;
         Domain.Room room = new Domain.Room();
         room.id = legacyA101 ? "room-a101" : legacyB202 ? "room-b202" : "room-floor-" + floor + "-" + ordinal;
-        room.name = legacyB202 ? "B202" : "A" + floor + "0" + ordinal;
+        room.name = Integer.toString(floor * 100 + ordinal);
         room.floor = floor;
         room.location = "Tầng " + floor + ", tòa nhà A";
         room.capacity = CAPACITIES[roomIndex];

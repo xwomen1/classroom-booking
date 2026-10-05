@@ -26,7 +26,7 @@ export const DEMO_ROOMS: readonly Room[] = Array.from(
           : isLegacyB202
             ? 'room-b202'
             : `room-floor-${floor}-${ordinal}`,
-        name: isLegacyB202 ? 'B202' : `A${floor}0${ordinal}`,
+        name: `${floor * 100 + ordinal}`,
         floor,
         location: `Tầng ${floor}, tòa nhà A`,
         capacity: CAPACITIES[roomIndex],

@@ -49,7 +49,7 @@ test('admin manages rooms and maintenance from one floor list', async () => {
     buttonWithText(renderer.root, 'Tầng 1').props.onPress();
   });
   await ReactTestRenderer.act(async () => {
-    buttonWithText(renderer.root, 'A101').props.onPress();
+    buttonWithText(renderer.root, '101').props.onPress();
   });
 
   const selectedRoomText = textContent(renderer.root);

@@ -155,7 +155,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
           label="Tên phòng"
           value={roomQuery}
           onChangeText={value => { setRoomQuery(value); setSelectedId(null); }}
-          placeholder="Ví dụ: A101"
+          placeholder="Ví dụ: 101"
           autoCapitalize="characters"
         />
         {roomSuggestions.length > 0 && roomQuery !== selected?.name ? (

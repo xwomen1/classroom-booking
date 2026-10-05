@@ -64,14 +64,30 @@ RoomHub áp dụng kiến trúc khách -- chủ nhiều tầng. Ở mức hệ t
   \node[font=\bfseries, text=hinhDo, anchor=south] at (G2.north)
     {Booking server (Java 17 + Spring Boot 3.4)};
 
-  % ---- Liên kết REST giữa app và server: nhãn đặt giữa khoảng trống ----
-  \coordinate (giua) at ($(G1.east)!0.5!(G2.west)$);
-  \draw[<->, thick, dashed, hinhDo]
-    (m3.east) -- (m3.east -| giua) -- (s1.west -| giua) -- (s1.west);
-  \node[nhan, text=hinhDo, anchor=east, inner sep=2pt]
-    at ($(giua |- m2) + (-0.25,0)$)
-    {REST/JSON\\ + Bearer token\\ (khi bật cờ\\ \texttt{ENABLE\_REMOTE\_SYNC})};
+  % ---- Liên kết REST giữa app và server ----
+\coordinate (giua) at ($(G1.east)!0.5!(G2.west)$);
 
+\draw[<->, thick, dashed, hinhDo]
+  (m3.east)
+  -- (m3.east -| giua)
+  -- (s1.west -| giua)
+  -- (s1.west);
+
+\node[
+  nhan,
+  text=hinhDo,
+  fill=white,
+  inner sep=3pt,
+  text width=2.5cm,
+  align=center
+]
+at ($(giua |- m2) + (0,0.05)$)
+{
+REST/JSON\\
++ Bearer token\\
+(khi bật cờ\\
+\texttt{ENABLE\_REMOTE\_SYNC})
+};
   % ---- Chuỗi SmartLock: đặt thấp hơn, chừa chỗ cho nhãn ----
   \node[ngoai=4.8cm, below=2.6cm of G1.south, anchor=north, xshift=4.6cm] (g1)
     {\textbf{SmartLock gateway} (Python)\\ \footnotesize HTTP :8135, mã hóa AES-CTR};
@@ -316,7 +332,6 @@ Build Android & Android SDK 36, Gradle, Node.js 22 & \url{https://developer.andr
 Kiểm thử, kiểm tra mã & Jest 29, ESLint 8, Prettier 2.8 & \url{https://jestjs.io} \\ \hline
 Gateway khóa & Python 3, paho-mqtt 2.x, cryptography & \url{https://pypi.org/project/paho-mqtt} \\ \hline
 Quản lý mã nguồn & Git, GitHub & \url{https://github.com} \\ \hline
-\url{https://www.overleaf.com} \\ \hline
 \end{tabularx}
 \end{table}
 
@@ -350,14 +365,19 @@ Dữ liệu mẫu & 8 tầng $\times$ 7 phòng = 56 phòng \\ \hline
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}{0.36\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_timphong.jpg}
+
+    \begin{subfigure}[b]{0.36\textwidth}
+        \centering
+        \includegraphics[height=7.5cm,keepaspectratio]{Hinhve/man_timphong.jpg}
         \caption{Chọn khung giờ, bộ lọc và sơ đồ}
-    \end{subfigure}\hspace{0.6cm}
-    \begin{subfigure}{0.36\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_datphong.jpg}
+    \end{subfigure}
+    \hspace{0.6cm}
+    \begin{subfigure}[b]{0.36\textwidth}
+        \centering
+        \includegraphics[height=7.5cm,keepaspectratio]{Hinhve/man_datphong.jpg}
         \caption{Nhập phòng, mục đích và gửi}
     \end{subfigure}
+
     \caption{Màn hình tìm phòng theo sơ đồ tầng và gửi yêu cầu đặt phòng}
     \label{fig:timphong}
 \end{figure}
@@ -366,18 +386,25 @@ Dữ liệu mẫu & 8 tầng $\times$ 7 phòng = 56 phòng \\ \hline
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}{0.3\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_quanlyphong.jpg}
+
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_quanlyphong.jpg}
         \caption{Danh sách phòng}
-    \end{subfigure}\hfill
-    \begin{subfigure}{0.3\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_phongtheotang.jpg}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_phongtheotang.jpg}
         \caption{Nhóm theo tầng}
-    \end{subfigure}\hfill
-    \begin{subfigure}{0.3\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_baotri.jpg}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_baotri.jpg}
         \caption{Tạo lịch bảo trì}
     \end{subfigure}
+
     \caption{Màn hình quản lý phòng và lịch bảo trì của Admin}
     \label{fig:quanlyphong}
 \end{figure}
@@ -386,14 +413,19 @@ Dữ liệu mẫu & 8 tầng $\times$ 7 phòng = 56 phòng \\ \hline
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}{0.36\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_quyenphong.jpg}
+
+    \begin{subfigure}[b]{0.36\textwidth}
+        \centering
+        \includegraphics[height=7.5cm,keepaspectratio]{Hinhve/man_quyenphong.jpg}
         \caption{Quản lý user và quyền phòng}
-    \end{subfigure}\hspace{0.6cm}
-    \begin{subfigure}{0.36\textwidth}\centering
-        \includegraphics[width=\linewidth]{Hinhve/man_cauhinh.jpg}
+    \end{subfigure}
+    \hspace{0.6cm}
+    \begin{subfigure}[b]{0.36\textwidth}
+        \centering
+        \includegraphics[height=7.5cm,keepaspectratio]{Hinhve/man_cauhinh.jpg}
         \caption{Cấu hình nghiệp vụ}
     \end{subfigure}
+
     \caption{Màn hình quản lý quyền theo phòng và cấu hình tham số nghiệp vụ}
     \label{fig:quyen}
 \end{figure}

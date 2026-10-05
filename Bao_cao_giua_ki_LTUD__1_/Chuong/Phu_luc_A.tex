@@ -1,56 +1,33 @@
+\section{Tổ chức kho mã nguồn}
 
-\section{Cấu trúc kho mã nguồn}
+Kho mã nguồn RoomHub được lưu tại \url{https://github.com/xwomen1/classroom-booking}. Các phần chính và trách nhiệm của chúng được trình bày trong Bảng~\ref{tab:source-groups}. Tên thư mục và hướng dẫn dựng môi trường chi tiết nằm trong tệp hướng dẫn ở gốc dự án.
 
-Kho mã nguồn \url{https://github.com/xwomen1/classroom-booking} được tổ chức như Đoạn mã \ref{lst:tree}. Kho chỉ lưu mã nguồn cần thiết; tệp APK, bộ nhớ đệm, \texttt{node\_modules} và thư mục build không được đưa lên Git, mỗi thành viên tự build sau khi clone.
+\begin{table}[H]
+\centering
+\caption{Nhóm thành phần trong kho mã nguồn}
+\label{tab:source-groups}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.0cm} X}
+\toprule
+\rowcolor{RoomHubLight}
+\textbf{Nhóm} & \textbf{Nội dung và mục đích} \\
+\midrule
+Tài liệu dự án & Đề xuất sản phẩm, quy trình nghiệp vụ, hiện trạng triển khai và báo cáo. \\
+Ứng dụng Android & Giao diện theo vai trò, mười module nghiệp vụ, phần giao tiếp thiết bị và bộ kiểm thử tự động. \\
+Dịch vụ Java & Giao diện dữ liệu, xác thực phiên và quy tắc nghiệp vụ phục vụ đồng bộ. \\
+Mô phỏng khóa & Chương trình Python tạo tình huống kiểm tra phản hồi và sự kiện của khóa. \\
+Công cụ OneIoT & Chương trình Python tham chiếu cách kết nối và định dạng bản tin trao đổi với nền tảng IoT. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\begin{code}[H]
-\caption{Cấu trúc thư mục chính}\label{lst:tree}
-\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
-classroom-booking/
-|-- README.md                    Hướng dẫn clone, build, cài APK
-|-- du_an_dat_phong.tex/.pdf     Đề xuất dự án
-|-- workflow_booking_app.tex/.pdf Workflow nghiệp vụ
-|-- hien_trang_trien_khai.tex/.pdf Hiện trạng triển khai
-|-- code/
-|   |-- booking_classroom/       Ứng dụng React Native (Android)
-|   |   |-- App.tsx              Điểm vào, điều hướng theo vai trò
-|   |   |-- src/core/            API client, tham số cấu hình, lưu trữ
-|   |   |-- src/shared/          component dùng chung
-|   |   |-- src/modules/         10 module nghiệp vụ
-|   |   |-- __tests__/           36 ca kiểm thử Jest
-|   |   |-- android/.../OneIoTMqttPackage.kt     MQTT/TLS tới OneIoT
-|   |   |-- android/.../PriorityNotificationPackage.kt  thông báo nổi
-|   |   |-- docs/, evidence/     sơ đồ luồng, ảnh kiểm tra thiết bị
-|   |   `-- scripts/             build Debug/Release (PowerShell)
-|   `-- booking-server/          Spring Boot + H2
-|       `-- src/main/java/com/bookingclassroom/server/
-|           ApiController, BookingService, SessionAuthFilter,
-|           ApiExceptionHandler, DataSeeder, Domain
-|-- tunghv2/                     Giả lập SmartLock (Python)
-`-- tunghv3/                     Công cụ giao tiếp OneIoT (Python)
-\end{Verbatim}
-\end{code}
+\section{Dựng bản cài đặt}
 
-\section{Build và cài đặt}
+Thành viên nhóm tải kho mã nguồn, cài các thư viện theo tệp cấu hình của ứng dụng và dùng công cụ Android để tạo bản Release. Sau khi cài gói tạo ra lên điện thoại, ứng dụng có thể chạy độc lập, không cần Metro hoặc cáp USB. Bản trình diễn dùng dữ liệu cục bộ nên không yêu cầu máy chủ đặt phòng đang hoạt động. Các câu lệnh cụ thể, điều kiện môi trường và cách kiểm tra được duy trì trong tệp hướng dẫn của dự án để tránh lặp lại một danh sách lệnh dễ lỗi thời trong báo cáo.
 
-Ứng dụng được build và cài đặt bằng các lệnh trong Đoạn mã \ref{lst:build}. Bản Release chạy độc lập sau khi cài, không cần Metro, cáp USB hay booking server.
+\section{Tài liệu bổ trợ}
 
-\begin{code}[H]
-\caption{Build và cài đặt bản Release}\label{lst:build}
-\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
-git clone https://github.com/xwomen1/classroom-booking.git
-cd classroom-booking/code/booking_classroom
-npm ci
-npm run build:android:release
-adb install -r ./android/app/build/outputs/apk/release/app-release.apk
-npm test        # chạy bộ kiểm thử Jest
-npm run lint    # kiểm tra ESLint
-\end{Verbatim}
-\end{code}
-
-\section{Tổng hợp tài liệu và phụ lục}
-
-Bảng \ref{tab:docs} tóm tắt các tài liệu bổ trợ. Tên tệp và thư mục tương ứng được liệt kê ở Đoạn mã \ref{lst:tree}; nhật ký kiểm tra thiết bị nằm trong thư mục \path{code/booking_classroom/evidence/}.
+Bảng~\ref{tab:docs} tóm tắt các tài liệu dùng để đối chiếu thiết kế và kết quả triển khai. Nhật ký kiểm tra thiết bị được lưu cùng ứng dụng di động trong kho mã nguồn.
 
 \begin{table}[H]
 \centering
@@ -62,18 +39,19 @@ Bảng \ref{tab:docs} tóm tắt các tài liệu bổ trợ. Tên tệp và th�
 \rowcolor{RoomHubLight}
 \textbf{Tài liệu} & \textbf{Nội dung} \\
 \midrule
-Đề xuất dự án & Phạm vi và tiêu chí kiểm chứng \\
-Quy trình nghiệp vụ & Đặt phòng, phê duyệt và bàn giao \\
-Hiện trạng triển khai & Các chức năng đã kiểm tra \\
-Nhật ký kiểm thử & Kết quả cài và mở bản Release trên thiết bị Android \\
-Phụ lục \ref{appendix:prompt} & Prompt sử dụng trong quá trình phát triển \\
+Đề xuất dự án & Phạm vi sản phẩm và tiêu chí kiểm chứng. \\
+Quy trình nghiệp vụ & Các bước đặt phòng, phê duyệt, bàn giao và sử dụng. \\
+Kịch bản kiểm thử & Danh sách tình huống và kết quả cần quan sát khi kiểm tra thủ công. \\
+Hiện trạng triển khai & Chức năng đã thực hiện và những điểm còn cần kiểm chứng. \\
+Nhật ký kiểm thử & Kết quả cài, mở và kiểm tra bản Release trên thiết bị Android. \\
+Phụ lục~\ref{appendix:prompt} & Cách nhóm sử dụng trợ lý lập trình trong quá trình phát triển. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Phân công nhóm}
 
-Bảng \ref{tab:contrib} tổng hợp phần việc chính của các thành viên.
+Bảng~\ref{tab:contrib} tổng hợp phần việc chính của các thành viên.
 
 \begin{table}[H]
 \centering
@@ -86,8 +64,8 @@ Bảng \ref{tab:contrib} tổng hợp phần việc chính của các thành vi�
 \textbf{Thành viên} & \textbf{Phần việc chính} \\
 \midrule
 Hoàng Văn Tùng & Kiến trúc và giao diện ứng dụng; nghiệp vụ cục bộ; tích hợp OneIoT và SmartLock; build Release. \\
-Đỗ Thùy Linh & Booking Server với Spring Boot/H2; thông báo ưu tiên; logo và cải tiến màn hình đăng nhập. \\
-Nguyễn Đình Phúc & Đặt phòng lặp, quản lý chuỗi và no-show; kiểm thử tự động cho chức năng đặt phòng. \\
+Đỗ Thùy Linh & Dịch vụ đồng bộ bằng Spring Boot/H2; thông báo ưu tiên; logo và cải tiến màn hình đăng nhập. \\
+Nguyễn Đình Phúc & Đặt phòng lặp, quản lý chuỗi và xử lý người đặt không đến; kiểm thử tự động cho chức năng đặt phòng. \\
 Nguyễn Việt Dũng & Kịch bản và kiểm thử thủ công; tổng hợp vấn đề; hỗ trợ tài liệu dự án. \\
 \bottomrule
 \end{tabularx}

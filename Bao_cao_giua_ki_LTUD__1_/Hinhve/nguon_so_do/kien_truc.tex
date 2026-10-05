@@ -13,7 +13,7 @@
 \node[box, minimum width=3.8cm] (ui) {Lớp giao diện\\Quản trị viên / Người dùng};
 \node[box, minimum width=3.8cm, below=0.45cm of ui] (svc) {Lớp dịch vụ\\và quy tắc nghiệp vụ};
 \node[box, minimum width=1.8cm, below left=0.5cm and -1.6cm of svc] (as) {Async\\Storage};
-\node[box, minimum width=1.8cm, below right=0.5cm and -1.6cm of svc] (nat) {Native Kotlin\\OneIoTMqtt};
+\node[box, minimum width=1.8cm, below right=0.5cm and -1.6cm of svc] (nat) {Kết nối khóa\\Kotlin};
 \begin{scope}[on background layer]
 \node[grp, fit=(ui)(svc)(as)(nat), label={[gray]above:Ứng dụng RoomHub (Android)}] (app) {};
 \end{scope}

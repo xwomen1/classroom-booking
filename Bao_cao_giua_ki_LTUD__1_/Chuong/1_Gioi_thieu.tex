@@ -24,7 +24,7 @@ Mô hình dữ liệu thử nghiệm gồm tám tầng, mỗi tầng bảy phòn
 
 \section{Định hướng giải pháp và cấu trúc báo cáo}
 
-Ứng dụng Android được phát triển bằng React Native và TypeScript \cite{reactnative}. Ở chế độ cục bộ, dữ liệu được lưu bằng Async Storage \cite{asyncstorage}, cho phép bản Release hoạt động độc lập trên một điện thoại. Dịch vụ Java Spring Boot \cite{springboot} cung cấp REST API và cơ sở dữ liệu H2 để kiểm thử cơ chế đồng bộ. Chế độ dữ liệu được lựa chọn thông qua tham số \texttt{ENABLE\_REMOTE\_SYNC}; bản trình diễn trong báo cáo sử dụng chế độ cục bộ để không phụ thuộc trạng thái của máy chủ.
+Ứng dụng Android được phát triển bằng React Native và TypeScript \cite{reactnative}. Ở chế độ cục bộ, dữ liệu được lưu bằng Async Storage \cite{asyncstorage}, cho phép bản Release hoạt động độc lập trên một điện thoại. Dịch vụ Java Spring Boot \cite{springboot} cung cấp REST API và cơ sở dữ liệu H2 để kiểm thử cơ chế đồng bộ. Bản trình diễn trong báo cáo sử dụng chế độ cục bộ để không phụ thuộc trạng thái của máy chủ.
 
 Đối với phòng dùng khóa mã số, ứng dụng giao tiếp với OneIoT qua MQTT trên TLS \cite{mqtt} và định dạng bản tin oneM2M \cite{onem2m}. Mã PIN được tạo và lưu theo lịch đặt trước khi gửi; khi chưa có kết nối, lệnh được giữ ở trạng thái chờ và được gửi khi phiên kết nối hợp lệ được thiết lập.
 

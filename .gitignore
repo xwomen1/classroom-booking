@@ -4,6 +4,10 @@
 *.out
 *.synctex.gz
 *.toc
+*.lof
+*.lot
+*.lol
+~$*.xlsx
 
 # Operating system and editor files
 .DS_Store

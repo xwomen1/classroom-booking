@@ -16,7 +16,7 @@ Phạm vi kiểm thử bao gồm tài khoản, tìm và đặt phòng, phê duy�
 \rowcolor{RoomHubLight}
 \textbf{Hạng mục} & \textbf{Cấu hình và mục đích} \\
 \midrule
-Ứng dụng di động & React Native/TypeScript; dữ liệu cục bộ bằng Async Storage; \texttt{ENABLE\_REMOTE\_SYNC=false} cho bản cài trên điện thoại. \\
+Ứng dụng di động & React Native/TypeScript; dữ liệu cục bộ bằng Async Storage cho bản cài trên điện thoại. \\
 Thiết bị & Điện thoại Android thật, cài trực tiếp bản APK Release. \\
 Kiểm thử tự động & Jest cho lớp nghiệp vụ và giao diện; TypeScript kiểm tra kiểu; ESLint kiểm tra quy ước mã nguồn. \\
 Máy chủ kiểm thử & Spring Boot khởi động trên cổng ngẫu nhiên, cơ sở dữ liệu H2 trong bộ nhớ; không phụ thuộc máy chủ đang triển khai. \\
@@ -89,11 +89,11 @@ Kết quả gần nhất được tổng hợp tại Bảng \ref{tab:results}. C
 \rowcolor{RoomHubLight}
 \textbf{Hạng mục} & \textbf{Kết quả} & \textbf{Bằng chứng} \\
 \midrule
-TypeScript & Đạt & \texttt{npx tsc --noEmit} kết thúc với mã 0. \\
-ESLint & Đạt & \texttt{npm run lint} không phát hiện lỗi. \\
+TypeScript & Đạt & Kiểm tra kiểu dữ liệu hoàn thành, không phát hiện lỗi. \\
+ESLint & Đạt & Kiểm tra quy ước mã nguồn không phát hiện lỗi. \\
 Jest & Đạt & 6 bộ kiểm thử, 36/36 ca đạt. \\
-Spring Boot/H2 & Đạt & \texttt{RemoteSyncIntegrationTest}: 1/1 ca tích hợp đạt. \\
-Build Release & Đạt & Gradle hoàn thành và tạo \texttt{app-release.apk}. \\
+Spring Boot/H2 & Đạt & Một ca kiểm thử tích hợp giữa ứng dụng và máy chủ đạt yêu cầu. \\
+Build Release & Đạt & Gradle hoàn thành và tạo được gói cài đặt Android. \\
 Thiết bị Android & Đạt & Cài đặt thành công; ứng dụng mở độc lập; đăng nhập tài khoản thử nghiệm; không có lỗi nghiêm trọng trong logcat. \\
 \bottomrule
 \end{tabularx}

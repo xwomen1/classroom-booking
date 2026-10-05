@@ -1,8 +1,7 @@
-
 \section{Tổng quan hệ thống}
 \label{section:components}
 
-Hệ thống RoomHub gồm ứng dụng di động, dịch vụ đồng bộ và hai công cụ hỗ trợ tích hợp khóa thông minh. Bảng \ref{tab:components} nêu vai trò của từng thành phần; cấu trúc thư mục chi tiết được trình bày tại Phụ lục \ref{appendix:components}.
+RoomHub lấy ứng dụng di động làm trung tâm để giảng viên và cán bộ quản lý cùng thực hiện quy trình mượn phòng. Bên cạnh ứng dụng là dịch vụ đồng bộ dữ liệu và các công cụ hỗ trợ kiểm tra giao tiếp với khóa thông minh. Vai trò của từng thành phần được tóm tắt trong Bảng~\ref{tab:components}; vị trí các phần chính trong kho mã nguồn được trình bày tại Phụ lục~\ref{appendix:components}.
 
 \begin{table}[H]
 \centering
@@ -14,15 +13,15 @@ Hệ thống RoomHub gồm ứng dụng di động, dịch vụ đồng bộ và
 \rowcolor{RoomHubLight}
 \textbf{Thành phần} & \textbf{Công nghệ} & \textbf{Vai trò} \\
 \midrule
-Ứng dụng di động & React Native, TypeScript, Kotlin & Giao diện cho hai vai trò, nghiệp vụ đặt phòng, lưu dữ liệu cục bộ và giao tiếp OneIoT qua module native. \\
-Dịch vụ đồng bộ & Java, Spring Boot, H2 & REST API cho tài khoản, phòng, lịch đặt, bảo trì, quyền truy cập và thông báo. \\
-Mô phỏng SmartLock & Python & Mô phỏng khóa để kiểm tra bản tin tạo mật khẩu và sự kiện truy cập. \\
-Công cụ giao tiếp & Python, MQTT & Tham chiếu cơ chế kết nối và định dạng bản tin trao đổi với OneIoT. \\
+Ứng dụng di động & React Native, TypeScript, Kotlin & Cung cấp giao diện theo vai trò, xử lý nghiệp vụ, lưu dữ liệu cục bộ và giao tiếp với OneIoT. \\
+Dịch vụ đồng bộ & Java, Spring Boot, H2 & Cung cấp giao diện dữ liệu cho tài khoản, phòng, lịch đặt, bảo trì, quyền truy cập và thông báo. \\
+Mô phỏng khóa thông minh & Python & Tạo môi trường kiểm tra bản tin cấp mật khẩu và sự kiện truy cập khi chưa dùng khóa vật lý. \\
+Công cụ giao tiếp & Python, MQTT & Làm mẫu tham chiếu cho cơ chế kết nối và định dạng bản tin trao đổi với OneIoT. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Hình \ref{fig:architecture} mô tả kiến trúc tổng thể. Ứng dụng được tổ chức theo ba lớp: lớp màn hình (\textit{screens}), lớp dịch vụ nghiệp vụ (\textit{services}) và lớp lưu trữ.
+Hình~\ref{fig:architecture} thể hiện quan hệ giữa các thành phần. Trong ứng dụng, màn hình tiếp nhận thao tác của người dùng; lớp nghiệp vụ kiểm tra quyền và quy tắc đặt phòng; lớp lưu trữ giữ dữ liệu cục bộ hoặc trao đổi với dịch vụ đồng bộ theo chế độ hoạt động.
 
 \begin{figure}[H]
 \centering
@@ -31,14 +30,14 @@ Hình \ref{fig:architecture} mô tả kiến trúc tổng thể. Ứng dụng đ
 \label{fig:architecture}
 \end{figure}
 
-\section{Phạm vi MVP}
+\section{Phạm vi sản phẩm khả dụng tối thiểu}
 \label{section:mvp}
 
-Tiêu chí hoàn thành MVP gồm: (i) luồng nghiệp vụ chính chạy được trên thiết bị thật, (ii) bản cài đặt Release tái lập được từ mã nguồn, (iii) các quy tắc nghiệp vụ quan trọng có kiểm thử tự động, và (iv) không còn lỗi nghiêm trọng đã biết trong luồng chính. Bảng \ref{tab:mvp} phân định rõ phần thuộc MVP và phần để lại cho giai đoạn sau.
+Sản phẩm khả dụng tối thiểu được xác định bằng khả năng thực hiện trọn luồng mượn phòng trên một điện thoại Android: tìm phòng, gửi yêu cầu, phê duyệt, sử dụng và kết thúc. Bản cài đặt độc lập phải tạo được từ mã nguồn; các quy tắc quan trọng cần có kiểm thử. Bảng~\ref{tab:mvp} phân biệt chức năng đã triển khai với phần còn cần kiểm chứng trong môi trường nhiều thiết bị hoặc với khóa thật.
 
 \begin{table}[H]
 \centering
-\caption{Phạm vi MVP đã chốt}
+\caption{Phạm vi sản phẩm khả dụng tối thiểu}
 \label{tab:mvp}
 \small
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} X >{\centering\arraybackslash}p{1.9cm}}
@@ -46,148 +45,109 @@ Tiêu chí hoàn thành MVP gồm: (i) luồng nghiệp vụ chính chạy đư�
 \rowcolor{RoomHubLight}
 \textbf{Nhóm chức năng} & \textbf{Nội dung} & \textbf{Trạng thái} \\
 \midrule
-Tài khoản & Đăng nhập, đăng ký, đổi/khôi phục mật khẩu bằng mã khôi phục, hồ sơ, điều hướng theo vai trò; quản trị viên quản lý tài khoản. & Đã triển khai \\
-Tìm phòng & Lọc theo tầng, ngày giờ, sức chứa, thiết bị, loại khóa; sơ đồ tầng với màu trạng thái. & Đã triển khai \\
-Đặt và duyệt & Tạo yêu cầu, kiểm tra quy tắc; quản trị viên duyệt, từ chối hoặc đổi phòng; người dùng hủy theo hạn. & Đã triển khai \\
-Đặt lặp tuần & Tạo chuỗi tối đa 8 tuần, sửa/hủy các lượt tương lai, duyệt cả chuỗi. & Đã triển khai \\
-Phòng và bảo trì & Quản lý phòng, lịch bảo trì, yêu cầu bảo trì từ người dùng và lịch sử sử dụng. & Đã triển khai \\
-Truy cập phòng & Khóa cơ/thẻ từ: thỏa thuận lịch nhận khóa, ủy quyền nhận hộ. Khóa số: cấp quyền, tạo PIN 7 chữ số, gửi lệnh qua OneIoT. & Đã triển khai \\
-Điểm danh & Ghi nhận check-in/check-out và no-show sau thời gian ân hạn. & Đã triển khai \\
-Thông báo, cấu hình & Thông báo theo sự kiện, thông báo nổi ưu tiên; quản trị viên cấu hình quy tắc. & Đã triển khai \\
+Tài khoản & Đăng nhập, đăng ký, đổi hoặc khôi phục mật khẩu, hồ sơ và quyền quản trị tài khoản. & Đã triển khai \\
+Tìm phòng & Lọc theo tầng, thời gian, sức chứa, thiết bị và loại khóa; xem sơ đồ phòng theo trạng thái. & Đã triển khai \\
+Đặt và duyệt & Tạo yêu cầu, kiểm tra quy tắc; phê duyệt, từ chối, đổi phòng và hủy theo thời hạn. & Đã triển khai \\
+Đặt lặp hàng tuần & Tạo tối đa tám lượt, quản lý các lượt tương lai và duyệt theo chuỗi. & Đã triển khai \\
+Phòng và bảo trì & Quản lý thông tin phòng, lịch bảo trì, yêu cầu báo sự cố và lịch sử sử dụng. & Đã triển khai \\
+Truy cập phòng & Thỏa thuận lịch nhận khóa cơ/thẻ từ; cấp quyền và tạo mã PIN bảy chữ số cho phòng khóa số. & Đã triển khai \\
+Điểm danh & Ghi nhận việc vào, ra phòng và xử lý trường hợp người đặt không đến. & Đã triển khai \\
+Thông báo, cấu hình & Thông báo theo sự kiện, thông báo ưu tiên và điều chỉnh quy tắc nghiệp vụ. & Đã triển khai \\
 \midrule
-Đồng bộ nhiều thiết bị & Dùng booking server làm nguồn dữ liệu chung; đã kiểm thử với máy chủ H2 cục bộ. & Đang hoàn thiện \\
-Kiểm chứng khóa thật & Xác nhận SmartLock thật nhận và áp dụng mật khẩu. & Giai đoạn sau \\
-Mở rộng & QR check-in, thống kê mức sử dụng, gợi ý phòng nâng cao. & Giai đoạn sau \\
+Đồng bộ nhiều thiết bị & Dùng dịch vụ dữ liệu chung; hiện đã kiểm tra với máy chủ và cơ sở dữ liệu trong môi trường cục bộ. & Đang hoàn thiện \\
+Kiểm chứng khóa thật & Xác nhận khóa vật lý nhận và áp dụng mật khẩu theo đúng thời hạn. & Giai đoạn sau \\
+Chức năng mở rộng & Thống kê mức sử dụng, gợi ý phòng nâng cao và phương án điểm danh bổ sung. & Giai đoạn sau \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Các quy tắc nghiệp vụ của MVP được tham số hóa trong kiểu \texttt{AppConfiguration} để quản trị viên thay đổi ngay trong ứng dụng. Cấu hình mặc định yêu cầu đặt trước từ 1 đến 3 ngày; khi cần cho phép đặt cùng ngày, quản trị viên có thể đặt giá trị tối thiểu về 0. Mỗi người dùng có tối đa 2 yêu cầu đang chờ hoặc sắp dùng; hạn hủy và hạn đổi phòng là 30 phút trước giờ bắt đầu; mã PIN có hiệu lực từ 10 phút trước đến 10 phút sau phiên; thời gian ân hạn trước khi ghi nhận no-show là 15 phút. Vòng đời trạng thái của một booking được thể hiện ở Hình \ref{fig:state}.
+Quản trị viên có thể điều chỉnh khoảng thời gian được phép đặt trước. Cấu hình ban đầu yêu cầu đặt trước từ một đến ba ngày; nếu cho phép đặt cùng ngày, giới hạn tối thiểu có thể giảm về không. Mỗi người dùng có tối đa hai yêu cầu đang chờ hoặc sắp sử dụng. Yêu cầu hủy và quyết định đổi phòng phải tuân theo hạn trước giờ bắt đầu. Với khóa số, mã PIN có hiệu lực từ mười phút trước đến mười phút sau phiên sử dụng; trường hợp không đến được xác định sau thời gian ân hạn mười lăm phút. Các mốc thời gian này được kiểm tra theo cấu hình hiện hành thay vì cố định trong từng màn hình. Vòng đời một lượt đặt phòng được minh họa ở Hình~\ref{fig:state}.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.98\textwidth]{trang_thai_booking.pdf}
-\caption{Vòng đời trạng thái của một booking}
+\caption{Vòng đời trạng thái của một lượt đặt phòng}
 \label{fig:state}
 \end{figure}
 
-\section{Tổ chức mã nguồn ứng dụng}
+\section{Tổ chức và phân chia trách nhiệm}
 
-Mã nguồn ứng dụng được chia thành ba vùng. Vùng \texttt{src/core} chứa thành phần hạ tầng dùng chung: kiểu người dùng, lớp bọc Async Storage, tham số \texttt{ENABLE\_REMOTE\_SYNC} và hàm \texttt{apiRequest} gắn token phiên. Vùng \texttt{src/shared} chứa các thành phần giao diện dùng chung như \texttt{ScreenHeader} và \texttt{PasswordInput}. Vùng \texttt{src/modules} chứa mười module nghiệp vụ; mỗi module sử dụng cấu trúc \texttt{screens/}, \texttt{components/}, \texttt{services/}, \texttt{model/} và công khai API qua \texttt{index.ts}. Quy ước này giúp các thành viên phát triển độc lập và giảm xung đột khi hợp nhất mã. Đoạn mã \ref{lst:dualmode} minh họa cách lớp dịch vụ lựa chọn nguồn dữ liệu.
+Mã nguồn ứng dụng được chia thành phần hạ tầng dùng chung, các thành phần giao diện tái sử dụng và mười module nghiệp vụ. Mỗi module tập hợp màn hình, dịch vụ xử lý và mô hình dữ liệu của một phạm vi chức năng. Cách tổ chức này giúp các thành viên phụ trách những phần khác nhau mà vẫn dùng chung quy tắc về tài khoản, lưu trữ và trao đổi dữ liệu.
 
-\begin{code}[H]
-\caption{Hàm dịch vụ lựa chọn nguồn dữ liệu (rút gọn)}\label{lst:dualmode}
-\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
-export async function createBooking(input: CreateBookingInput) {
-  if (isRemoteApiEnabled()) {          // chế độ đồng bộ qua server
-    const r = await apiRequest<{booking: Booking}>('/api/bookings',
-                                 {method: 'POST', body: input});
-    return r.booking;
-  }
-  await assertAccountRole(input.requesterUsername, 'user');
-  const bookings = await getBookings(); // chế độ local: Async Storage
-  ...
-}
-\end{Verbatim}
-\end{code}
+Khi hoạt động cục bộ, thao tác nghiệp vụ đọc và ghi dữ liệu trên điện thoại. Ở chế độ đồng bộ, ứng dụng trao đổi dữ liệu với máy chủ qua giao diện mạng và sử dụng phiên đăng nhập để xác định quyền truy cập. Hai chế độ cùng phục vụ một luồng thao tác của người dùng; việc kiểm chứng trên nhiều thiết bị vẫn là công việc tiếp theo.
 
-\section{Lập trình theo từng module}
+\section{Các module nghiệp vụ}
 \label{section:modules}
 
-Bảng \ref{tab:modules} tổng hợp mười module, khóa lưu trữ và người phụ trách chính. Các mục con sau đó phân tích những điểm lập trình quan trọng của từng module.
+Bảng~\ref{tab:modules} trình bày mười module theo trách nhiệm đối với người sử dụng. Các mục sau giải thích cách những module này phối hợp để thực hiện quy tắc nghiệp vụ, thay vì liệt kê từng hàm hoặc biến trong chương trình.
 
 \begin{table}[H]
 \centering
-\caption{Danh sách module của ứng dụng}
+\caption{Phân chia module của ứng dụng}
 \label{tab:modules}
 \small
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm} X >{\raggedright\arraybackslash}p{3.1cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.1cm} X}
 \toprule
 \rowcolor{RoomHubLight}
-\textbf{Module} & \textbf{Phạm vi} & \textbf{Dữ liệu cục bộ} \\
+\textbf{Module} & \textbf{Trách nhiệm chính} \\
 \midrule
-\texttt{auth} & Đăng nhập, đăng ký, đổi/khôi phục mật khẩu & \texttt{auth.accounts} \\
-\path{account_management} & Quản lý và phân quyền tài khoản & dùng \texttt{auth} \\
-\path{room_management} & CRUD phòng, tìm phòng, sơ đồ tầng & \texttt{rooms.records} \\
-\texttt{booking} & Đặt, duyệt, hủy, lặp tuần, đổi phòng, điểm danh & \texttt{booking.records} \\
-\path{schedule_maintenance} & Lịch và yêu cầu bảo trì & \texttt{maintenance.*} \\
-\texttt{access\_control} & Quyền tạo mã, PIN tạm thời & \path{access.roomPinPermissions} \\
-\texttt{smart\_lock} & Gắn khóa vào phòng, OneIoT, sự kiện khóa & \path{smartLock.primary} \\
-\texttt{notifications} & Thông báo và thông báo nổi ưu tiên & theo người dùng \\
-\texttt{profile} & Hồ sơ cá nhân & theo người dùng \\
-\texttt{configuration} & Tham số quy tắc nghiệp vụ & \path{configuration.app} \\
+Xác thực & Đăng nhập, đăng ký, đổi và khôi phục mật khẩu. \\
+Quản lý tài khoản & Tìm kiếm, cập nhật, phân quyền và vô hiệu hóa tài khoản. \\
+Quản lý phòng & Lưu thông tin phòng, tìm kiếm và trình bày sơ đồ theo tầng. \\
+Đặt phòng & Tạo, duyệt, hủy, đổi phòng, đặt lặp và theo dõi việc sử dụng. \\
+Lịch và bảo trì & Quản lý lịch bảo trì, tiếp nhận yêu cầu báo sự cố. \\
+Quyền truy cập & Cấp quyền theo phòng và tạo mã PIN tạm thời. \\
+Khóa thông minh & Gắn khóa vào phòng, trao đổi bản tin và tiếp nhận sự kiện từ khóa. \\
+Thông báo & Gửi và phân loại thông báo theo sự kiện nghiệp vụ. \\
+Hồ sơ cá nhân & Xem và cập nhật thông tin của người đang đăng nhập. \\
+Cấu hình & Điều chỉnh giới hạn đặt phòng và các thời hạn nghiệp vụ. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{Module auth và account\_management}
+\subsection{Tài khoản và quản lý người dùng}
 
-Module \texttt{auth} lưu tài khoản dưới kiểu \texttt{AccountRecord}, gồm tên đăng nhập, mật khẩu, mã khôi phục tùy chọn, vai trò và trạng thái hoạt động. Lần chạy đầu, hệ thống khởi tạo hai tài khoản thử nghiệm cho hai vai trò. Khi đăng ký, tên đăng nhập, mật khẩu và xác nhận mật khẩu là các trường bắt buộc; thông tin cá nhân và mã khôi phục được đặt ở nhóm tùy chọn. Hàm \texttt{registerAccount} kiểm tra định dạng tên, độ dài mật khẩu và tên không trùng. Hàm \texttt{resetPasswordWithRecoveryCode} chỉ hoạt động với tài khoản đã thiết lập mã khôi phục. Các thao tác nghiệp vụ quan trọng gọi \texttt{assertAccountRole} để xác nhận tài khoản còn hoạt động và có đúng vai trò. Trong \texttt{account\_management}, quản trị viên không thể tự khóa, tự đổi vai trò hoặc xóa tài khoản còn lịch đặt đang hoạt động.
+Lần chạy đầu, ứng dụng chuẩn bị hai tài khoản thử nghiệm tương ứng với hai vai trò. Khi đăng ký, người dùng phải nhập tên đăng nhập, mật khẩu và xác nhận mật khẩu; thông tin cá nhân và mã khôi phục là tùy chọn. Hệ thống từ chối tên đăng nhập trùng hoặc mật khẩu không hợp lệ. Việc khôi phục mật khẩu chỉ áp dụng cho tài khoản đã thiết lập mã khôi phục.
 
-\subsection{Module room\_management}
+Trước những thao tác có ảnh hưởng đến dữ liệu, ứng dụng kiểm tra tài khoản còn hoạt động và có đúng quyền. Quản trị viên không thể tự vô hiệu hóa hoặc xóa tài khoản của mình, đồng thời không thể xóa tài khoản còn lịch đặt đang hoạt động.
 
-Dữ liệu khởi tạo gồm 56 phòng, bảy phòng trên mỗi tầng của tòa nhà tám tầng, với sức chứa và thiết bị khác nhau. Các hàm \texttt{createRoom}, \texttt{updateRoom}, \texttt{deleteRoom} kiểm tra tầng trong khoảng 1--8, sức chứa nguyên dương, tên không trùng và không cho xóa phòng còn yêu cầu đang hoạt động. Hàm \texttt{searchRooms} lọc theo từ khóa, tầng, sức chứa tối thiểu, thiết bị và loại khóa. \texttt{RoomSearchScreen} hiển thị kết quả trên sơ đồ tầng theo trạng thái khả dụng. \texttt{RoomManagementScreen} hợp nhất quản lý phòng và bảo trì: quản trị viên chọn tầng, chọn phòng rồi sửa, xóa, lên lịch bảo trì hoặc xem lịch sử sử dụng.
+\subsection{Phòng và tra cứu phòng}
 
-\subsection{Module booking}
+Dữ liệu trình diễn gồm 56 phòng thuộc tám tầng, mỗi tầng bảy phòng với sức chứa và thiết bị khác nhau. Khi thêm hoặc sửa phòng, hệ thống kiểm tra tầng, sức chứa và tên phòng để tránh dữ liệu không hợp lệ hoặc trùng lặp. Phòng còn gắn với yêu cầu đang hoạt động không thể bị xóa tùy tiện.
 
-Đây là module lớn nhất (\texttt{bookingRepository.ts}, khoảng 760 dòng), tập trung toàn bộ quy tắc đặt phòng. Hàm \texttt{validateBooking} ở Đoạn mã \ref{lst:validate} kiểm tra lần lượt: phòng tồn tại và sẵn sàng, định dạng ngày giờ, cửa sổ đặt trước, khoảng thời gian chưa kết thúc, không trùng bảo trì, không trùng booking khác của phòng, không trùng lịch của chính người đặt, giới hạn số yêu cầu đang hoạt động và mục đích sử dụng không rỗng. Hai khoảng thời gian được coi là trùng khi cùng ngày và \texttt{start < other.end} và \texttt{end > other.start}.
+Giảng viên có thể lọc phòng theo tầng, khung giờ, sức chứa, thiết bị và loại khóa. Kết quả được thể hiện trên sơ đồ tầng với màu trạng thái. Ở phía quản trị, danh sách phòng được thu gọn theo tám tầng; chọn một phòng sẽ mở các thao tác sửa, xóa, lên lịch bảo trì và xem lịch sử sử dụng.
 
-\begin{code}[H]
-\caption{Kiểm tra quy tắc khi tạo booking (rút gọn)}\label{lst:validate}
-\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
-if (!room || room.status !== 'AVAILABLE') throw new Error('Phòng không tồn tại...');
-if (dayDiff < cfg.minAdvanceDays || dayDiff > cfg.maxAdvanceDays)
-  throw new Error(`Chỉ được đặt trước từ ${cfg.minAdvanceDays} đến ...`);
-if (await hasMaintenanceConflict(roomId, date, startTime, endTime))
-  throw new Error('Phòng có lịch bảo trì trong khoảng thời gian này.');
-const active = bookings.filter(b => isBookingStillActive(b));
-if (active.some(b => b.roomId === roomId && overlaps(b, date, startTime, endTime)))
-  throw new Error('Phòng đã có yêu cầu khác trong khoảng thời gian này.');
-if (active.filter(b => b.requesterUsername === user).length >= cfg.maxActiveBookingsPerUser)
-  throw new Error('Mỗi người chỉ có tối đa ... yêu cầu');
-if (!input.purpose.trim()) throw new Error('Vui lòng nhập mục đích sử dụng phòng.');
-\end{Verbatim}
-\end{code}
+\subsection{Đặt phòng, phê duyệt và sử dụng}
 
-Chức năng đặt lặp hàng tuần sinh tối đa 8 lượt cách nhau 7 ngày, gán chung \texttt{recurringSeriesId} và chỉ áp dụng cửa sổ đặt trước, giới hạn số yêu cầu cho lượt đầu tiên. Các hàm \path{reviewRecurringSeries}, \path{updatePendingRecurringBookings} và \path{cancelFutureRecurringBookings} tuân theo nguyên tắc ``tất cả hoặc không'': hệ thống kiểm tra toàn bộ chuỗi trước và chỉ ghi dữ liệu khi không lượt nào vi phạm. Khi duyệt, \texttt{reviewBooking} kiểm tra lại lịch đã duyệt và lịch bảo trì, sau đó cấp quyền tạo mã nếu phòng dùng khóa số. \texttt{changeBookingRoom} chỉ chấp nhận phòng có cùng loại khóa, sức chứa không nhỏ hơn và đủ thiết bị so với phòng cũ. \texttt{confirmBookingNoShow} chỉ ghi nhận vắng mặt sau thời gian ân hạn và khi chưa có bằng chứng check-in; hệ thống đồng thời giải phóng khung giờ và thu hồi mã.
+Khi gửi yêu cầu, ứng dụng kiểm tra phòng còn hoạt động, mục đích sử dụng đã được nhập, thời gian nằm trong khoảng được phép đặt và phiên sử dụng chưa kết thúc. Yêu cầu bị từ chối nếu phòng đang bảo trì, đã có lịch trùng, người đặt có lịch sử dụng khác cùng thời điểm hoặc đã đạt giới hạn yêu cầu. Hai lịch được xem là trùng khi cùng phòng và khoảng thời gian sử dụng của chúng có phần giao nhau; các khoảng chỉ tiếp giáp ở thời điểm kết thúc hoặc bắt đầu vẫn có thể được xét riêng.
 
-\subsection{Module schedule\_maintenance}
+Với yêu cầu lặp hàng tuần, hệ thống tạo tối đa tám lượt và kiểm tra cả chuỗi trước khi ghi nhận. Nếu một lượt vi phạm quy tắc, thao tác không được lưu dở dang. Quản trị viên duyệt hoặc từ chối yêu cầu sau khi kiểm tra lại lịch phòng và lịch bảo trì. Khi cần đổi phòng, phòng thay thế phải có cùng loại khóa, sức chứa không nhỏ hơn và đủ thiết bị so với phòng ban đầu.
 
-Module quản lý hai loại dữ liệu: lịch bảo trì (\texttt{MaintenanceRecord}) do quản trị viên tạo và yêu cầu bảo trì (\texttt{MaintenanceRequest}) do người dùng gửi. \texttt{createMaintenance} từ chối lịch trùng với bảo trì khác hoặc lịch đặt đã duyệt, yêu cầu quản trị viên đổi phòng trước khi tạo lịch bảo trì. \texttt{requestRoomMaintenance} chỉ cho phép báo sự cố trong thời gian sử dụng một lịch đặt đã duyệt của chính người gửi; mỗi lượt sử dụng có tối đa một yêu cầu chờ xử lý. Phòng có yêu cầu đang chờ được đánh dấu trên sơ đồ quản trị.
+Lịch sắp tới, lịch đã sử dụng và lịch đã hủy được trình bày theo trạng thái để tránh lặp thao tác ở nhiều nơi. Nếu người đặt không đến sau thời gian ân hạn và chưa có bằng chứng vào phòng, quản trị viên có thể ghi nhận vắng mặt; khung giờ được giải phóng và quyền dùng mã tương ứng được thu hồi.
 
-\subsection{Module access\_control}
+\subsection{Bảo trì và báo sự cố}
 
-Quyền tự tạo mã được lưu theo cặp người dùng--phòng (\texttt{RoomPinPermission}), không gắn cố định với toàn bộ hệ thống. Vì vậy, quản trị viên có thể thu hồi quyền tại một phòng mà không ảnh hưởng phòng khác. \texttt{createTemporaryPin} kiểm tra lịch đặt đã duyệt, loại khóa, mã còn hiệu lực, chủ lịch đặt và quyền tại phòng. Mã gồm 7 chữ số, có hiệu lực từ \texttt{start - pinGraceMinutes} đến \texttt{end + pinGraceMinutes}. Mã được lưu cục bộ trước; nếu phiên OneIoT đang mở thì gửi ngay, nếu chưa thì \texttt{deliverPendingTemporaryPins} gửi các mã còn chờ khi kết nối (Đoạn mã \ref{lst:pin}). Cách làm này cho phép ứng dụng hiển thị mã ngay cả khi tạm thời mất kết nối.
+Quản trị viên có thể tạo lịch bảo trì cố định, nhưng lịch này không được chồng với bảo trì khác hoặc lượt đặt đã được duyệt. Nếu phòng đã được đặt, người quản lý phải xử lý việc đổi phòng trước khi chặn sử dụng. Trong thời gian sử dụng một lịch đã duyệt, người dùng có thể gửi lý do báo sự cố cho chính phòng đó. Mỗi lượt sử dụng chỉ giữ một yêu cầu đang chờ; tầng và phòng có yêu cầu sẽ được đánh dấu để quản trị viên nhận biết.
 
-\begin{code}[H]
-\caption{Lưu mã trước, gửi tới khóa khi có kết nối (rút gọn)}\label{lst:pin}
-\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
-const code = generateSevenDigitPin();
-const validFrom = addMinutes(start, -cfg.pinGraceMinutes);
-const validUntil = addMinutes(end, cfg.pinGraceMinutes);
-const { lock, passwordId } = await reserveSmartLockPasswordId(booking.roomId);
-let updated = await saveTemporaryPin(bookingId, { code, validFrom, validUntil,
-                                                  lockPasswordId: passwordId, ... });
-const status = await getOneIoTConnectionStatus().catch(() => ({connected:false}));
-if (status.connected) updated = await deliverTemporaryPin(updated, lock);
-\end{Verbatim}
-\end{code}
+\subsection{Quyền truy cập và khóa thông minh}
 
-\subsection{Module smart\_lock và tích hợp OneIoT}
+Quyền tự tạo mã PIN được cấp theo từng cặp người dùng và phòng. Vì vậy, việc thu hồi quyền ở một phòng không làm thay đổi quyền ở phòng khác. Trước khi cấp mã, hệ thống đối chiếu lịch đã duyệt, người sở hữu lịch, loại khóa, thời hạn sử dụng và quyền tại phòng. Mỗi mã có bảy chữ số và thời hạn bao gồm mười phút trước giờ bắt đầu đến mười phút sau giờ kết thúc.
 
-Ứng dụng giao tiếp với SmartLock thông qua nền tảng OneIoT bằng giao thức MQTT bảo mật. Hệ thống cho phép gửi mã PIN tạm thời tới khóa và nhận các sự kiện truy cập để cập nhật trạng thái booking. Thông tin xác thực OneIoT chỉ được lưu trong phiên làm việc và được xóa khi người dùng đăng xuất hoặc ứng dụng ngừng kết nối.
+Ứng dụng lưu mã để người dùng nhìn thấy trước. Nếu đã có phiên kết nối OneIoT, lệnh tạo mật khẩu được gửi đến khóa gắn với phòng; nếu chưa kết nối, lệnh được giữ chờ và gửi khi phiên hợp lệ được mở. Cách xử lý này cho phép chuẩn bị mã trong lúc mất mạng, nhưng việc khóa thật nhận và áp dụng mã vẫn cần kiểm chứng riêng. Với phòng dùng khóa cơ hoặc thẻ từ, người dùng và quản trị viên thống nhất lịch nhận khóa; người dùng có thể ủy quyền người nhận hộ theo quy định.
 
-\subsection{Module notifications, profile và configuration}
+Ứng dụng cũng tiếp nhận sự kiện truy cập do khóa phát ra để cập nhật việc vào và ra phòng. Thông tin xác thực OneIoT chỉ tồn tại trong phiên làm việc và được xóa khi phiên kết thúc.
 
-Hàm \texttt{addNotification} được gọi khi phát sinh sự kiện như tạo yêu cầu, duyệt, từ chối, cấp mã hoặc đổi phòng. Hàm \texttt{getNotificationTone} phân loại thông báo thành tích cực, tiêu cực, cần chú ý hoặc trung tính để sử dụng màu sắc nhất quán. Sự kiện ưu tiên được hiển thị bằng thông báo nổi thông qua module native \texttt{PriorityNotificationPackage}. Module \texttt{profile} lưu họ tên, email, số điện thoại và đơn vị theo tài khoản. Module \texttt{configuration} kiểm tra các tham số là số nguyên không âm, số ngày tối thiểu không lớn hơn tối đa và giới hạn yêu cầu ít nhất là 1 trước khi lưu.
+\subsection{Thông báo, hồ sơ và cấu hình}
 
-\subsection{Booking server}
+Các sự kiện như gửi yêu cầu, duyệt, từ chối, cấp mã hoặc đổi phòng đều có thông báo phù hợp. Thông báo được phân loại theo ý nghĩa tích cực, tiêu cực, cần chú ý hoặc trung tính để màu sắc không gây hiểu nhầm. Sự kiện ưu tiên có thể hiện bằng thông báo nổi. Người dùng quản lý hồ sơ cá nhân; quản trị viên điều chỉnh các giới hạn và thời hạn nghiệp vụ. Trước khi lưu cấu hình, hệ thống kiểm tra các giá trị không âm, khoảng đặt trước hợp lệ và giới hạn yêu cầu ít nhất là một.
 
-Booking server gồm các lớp chính: \texttt{ApiController} công khai API cho tài khoản, phòng, cấu hình, bảo trì, lịch đặt, quyền tạo mã và thông báo; \texttt{BookingService} thực thi quy tắc nghiệp vụ; \texttt{SessionAuthFilter} kiểm tra token Bearer; \texttt{ApiExceptionHandler} chuẩn hóa lỗi; \texttt{DataSeeder} tạo dữ liệu ban đầu. Mặc định server dùng H2 dạng tệp cục bộ; cấu hình \texttt{remote} cho phép kết nối cơ sở dữ liệu từ xa qua SSL. Mã nguồn đã sẵn sàng cho kiểm thử đồng bộ, trong khi bản trình diễn đặt \texttt{ENABLE\_REMOTE\_SYNC = false}.
+\subsection{Dịch vụ đồng bộ dữ liệu}
+
+Dịch vụ Java Spring Boot cung cấp giao diện dữ liệu cho tài khoản, phòng, cấu hình, bảo trì, lịch đặt, quyền tạo mã và thông báo. Tại máy chủ, các yêu cầu được xác thực theo phiên, kiểm tra quy tắc nghiệp vụ và trả lỗi theo một cách thống nhất. Cơ sở dữ liệu H2 được dùng để kiểm thử cục bộ; cấu hình kết nối cơ sở dữ liệu từ xa đã được chuẩn bị. Bản trình diễn trên điện thoại hiện dùng dữ liệu cục bộ để không phụ thuộc trạng thái máy chủ.
 
 \section{Điều hướng giao diện}
 
-Hình \ref{fig:ui-flow} tóm tắt cấu trúc điều hướng được đối chiếu với mã nguồn hiện tại. Ở vai trò người dùng, thao tác tìm phòng và gửi yêu cầu nằm trong cùng màn hình \texttt{RoomSearchScreen}: sau khi chọn khung giờ và phòng, người dùng nhập mục đích rồi gửi yêu cầu trực tiếp. Ở vai trò quản trị viên, \texttt{RoomManagementScreen} gộp thông tin phòng và bảo trì; quản trị viên chọn tầng, chọn phòng rồi thực hiện thao tác tương ứng. Các chức năng khác được mở từ màn hình chính theo vai trò. Ảnh chụp giao diện ứng dụng hiện tại được trình bày tại Phụ lục \ref{appendix:ui-archive}.
+Hình~\ref{fig:ui-flow} tóm tắt cách di chuyển giữa các chức năng theo vai trò. Giảng viên chọn khung giờ, lọc và chọn phòng, nhập mục đích rồi gửi yêu cầu ngay trên cùng một màn hình. Quản trị viên mở quản lý phòng và bảo trì theo tầng, chọn phòng rồi thực hiện thao tác tương ứng. Các chức năng khác được mở từ màn hình chính của từng vai trò. Ảnh chụp trực tiếp từ ứng dụng hiện tại được trình bày tại Phụ lục~\ref{appendix:ui-archive}.
 
 \begin{figure}[H]
 \centering

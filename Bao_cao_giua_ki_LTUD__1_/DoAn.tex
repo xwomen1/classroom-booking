@@ -45,8 +45,6 @@
 \usepackage{xurl}
 \usepackage{setspace}
 \usepackage{microtype}
-\usepackage{fvextra}
-\usepackage{newfloat}
 
 \definecolor{RoomHubBlue}{HTML}{174A7E}
 \definecolor{RoomHubLight}{HTML}{EAF2F8}
@@ -71,13 +69,6 @@
 \counterwithin{table}{chapter}
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{2}
-
-\DeclareFloatingEnvironment[
-  name=Đoạn mã,
-  listname={DANH MỤC ĐOẠN MÃ},
-  within=chapter
-]{code}
-\captionsetup[code]{skip=5pt}
 
 \titleformat{\chapter}[display]
   {\centering\bfseries\color{RoomHubBlue}}

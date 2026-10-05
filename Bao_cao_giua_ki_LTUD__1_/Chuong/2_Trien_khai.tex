@@ -15,14 +15,11 @@ Hệ thống RoomHub gồm năm thành phần nằm chung trong kho mã nguồn 
 \midrule
 Ứng dụng di động \path{code/booking_classroom} & React Native 0.86, TypeScript, Kotlin & Giao diện Admin/User, toàn bộ nghiệp vụ đặt phòng, lưu dữ liệu cục bộ, kết nối OneIoT qua module native. \\
 Booking server \path{code/booking-server} & Java, Spring Boot, H2 & REST API cho đăng nhập, phòng, booking, phê duyệt, mã tạm thời, thông báo; dùng khi bật đồng bộ. \\
-Giả lập SmartLock \texttt{tunghv2} & Python & Mô phỏng khóa mã số để thử luồng gửi/nhận bản tin khi chưa có khóa thật. \\
-Gateway \texttt{tunghv3} & Python & Cầu nối HTTP--MQTT phiên bản cũ, giữ lại để tham khảo. \\
-Tài liệu & \LaTeX, PDF & Đề xuất dự án, workflow nghiệp vụ, hiện trạng triển khai. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Hình \ref{fig:architecture} mô tả kiến trúc tổng thể. Ứng dụng được tổ chức theo ba lớp: lớp màn hình (\textit{screens}), lớp dịch vụ nghiệp vụ (\textit{services}) và lớp lưu trữ. Lớp dịch vụ chọn nguồn dữ liệu theo cờ \texttt{ENABLE\_REMOTE\_SYNC}: khi cờ tắt, dữ liệu đọc/ghi qua Async Storage; khi cờ bật, cùng hàm dịch vụ sẽ gọi REST API của booking server. Kết nối tới khóa mã số đi qua module native Kotlin \texttt{OneIoTMqtt}, mở phiên MQTT/TLS tới \texttt{oneiot.com.vn:2111}.
+Hình \ref{fig:architecture} mô tả kiến trúc tổng thể. Ứng dụng được tổ chức theo ba lớp: lớp màn hình (\textit{screens}), lớp dịch vụ nghiệp vụ (\textit{services}) và lớp lưu trữ. 
 
 \begin{figure}[H]
 \centering
@@ -173,7 +170,7 @@ if (status.connected) updated = await deliverTemporaryPin(updated, lock);
 
 \subsection{Module smart\_lock và tích hợp OneIoT}
 
-Phần TypeScript (\texttt{oneIoTClient.ts}) gọi module native \texttt{OneIoTMqtt} viết bằng Kotlin. Module native tự cài đặt một MQTT client tối giản trên \texttt{SSLSocket}, đăng ký bốn topic \texttt{/oneM2M/req|resp/...} của SmartLock và phát sự kiện \texttt{OneIoTSmartLockEvent} về JavaScript. Lệnh tạo mật khẩu được đóng gói thành bản tin oneM2M \texttt{m2m:cin} gửi tới \texttt{cnt\_command} của thiết bị, trong đó trait \texttt{traitCreateTmpPasswordLock} chứa \texttt{passwordID}, thời gian hiệu lực và mật khẩu đã mã hóa AES-CTR (khóa băm SHA-256 từ ID thiết bị, nonce băm MD5 từ thời gian và ID mật khẩu). Ở chiều ngược lại, \texttt{parseSmartLockAccessEvent} phân tích bản tin, nhận diện mở khóa thành công là \texttt{CHECK\_IN} và các trait kết thúc là \texttt{CHECK\_OUT}, rồi \texttt{recordSmartLockAccessEvent} ghi vào booking đúng phòng và đúng khung giờ. Token OneIoT chỉ giữ trong RAM của phiên; phiên tự đóng khi ứng dụng chuyển nền, bị hủy hoặc người dùng đăng xuất.
+Ứng dụng giao tiếp với SmartLock thông qua nền tảng OneIoT bằng giao thức MQTT bảo mật. Hệ thống cho phép gửi mã PIN tạm thời tới khóa và nhận các sự kiện truy cập để cập nhật trạng thái booking. Thông tin xác thực OneIoT chỉ được lưu trong phiên làm việc và được xóa khi người dùng đăng xuất hoặc ứng dụng ngừng kết nối.
 
 \subsection{Module notifications, profile và configuration}
 
@@ -189,24 +186,66 @@ Hình \ref{fig:ui1} và Hình \ref{fig:ui2} là ảnh chụp ứng dụng bản 
 
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{dang_nhap.jpg}\caption{Đăng nhập}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{dashboard_user.jpg}\caption{Chế độ User}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{tim_phong.jpg}\caption{Tìm phòng}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{dat_phong.jpg}\caption{Đặt phòng}\end{subfigure}
+
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{dang_nhap.jpg}
+    \caption{Đăng nhập}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{dashboard_user.jpg}
+    \caption{Chế độ User}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{tim_phong.jpg}
+    \caption{Tìm phòng}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{dat_phong.jpg}
+    \caption{Đặt phòng}
+\end{subfigure}
+
 \caption{Giao diện phía người dùng}
 \label{fig:ui1}
 \end{figure}
 
+
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{dashboard_admin.jpg}\caption{Chế độ Admin}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{quan_ly_phong.jpg}\caption{Quản lý phòng}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{smartlock.jpg}\caption{Quản lý khóa}\end{subfigure}\hfill
-\begin{subfigure}{0.23\textwidth}\includegraphics[width=\linewidth]{cau_hinh.jpg}\caption{Cấu hình}\end{subfigure}
+
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{dashboard_admin.jpg}
+    \caption{Chế độ Admin}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{quan_ly_phong.jpg}
+    \caption{Quản lý phòng}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{smartlock.jpg}
+    \caption{Quản lý khóa}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.23\textwidth}
+    \centering
+    \includegraphics[height=6.8cm,keepaspectratio]{cau_hinh.jpg}
+    \caption{Cấu hình}
+\end{subfigure}
+
 \caption{Giao diện phía quản trị viên}
 \label{fig:ui2}
 \end{figure}
-
 \section{Phân công và đóng góp}
 
 Bảng \ref{tab:contrib} tổng hợp phân công công việc và đóng góp chính của các thành viên trong nhóm.

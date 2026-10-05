@@ -1,0 +1,16 @@
+
+\section{Đặt vấn đề}
+
+Nhu cầu mượn phòng học và phòng họp của giảng viên diễn ra thường xuyên, nhưng việc mượn phòng hiện nay vẫn chủ yếu dựa trên trao đổi trực tiếp với cán bộ quản lý cơ sở vật chất. Người mượn khó biết phòng nào còn trống trong khung giờ mong muốn, thiếu thông tin nhanh về sức chứa, thiết bị và vị trí phòng trên từng tầng của tòa nhà tám tầng. Về phía quản lý, việc theo dõi lịch sử dụng, lịch bảo trì, bàn giao chìa khóa hoặc thẻ từ và xử lý trường hợp người đặt không đến được thực hiện thủ công, dễ dẫn đến trùng lịch và lãng phí phòng.
+
+Bên cạnh đó, một số phòng đã được trang bị khóa mã số có thể quản lý trực tuyến. Nếu hệ thống đặt phòng cấp được mật khẩu tạm thời cho khóa đúng theo khung giờ đã duyệt, người mượn có thể vào phòng mà không cần nhận chìa khóa, đồng thời quản lý có bằng chứng check-in và check-out.
+
+\section{Mục tiêu và phạm vi}
+
+Mục tiêu của dự án là xây dựng ứng dụng di động \textbf{RoomHub} quản lý xuyên suốt vòng đời một lượt mượn phòng, từ tìm phòng, đặt phòng, phê duyệt, cấp quyền truy cập đến sử dụng và kết thúc phiên. Hệ thống phục vụ hai nhóm người dùng: (i) quản trị viên (Admin) là cán bộ quản lý cơ sở vật chất, và (ii) người dùng (User) là giảng viên đặt và sử dụng phòng. Phạm vi áp dụng là các phòng học/phòng họp của một tòa nhà tám tầng, mỗi phòng có sức chứa, thiết bị và một trong hai loại khóa: khóa cơ/thẻ từ hoặc khóa mã số kết nối nền tảng OneIoT.
+
+\section{Định hướng giải pháp và tổ chức báo cáo}
+
+Nhóm lựa chọn React Native với TypeScript để xây dựng ứng dụng Android \cite{reactnative}, dữ liệu được lưu cục bộ bằng Async Storage \cite{asyncstorage} để ứng dụng hoạt động độc lập trên một thiết bị. Song song, nhóm xây dựng dịch vụ Java Spring Boot \cite{springboot} làm nền tảng đồng bộ dữ liệu, có thể bật bằng một cờ cấu hình. Với khóa mã số, ứng dụng kết nối trực tiếp tới OneIoT qua MQTT trên TLS \cite{mqtt} theo định dạng bản tin oneM2M \cite{onem2m} để gửi lệnh tạo mật khẩu tạm thời và nhận sự kiện mở khóa.
+
+Phần còn lại của báo cáo được tổ chức như sau. Chương \ref{chapter:Implementation} trình bày tổng thể thành phần hệ thống, phạm vi MVP đã chốt và phân tích mã nguồn theo từng module. Chương \ref{chapter:Testing} xây dựng quy trình kiểm thử, các kịch bản kiểm thử và kết quả. Phụ lục \ref{appendix:components} liệt kê chi tiết thành phần của kho mã nguồn; Phụ lục \ref{appendix:prompt} tổng hợp các prompt được sử dụng khi phát triển với trợ lý AI.

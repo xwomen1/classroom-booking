@@ -1,0 +1,191 @@
+% =====================================================================
+% Báo cáo dự án RoomHub (Booking Classroom) - dựa trên template SOICT
+% BIÊN DỊCH BẰNG XeLaTeX (Overleaf: Menu > Compiler > XeLaTeX).
+% Bản tối ưu cho Overleaf miễn phí: sơ đồ đã dựng sẵn thành PDF
+% (mã nguồn ở Hinhve/nguon_so_do), ảnh đã nén, không dùng TikZ,
+% glossaries, subfiles hay BibTeX nên chỉ cần 2 lần biên dịch.
+% =====================================================================
+\documentclass[a4paper,13pt,twoside]{report}
+\usepackage{scrextend}
+\changefontsizes{13pt}
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+  % Nạp font theo tên tệp (nhanh, không cần quét font hệ thống)
+  \setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular,
+    BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+  \setmonofont{texgyrecursor}[Scale=0.85, Extension=.otf, UprightFont=*-regular,
+    BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\else
+  \usepackage[utf8]{vietnam}
+  \usepackage{times}
+\fi
+\usepackage[top=2cm, bottom=2cm, left=3.5cm, right=2.5cm]{geometry}
+
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{chngcntr}
+\usepackage{fancyhdr}
+\usepackage{appendix}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{xurl}
+
+\usepackage{setspace}
+\usepackage{parskip}
+
+\renewcommand\appendixname{PHỤ LỤC}
+\renewcommand\appendixpagename{PHỤ LỤC}
+\renewcommand\appendixtocname{PHỤ LỤC}
+
+
+% ----- Định dạng code (fvextra hỗ trợ tiếng Việt trong khối mã) -----
+\usepackage{fvextra}
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[name=Đoạn mã, listname={DANH MỤC ĐOẠN MÃ}, within=chapter]{code}
+\captionsetup[code]{skip=4pt}
+
+\fancypagestyle{plain}{%
+\fancyhf{}
+\fancyfoot[RO,RE]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+\setlength{\headheight}{16pt}
+
+\def \TITLE{BÁO CÁO DỰ ÁN ROOMHUB}
+\def \AUTHOR{Nhóm RoomHub}
+
+\titleformat{\chapter}[hang]{\centering\bfseries}{CHƯƠNG \thechapter.\ }{0pt}{}[]
+\titlespacing*{\chapter}{0pt}{-20pt}{14pt}
+\titleformat{\section}[hang]{\bfseries}{\thechapter.\arabic{section}\ \ \ \ }{0pt}{}[]
+\titlespacing{\section}{0pt}{\parskip}{0.5\parskip}
+\titleformat{\subsection}[hang]{\bfseries}{\thechapter.\arabic{section}.\arabic{subsection}\ \ \ \ }{0pt}{}[]
+\titlespacing{\subsection}{0pt}{\parskip}{0.5\parskip}
+\renewcommand\thesubsubsection{\alph{subsubsection}}
+\titleformat{\subsubsection}[hang]{\bfseries\itshape}{\alph{subsubsection}, \ }{0pt}{}[]
+\titlespacing{\subsubsection}{0pt}{\parskip}{0.3\parskip}
+
+\usepackage{hyperref}
+\hypersetup{pdfborder={0 0 0}, pdftitle={\TITLE}, pdfauthor={\AUTHOR}}
+
+\graphicspath{{Hinhve/}}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\onehalfspacing
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{15pt}
+\setlist{itemsep=1pt,topsep=3pt,parsep=0pt}
+
+% =========================== BODY ===============
+\begin{document}
+\sloppy\emergencystretch=3em\raggedbottom
+\renewcommand{\chaptername}{Chương}\renewcommand{\figurename}{Hình}\renewcommand{\tablename}{Bảng}\renewcommand{\appendixname}{Phụ lục}
+\input{Bia}
+
+\pagenumbering{roman}
+\renewcommand*\contentsname{MỤC LỤC}
+\titlecontents{chapter}[0.0cm]{\bfseries\vspace{0.3cm}}{{\bfseries CHƯƠNG \thecontentslabel.\ }}{}{\titlerule*[0.3pc]{.}\contentspage}
+\titlecontents{section}[0.0cm]{\vspace{0.15cm}}{\thecontentslabel \ }{}{\titlerule*[0.3pc]{.}\contentspage}
+\titlecontents{subsection}[1.0cm]{\vspace{0.1cm}}{\thecontentslabel \ }{}{\titlerule*[0.3pc]{.}\contentspage}
+\begingroup\setstretch{1.2}
+\tableofcontents
+\endgroup
+\thispagestyle{empty}
+
+\newpage
+\renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
+{\let\oldnumberline\numberline
+\renewcommand{\numberline}{Hình~\oldnumberline}
+\listoffigures}
+
+\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}
+{\let\oldnumberline\numberline
+\renewcommand{\numberline}{Bảng~\oldnumberline}
+\listoftables}
+
+\chapter*{DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
+{\small
+\begin{longtable}{|>{\bfseries}p{2.4cm}|p{11.6cm}|}
+\hline
+\textbf{Thuật ngữ} & \textbf{Ý nghĩa} \\ \hline
+\endhead
+API & Giao diện lập trình ứng dụng (Application Programming Interface) \\ \hline
+APK & Gói cài đặt ứng dụng Android (Android Package) \\ \hline
+Booking & Một yêu cầu đặt phòng gồm phòng, ngày, khung giờ và mục đích \\ \hline
+CRUD & Tạo, đọc, cập nhật, xóa (Create, Read, Update, Delete) \\ \hline
+IoT & Internet vạn vật (Internet of Things) \\ \hline
+MQTT & Giao thức truyền thông điệp publish/subscribe (Message Queuing Telemetry Transport) \\ \hline
+MVP & Sản phẩm khả dụng tối thiểu (Minimum Viable Product) \\ \hline
+No-show & Người đặt không có mặt sử dụng phòng đã được duyệt \\ \hline
+PIN & Mã số dùng để mở khóa (Personal Identification Number) \\ \hline
+TLS & Giao thức bảo mật tầng vận chuyển (Transport Layer Security) \\ \hline
+UAT & Kiểm thử chấp nhận người dùng (User Acceptance Testing) \\ \hline
+\end{longtable}
+}
+
+\cleardoublepage
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE, LO]{\leftmark}
+\fancyfoot[RE, LO]{\thepage}
+
+\chapter{GIỚI THIỆU}
+\label{chapter:Introduction}
+\input{Chuong/1_Gioi_thieu}
+
+\chapter{TRIỂN KHAI HỆ THỐNG}
+\label{chapter:Implementation}
+\input{Chuong/2_Trien_khai}
+
+\chapter{QUY TRÌNH VÀ KỊCH BẢN KIỂM THỬ}
+\label{chapter:Testing}
+\input{Chuong/3_Kiem_thu}
+
+\chapter*{KẾT LUẬN}
+\addcontentsline{toc}{chapter}{KẾT LUẬN}
+\markboth{KẾT LUẬN}{}
+\input{Chuong/4_Ket_luan}
+
+% ===================================================
+\cleardoublepage
+\renewcommand\bibname{TÀI LIỆU THAM KHẢO}
+\phantomsection\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
+\begin{thebibliography}{9}
+\bibitem{reactnative} Meta Platforms, ``React Native -- Learn once, write anywhere.'' \url{https://reactnative.dev/docs/getting-started}. Truy cập 10/2026.
+\bibitem{asyncstorage} React Native Community, ``Async Storage -- An asynchronous, persistent, key-value storage system for React Native.'' \url{https://react-native-async-storage.github.io/async-storage/}. Truy cập 10/2026.
+\bibitem{springboot} VMware Tanzu, ``Spring Boot Reference Documentation.'' \url{https://docs.spring.io/spring-boot/}. Truy cập 10/2026.
+\bibitem{mqtt} OASIS, ``MQTT Version 3.1.1, OASIS Standard,'' 2014. \url{https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html}.
+\bibitem{onem2m} oneM2M Partners, ``oneM2M TS-0010: MQTT Protocol Binding.'' \url{https://www.onem2m.org/technical/published-specifications}. Truy cập 10/2026.
+\bibitem{istqb} ISTQB, ``Certified Tester Foundation Level Syllabus v4.0,'' 2023. \url{https://www.istqb.org/}.
+\bibitem{jest} OpenJS Foundation, ``Jest -- Delightful JavaScript Testing.'' \url{https://jestjs.io/docs/getting-started}. Truy cập 10/2026.
+\end{thebibliography}
+
+\appendixpage
+\appendices
+\addappheadtotoc
+\titleformat{\chapter}[hang]{\centering\bfseries}{\thechapter.\ }{0pt}{}[]
+\titlespacing*{\chapter}{0pt}{-20pt}{14pt}
+\titlecontents{chapter}[0.0cm]{\bfseries\vspace{0.3cm}}{{\bfseries \thecontentslabel.\ }}{}{\titlerule*[0.3pc]{.}\contentspage}
+
+\chapter{TỔNG THỂ THÀNH PHẦN DỰ ÁN}
+\label{appendix:components}
+\input{Chuong/Phu_luc_A}
+
+\chapter{PROMPT SỬ DỤNG TRONG QUÁ TRÌNH PHÁT TRIỂN}
+\label{appendix:prompt}
+\input{Chuong/Phu_luc_B}
+\end{document}

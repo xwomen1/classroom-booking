@@ -1,0 +1,70 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\tikzset{
+ act/.style={rectangle,rounded corners=6pt,draw=navy,thick,fill=lblue,align=center,font=\footnotesize,text width=3.3cm,minimum height=0.85cm,inner sep=2pt},
+ dec/.style={diamond,draw=navy,thick,fill=lyel,aspect=2.2,font=\scriptsize,align=center,inner sep=0.5pt},
+ st/.style={circle,fill=black,minimum size=0.35cm,inner sep=0},
+ en/.style={circle,draw=black,thick,minimum size=0.42cm,inner sep=0,path picture={\fill[black] (path picture bounding box.center) circle (0.12cm);}},
+ lab/.style={font=\scriptsize,fill=white,inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+ \def\W{4.3}
+ \def\H{19.6}
+ \foreach \i/\t in {0/Giảng viên (User),1/Ứng dụng RoomHub,2/Quản trị viên (Admin),3/{Gateway -- SmartLock}} {
+   \draw[thick,navy] (\i*\W,0) rectangle ++(\W,-\H);
+   \node[fill=navy,text=white,font=\small\bfseries,minimum width=\W cm,minimum height=0.7cm,anchor=north west] at (\i*\W,0) {\t};
+ }
+ \def\cA{2.15} \def\cB{6.45} \def\cC{10.75} \def\cD{15.05}
+ \node[st] (s) at (\cA,-1.2) {};
+ \node[act] (a1) at (\cA,-2.3) {Đăng nhập, mở\\``Tìm và đặt phòng''};
+ \node[act] (a2) at (\cA,-3.6) {Chọn ngày, giờ; lọc\\sức chứa, thiết bị, khóa};
+ \node[act] (b1) at (\cB,-3.6) {Tô màu sơ đồ tầng:\\trống / đã đặt / bảo trì};
+ \node[act] (a3) at (\cA,-5.0) {Chọn phòng, nhập\\mục đích, gửi yêu cầu};
+ \node[act] (b2) at (\cB,-5.0) {Kiểm tra quy tắc\\BR-01..BR-06};
+ \node[dec] (d1) at (\cB,-6.3) {Hợp lệ?};
+ \node[act,fill=lred] (b3) at (\cA,-6.3) {Nhận thông báo lỗi\\và chọn lại};
+ \node[act] (b4) at (\cB,-7.6) {Lưu booking PENDING;\\thông báo cho Admin};
+ \node[act] (c1) at (\cC,-7.6) {Xem xét yêu cầu\\chờ duyệt};
+ \node[dec] (d2) at (\cC,-8.9) {Duyệt?};
+ \node[act,fill=lred] (b5) at (\cB,-8.9) {Chuyển REJECTED;\\thông báo người đặt};
+ \node[en] (en2) at (\cA,-8.9) {};
+ \node[act] (b6) at (\cC,-10.2) {Kiểm tra lại trùng lịch\\đã duyệt và bảo trì};
+ \node[act] (b7) at (\cB,-10.2) {Chuyển APPROVED;\\thông báo người đặt};
+ \node[dec] (d3) at (\cB,-11.6) {Loại khóa?};
+ \node[act] (c2) at (\cC,-11.6) {Hẹn ngày, giờ, địa\\điểm nhận khóa/thẻ};
+ \node[act] (c3) at (\cC,-13.0) {Bàn giao cho người đặt\\hoặc người nhận hộ};
+ \node[act] (b8) at (\cB,-13.0) {Cấp quyền tự tạo mã\\cho cặp User--phòng};
+ \node[act] (a4) at (\cA,-13.0) {Yêu cầu tạo mã PIN\\tạm thời (6 chữ số)};
+ \node[act] (b9) at (\cB,-14.4) {Tính hiệu lực T$-$10'\\đến T$+$10'; gọi gateway};
+ \node[act,fill=lgreen] (e1) at (\cD,-14.4) {Mã hóa AES-CTR, phát\\MQTT; khóa lưu mã};
+ \node[dec] (m) at (\cC,-16.0) {\phantom{x}};
+ \node[act] (a6) at (\cA,-16.0) {Đến phòng, mở cửa\\và sử dụng đúng giờ};
+ \node[act] (b10) at (\cB,-17.4) {Hết giờ: xếp booking\\vào nhóm ``Đã sử dụng''};
+ \node[en] (en1) at (\cB,-18.7) {};
+
+ \draw[->] (s) -- (a1); \draw[->] (a1) -- (a2); \draw[->] (a2) -- (b1);
+ \draw[->] (b1.south) -- ++(0,-0.3) -| (a3.north);
+ \draw[->] (a3) -- (b2); \draw[->] (b2) -- (d1);
+ \draw[->] (d1) -- node[lab,above]{không} (b3);
+ \draw[->] (b3.west) -- (0.25,-6.3) |- (a2.west);
+ \draw[->] (d1) -- node[lab,right]{có} (b4);
+ \draw[->] (b4) -- (c1); \draw[->] (c1) -- (d2);
+ \draw[->] (d2) -- node[lab,above]{không} (b5);
+ \draw[->] (b5) -- (en2);
+ \draw[->] (d2) -- node[lab,right]{có} (b6);
+ \draw[->] (b6) -- (b7);
+ \draw[->] (b7) -- (d3);
+ \draw[->] (d3) -- node[lab,right]{khóa số (PIN\_CODE)} (b8);
+ \draw[->] (d3) -- node[lab,above=2pt,font=\tiny]{khóa cơ/thẻ} (c2);
+ \draw[->] (c2) -- (c3);
+ \draw[->] (b8) -- (a4);
+ \draw[->] (a4.south) |- (b9.west);
+ \draw[->] (b9) -- (e1);
+ \draw[->] (c3) -- (m);
+ \draw[->] (e1) |- (m);
+ \draw[->] (m) -- (a6);
+ \draw[->] (a6.south) |- (b10.west);
+ \draw[->] (b10) -- (en1);
+\end{tikzpicture}
+\end{document}

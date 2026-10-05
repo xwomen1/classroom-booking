@@ -1,0 +1,8 @@
+
+Nhóm sử dụng trợ lý AI lập trình như một công cụ hỗ trợ trong phân tích yêu cầu, sinh mã, viết kiểm thử và soạn tài liệu. Mọi đầu ra của AI đều được thành viên phụ trách đọc lại, chạy kiểm thử và chỉnh sửa trước khi commit. Phụ lục này tổng hợp các prompt mẫu theo từng giai đoạn và các quy tắc kiểm soát AI được đặt trong kho mã nguồn.
+
+\section{Nguyên tắc viết prompt}
+
+Các prompt của nhóm tuân theo bốn nguyên tắc: (i) cung cấp đủ ngữ cảnh gồm module, tệp liên quan và quy tắc nghiệp vụ; (ii) giới hạn phạm vi sửa trong một module để tránh thay đổi lan rộng; (iii) yêu cầu kèm kiểm thử và lệnh kiểm tra (\texttt{npm test}, \texttt{npm run lint}, \texttt{tsc}); và (iv) yêu cầu AI không đánh dấu chức năng là hoàn thành khi chưa có mã và kiểm thử tương ứng, đúng với quy ước trong \texttt{src/modules/README.md}.
+
+

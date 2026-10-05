@@ -1,0 +1,20 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{TÓM TẮT NỘI DUNG BÀI TẬP LỚN}}\\
+\end{center}
+\vspace{1cm}
+Nhu cầu mượn phòng học và phòng họp trong một tòa nhà tám tầng diễn ra thường xuyên, nhưng việc đăng ký hiện vẫn dựa vào trao đổi thủ công. Người mượn khó biết phòng nào còn trống theo khung giờ, sức chứa và thiết bị mong muốn, không rõ vị trí phòng trên từng tầng, trong khi cán bộ cơ sở vật chất phải tự đối chiếu lịch, bàn giao thẻ từ hoặc thay đổi mật khẩu khóa tại cửa. Các công cụ lịch dùng chung giải quyết được việc ghi lịch nhưng không kiểm soát quy tắc nghiệp vụ như hạn đặt trước, giới hạn số yêu cầu, lịch bảo trì hay quyền tiếp cận phòng sau khi được duyệt.
+
+Nhóm lựa chọn hướng xây dựng một hệ thống hướng đối tượng gồm ứng dụng di động React Native viết bằng TypeScript và dịch vụ nghiệp vụ Java dùng Spring Boot, JPA và cơ sở dữ liệu H2. Hướng tiếp cận này cho phép tách rõ tầng giao diện, tầng dịch vụ chứa quy tắc nghiệp vụ và tầng dữ liệu, đồng thời kiểm tra lại mọi thao tác ở phía máy chủ. Sản phẩm mang tên RoomHub hỗ trợ hai vai trò Admin và User; người dùng tìm phòng trên sơ đồ chữ U theo tầng, lọc theo thời gian, sức chứa, thiết bị, loại khóa rồi gửi yêu cầu ngay trên cùng màn hình. Quản trị viên duyệt, từ chối, đổi phòng, quản lý tài khoản, phòng, lịch bảo trì và các tham số nghiệp vụ.
+
+Đóng góp chính của bài tập lớn gồm (i) bộ quy tắc kiểm tra đặt phòng dựa trên phép giao khoảng thời gian kết hợp khóa bi quan trong giao dịch để chống trùng lịch, (ii) cơ chế cấp quyền tạo mã PIN theo cặp người dùng -- phòng và gửi mật khẩu tạm thời có thời hạn tới khóa thông minh qua gateway MQTT, và (iii) kiến trúc module cho phép chuyển giữa chế độ lưu cục bộ và đồng bộ máy chủ bằng một cờ cấu hình. Ứng dụng đã được đóng gói thành APK Release và chạy độc lập trên điện thoại Samsung M21; biên bản kiểm tra ngày 26/09/2026 ghi nhận 13/13 ca kiểm thử tự động đạt, sau đó nhóm bổ sung thêm ca kiểm thử cho liên kết khóa thông minh.
+\begin{flushright}
+Nhóm sinh viên thực hiện\\
+\begin{tabular}{@{}c@{}}
+\textit{(Ký và ghi rõ họ tên)}
+\end{tabular}
+\end{flushright}
+
+\end{document}

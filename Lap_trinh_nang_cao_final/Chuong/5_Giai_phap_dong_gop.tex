@@ -1,0 +1,197 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương~\ref{chapter:Experiment} đã trình bày thiết kế và kết quả xây dựng RoomHub ở mức tổng thể. Chương này đi sâu vào ba giải pháp mà nhóm đánh giá là đóng góp chính của bài tập lớn: (i) bộ quy tắc chống trùng lịch dựa trên phép giao khoảng thời gian kết hợp khóa bi quan trong giao dịch, (ii) mô hình cấp quyền tạo mã PIN theo cặp người dùng -- phòng tích hợp khóa thông minh qua gateway MQTT, và (iii) kiến trúc module cho phép cùng một bộ quy tắc chạy ở chế độ cục bộ hoặc đồng bộ máy chủ. Mỗi giải pháp được trình bày theo trình tự vấn đề, giải pháp và kết quả.
+
+\section{Chống trùng lịch bằng phép giao khoảng thời gian và khóa bi quan}
+\label{section:5.1}
+
+\subsection{Vấn đề}
+Yêu cầu cốt lõi của hệ thống đặt phòng là không để hai booking đang hoạt động chiếm cùng một phòng trong khoảng thời gian chồng nhau. Vấn đề này có hai mặt. Mặt thứ nhất là \emph{logic}: cần một điều kiện chính xác để xác định hai khoảng thời gian có giao nhau hay không, xử lý đúng các trường hợp chạm biên như booking 08:00--09:00 và 09:00--10:00, đồng thời áp dụng cho cả lịch bảo trì và giới hạn theo người dùng. Mặt thứ hai là \emph{tương tranh}: thao tác đặt phòng có dạng ``kiểm tra rồi hành động'' (check-then-act). Nếu hai giảng viên cùng gửi yêu cầu cho phòng A101 lúc 08:00 trong cùng một thời điểm, cả hai giao dịch có thể cùng đọc thấy phòng trống, cùng vượt qua kiểm tra và cùng chèn booking, dẫn tới race condition mà tài liệu nghiệp vụ yêu cầu phải chống \cite{quytrinh2026}. Ngoài ra, giữa thời điểm tạo yêu cầu và thời điểm duyệt, tình trạng phòng có thể thay đổi do Admin tạo lịch bảo trì hoặc duyệt yêu cầu khác.
+
+\subsection{Giải pháp}
+\paragraph{Mô hình khoảng nửa mở.} Mỗi booking trong ngày $d$ được biểu diễn bằng khoảng nửa mở $[s, e)$ với $s < e$. Theo đại số khoảng của Allen \cite{allen1983interval}, hai khoảng $[s_1, e_1)$ và $[s_2, e_2)$ cùng ngày \emph{giao nhau} khi và chỉ khi không xảy ra một trong hai quan hệ ``trước'' hoặc ``sau'', tức là
+\begin{equation}\label{eq:overlap}
+\mathrm{overlap}\big([s_1,e_1),[s_2,e_2)\big) \iff (d_1 = d_2) \wedge (s_1 < e_2) \wedge (s_2 < e_1).
+\end{equation}
+Điều kiện \eqref{eq:overlap} gộp đủ chín trong mười ba quan hệ của Allen có phần giao khác rỗng (chồng một phần, nằm trong, chứa, bắt đầu cùng, kết thúc cùng, bằng nhau và các quan hệ ngược) vào hai phép so sánh, đồng thời loại trừ bốn quan hệ còn lại là trước, sau và chạm biên (\emph{meets}, \emph{met-by}) nhờ dùng bất đẳng thức chặt. Do giờ được lưu dạng chuỗi \texttt{HH:mm} có đệm số 0, phép so sánh từ điển \texttt{compareTo} cho cùng kết quả với so sánh thời gian nên không cần phân tích chuỗi trong vòng lặp. Cùng một hàm được dùng cho ba quy tắc: trùng phòng (BR-05), trùng lịch của cùng User (BR-05) và trùng lịch bảo trì (BR-04), như Đoạn mã~\ref{lst:overlap}.
+
+\begin{lstlisting}[language=Java,caption={Hàm giao khoảng và kiểm tra xung đột bảo trì trong BookingService},label={lst:overlap}]
+private boolean overlaps(Domain.Booking booking, String date,
+                         String startTime, String endTime) {
+  return booking.date.equals(date)
+      && startTime.compareTo(booking.endTime) < 0
+      && endTime.compareTo(booking.startTime) > 0;
+}
+
+private boolean hasMaintenanceConflict(String roomId,
+    String date, String startTime, String endTime) {
+  return maintenance().stream().anyMatch(item ->
+      item.cancelledAt == null
+          && roomId.equals(item.roomId)
+          && date.equals(item.date)
+          && startTime.compareTo(item.endTime) < 0
+          && endTime.compareTo(item.startTime) > 0);
+}
+
+private boolean isStillActive(Domain.Booking booking) {
+  return ("PENDING".equals(booking.status)
+          || "APPROVED".equals(booking.status))
+      && localDateTime(booking.date, booking.endTime)
+             .isAfter(LocalDateTime.now(ZONE));
+}
+\end{lstlisting}
+
+\paragraph{Thứ tự kiểm tra.} Hàm \texttt{validateBooking} áp dụng các quy tắc theo thứ tự chi phí tăng dần và theo mức độ hữu ích của thông điệp cho người dùng, được tóm tắt trong Thuật toán~\ref{alg:taobooking}. Các kiểm tra rẻ và không phụ thuộc dữ liệu khác (phòng tồn tại, định dạng ngày giờ, khoảng đặt trước) được thực hiện trước; các kiểm tra phải duyệt danh sách (bảo trì, trùng phòng, trùng User, giới hạn số yêu cầu) thực hiện sau trên tập booking \emph{còn hiệu lực}, tức là đang PENDING hoặc APPROVED và chưa qua giờ kết thúc. Việc lọc trước tập còn hiệu lực giúp booking cũ đã sử dụng không làm sai lệch giới hạn hai yêu cầu mỗi người.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\caption{Tạo yêu cầu đặt phòng an toàn khi truy cập đồng thời}
+\label{alg:taobooking}
+\KwIn{tài khoản $a$, yêu cầu $r = (\mathit{room}, d, s, e, \mathit{purpose})$}
+\KwOut{booking mới ở trạng thái PENDING hoặc ngoại lệ kèm lý do}
+\If{$a.\mathit{role} \neq \text{user}$ \textbf{or} $r.\mathit{requester} \neq a.\mathit{username}$}{ném ForbiddenException\;}
+bắt đầu giao dịch; khóa ghi toàn bộ bản ghi booking (\texttt{PESSIMISTIC\_WRITE})\;
+$B \leftarrow$ danh sách booking; kiểm tra phòng AVAILABLE, định dạng $d, s, e$ và $s<e$\;
+\If{$\Delta_{\text{ngày}}(\text{hôm nay}, d) \notin [\mathit{minAdvance}, \mathit{maxAdvance}]$}{ném lỗi BR-03\;}
+\If{$\exists m \in$ Maintenance chưa hủy của phòng: overlap$(m, r)$}{ném lỗi BR-04\;}
+$A \leftarrow \{b \in B \mid b.\mathit{status} \in \{\text{PENDING}, \text{APPROVED}\} \wedge b.\mathit{end} > \text{now}\}$\;
+\If{$\exists b \in A$: $b.\mathit{room} = r.\mathit{room} \wedge$ overlap$(b, r)$}{ném lỗi trùng phòng (BR-05)\;}
+\If{$\exists b \in A$: $b.\mathit{requester} = a \wedge$ overlap$(b, r)$}{ném lỗi trùng lịch cá nhân (BR-05)\;}
+\If{$|\{b \in A \mid b.\mathit{requester} = a\}| \geq \mathit{maxActive}$ \textbf{or} purpose rỗng}{ném lỗi BR-06\;}
+lưu booking PENDING; tạo thông báo cho Admin; xác nhận giao dịch (nhả khóa)\;
+\end{algorithm}
+
+\paragraph{Khóa bi quan trong giao dịch.} Để phá vỡ race condition, phương thức \texttt{createBooking} được đánh dấu \texttt{@Transactional} và ngay đầu giao dịch phát câu truy vấn \texttt{select b.id from Booking b} với \texttt{LockModeType.PESSIMISTIC\_WRITE} (Đoạn mã~\ref{lst:lock}). Hibernate dịch câu lệnh này thành \texttt{SELECT \ldots{} FOR UPDATE}; giao dịch thứ hai muốn tạo booking sẽ phải chờ khóa của giao dịch thứ nhất được nhả khi xác nhận, và khi đó đọc được booking vừa chèn nên bị từ chối bởi BR-05. Như vậy hai bước kiểm tra và ghi trở thành một thao tác nguyên tử theo nghĩa khả tuần tự hóa \cite{bernstein2009transaction}. Ở bước duyệt, \texttt{reviewBooking} khóa riêng bản ghi đích bằng \texttt{em.find(Booking.class, id, PESSIMISTIC\_WRITE)} rồi kiểm tra lại trạng thái PENDING, giờ bắt đầu, lịch bảo trì và trùng với booking APPROVED khác (BR-07); nhờ vậy hai quản trị viên bấm duyệt cùng lúc không thể xử lý một yêu cầu hai lần và yêu cầu đã lỗi thời không được duyệt nhầm.
+
+\begin{lstlisting}[language=Java,caption={Tuần tự hóa thao tác tạo booking bằng khóa bi quan},label={lst:lock}]
+@Transactional
+public BookingResult createBooking(Domain.Account actor,
+                                   BookingInput input) {
+  if (!"user".equals(actor.role)) {
+    throw new ForbiddenException("...");
+  }
+  // SELECT ... FOR UPDATE: cac giao dich xep hang tai day
+  em.createQuery("select b.id from Booking b")
+    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+    .getResultList();
+  List<Domain.Booking> bookings = bookings();
+  validateBooking(actor.username, input, bookings); // BR-01..06
+  Domain.Booking booking = new Domain.Booking();
+  booking.id = "booking-" + UUID.randomUUID();
+  booking.status = "PENDING";
+  // ... gan cac truong con lai tu input
+  em.persist(booking);
+  Domain.Notification n = storeNotification("admin", "...", "...");
+  return new BookingResult(booking, n);
+}
+\end{lstlisting}
+
+\paragraph{Ba lớp phòng vệ.} Toàn bộ giải pháp tạo thành ba lớp. Lớp thứ nhất ở giao diện: sơ đồ tầng dùng cùng điều kiện \eqref{eq:overlap} để tô màu ``đã đặt'' và không cho gửi nếu phòng không trống, giúp người dùng tránh lỗi từ sớm. Lớp thứ hai là \texttt{validateBooking} trong giao dịch có khóa khi tạo. Lớp thứ ba là kiểm tra lại khi duyệt. Hai lớp sau nằm ở máy chủ nên không thể bị vượt qua bằng cách gọi API trực tiếp.
+
+\subsection{Kết quả đạt được}
+Các ca TC-01 đến TC-05 trong Bảng~\ref{tab:tc_booking} xác nhận logic trùng phòng, khoảng đặt trước, bảo trì và cấu hình động hoạt động đúng. Trường hợp chạm biên 08:00--09:00 và 09:00--10:00 được chấp nhận theo đúng điều kiện chặt. Độ phức tạp của mỗi lần kiểm tra là $O(n + m)$ với $n$ là số booking và $m$ là số lịch bảo trì, đủ nhanh với quy mô 56 phòng. Qua phân tích, nhóm cũng nhận thấy hai điểm cần cải tiến. Thứ nhất, câu \texttt{SELECT \ldots{} FOR UPDATE} chỉ khóa các dòng đã tồn tại; khi bảng booking còn rỗng, hai giao dịch đầu tiên chưa bị tuần tự hóa (hiện tượng phantom). Thứ hai, khóa toàn bảng làm các yêu cầu ở những phòng khác nhau cũng phải chờ nhau. Giải pháp đề xuất là khóa bản ghi phòng bằng \texttt{em.find(Room.class, roomId, PESSIMISTIC\_WRITE)}: bản ghi phòng luôn tồn tại nên loại bỏ phantom, đồng thời chỉ tuần tự hóa các yêu cầu trên cùng một phòng. Chỉ tiêu kiểm chứng đã đề ra là trong 20 yêu cầu đồng thời vào cùng phòng và khung giờ, tối đa một yêu cầu được chấp nhận; phép đo này sẽ được thực hiện khi bật chế độ đồng bộ máy chủ.
+
+\section{Cấp quyền tạo mã PIN theo phòng và tích hợp khóa thông minh}
+\label{section:5.2}
+
+\subsection{Vấn đề}
+Theo tài liệu nghiệp vụ, với phòng dùng pass, nhân viên CSVC phải lên tận nơi đặt pass trước giờ sử dụng và đổi pass sau khi kết thúc, vì khóa cũ không có kết nối từ xa \cite{quytrinh2026}. Quy trình này tốn nhân lực và dễ sai sót, pass dùng chung có thể bị lộ cho người không còn quyền sử dụng phòng. Khi chuyển sang khóa thông minh có thể nhận mật khẩu tạm thời từ xa, xuất hiện ba câu hỏi thiết kế. Một là ai được quyền tạo mã: nếu chỉ Admin thì vẫn tạo nút thắt, nếu cho mọi User thì vi phạm nguyên tắc đặc quyền tối thiểu. Hai là mã có hiệu lực trong bao lâu và bị vô hiệu khi nào. Ba là làm thế nào để ứng dụng di động không phải giữ thông tin xác thực của nền tảng IoT và không gửi mật khẩu dạng rõ qua mạng.
+
+\subsection{Giải pháp}
+\paragraph{Quyền theo cặp người dùng -- phòng.} Nhóm tách \emph{vai trò} (Admin, User) khỏi \emph{quyền trên tài nguyên}. Thực thể \texttt{PinPermission} lưu cặp (\texttt{username}, \texttt{roomId}) cùng cờ \texttt{active} và lịch sử cấp, thu hồi. Khi Admin duyệt một booking tại phòng \texttt{PIN\_CODE}, hàm \texttt{grantPin} thực hiện thao tác upsert: tìm bản ghi của cặp tương ứng, nếu chưa có thì tạo mới, nếu đã bị thu hồi thì kích hoạt lại. Admin có thể thu hồi quyền theo từng phòng trong màn ``Quản lý user'' mà không động tới vai trò tài khoản. Khi tạo mã, hệ thống yêu cầu đồng thời bốn điều kiện: người gọi là chủ booking (hoặc Admin), booking ở trạng thái APPROVED, phòng dùng khóa mã số và tồn tại \texttt{PinPermission} đang hiệu lực cho đúng phòng đó.
+
+\paragraph{Cửa sổ hiệu lực có đệm.} Với booking $[s, e)$ và khoảng đệm $g$ do Admin cấu hình (mặc định 10 phút), mã PIN chỉ có hiệu lực trong
+\begin{equation}\label{eq:pin}
+[\,t_{\mathrm{from}}, t_{\mathrm{until}}\,] = [\,s - g,\; e + g\,].
+\end{equation}
+Khoảng đệm cho phép giảng viên đến sớm chuẩn bị và ra muộn thu dọn. Hàm \texttt{getPinDisplayStatus} suy ra trạng thái hiển thị của mã từ thời điểm hiện tại: PENDING nếu $t < t_{\mathrm{from}}$, ACTIVE nếu nằm trong khoảng \eqref{eq:pin}, EXPIRED nếu $t > t_{\mathrm{until}}$, và REVOKED nếu booking bị hủy hoặc mã có dấu thời gian thu hồi. Khi hủy booking hoặc đổi phòng, trường \texttt{revokedAt} được ghi nhận và quyền ở phòng cũ không còn tác dụng với booking đó (Hình~\ref{fig:trangthai}). Quan trọng hơn, khoảng thời gian \eqref{eq:pin} được gửi xuống khóa dưới dạng Unix time nên chính khóa tự từ chối mã ngoài khung giờ, khắc phục hạn chế ``hệ thống không được tuyên bố pass tự hết hạn'' của khóa cũ (BR-12 trong tài liệu nghiệp vụ).
+
+\paragraph{Cấp phát vị trí mật khẩu trên khóa.} Khóa DLWA12 lưu mật khẩu tạm thời trong các ô đánh số 1 đến 255. Module \texttt{smart\_lock} quản lý một khóa duy nhất cùng phòng đang gắn khóa và bộ đếm \texttt{nextPasswordId}. Mỗi lần tạo mã, hàm \texttt{reserveSmartLockPasswordId} kiểm tra phòng của booking đúng là phòng đang gắn khóa, lấy giá trị hiện tại rồi tăng bộ đếm theo vòng tròn (sau 255 quay về 1). Cách cấp phát vòng tròn bảo đảm các mã gần nhau không ghi đè lên nhau trong khi không cần truy vấn trạng thái ô nhớ của khóa.
+
+\paragraph{Gateway tách biệt thông tin xác thực.} Ứng dụng không kết nối trực tiếp với OneIoT mà gọi \texttt{POST /api/lock/temp-password} tới gateway với nội dung gồm mã, passwordId và khoảng hiệu lực. Gateway là nơi duy nhất giữ token OneIoT (được nhập tay vào tệp cấu hình, không đưa lên kho mã nguồn). Gateway mã hóa mã bằng AES-256 chế độ CTR \cite{dworkin2001sp80038a}, trong đó khóa 256 bit được dẫn xuất bằng SHA-256 từ định danh thiết bị và giá trị khởi tạo được dẫn xuất từ bộ ba (thời điểm bắt đầu, thời điểm kết thúc, passwordId), sau đó đóng gói vào trait \texttt{traitCreateTmpPasswordLock}, bọc trong tài nguyên \texttt{m2m:cin} của oneM2M và phát lên chủ đề yêu cầu với QoS 1. Gateway trả mã 202 kèm \texttt{requestId}; chỉ khi nhận phản hồi này ứng dụng mới lưu \texttt{TemporaryPin} vào booking, bảo đảm dữ liệu trong hệ thống không ghi nhận mã chưa được gửi tới khóa. Đoạn mã~\ref{lst:pin} trích phần tính toán chính của dịch vụ tạo mã.
+
+\begin{lstlisting}[language=Java,caption={Tính khoảng hiệu lực và gửi lệnh tạo mã (temporaryPinService.ts, rút gọn)},label={lst:pin}]
+const start = toLocalDateTime(booking.date, booking.startTime);
+const end = toLocalDateTime(booking.date, booking.endTime);
+if (end <= new Date()) throw new Error('...');
+const configuration = await getConfiguration();
+const code = generateSixDigitPin();          // 100000..999999
+const validFrom = addMinutes(start, -configuration.pinGraceMinutes);
+const validUntil = addMinutes(end, configuration.pinGraceMinutes);
+const { lock, passwordId } =
+  await reserveSmartLockPasswordId(booking.roomId);
+const command = await sendTemporaryPasswordToGateway(lock, {
+  roomId: room.id, roomName: room.name, code, passwordId,
+  startTime: Math.floor(validFrom.getTime() / 1000), // Unix
+  endTime: Math.floor(validUntil.getTime() / 1000),
+});
+const updated = await saveTemporaryPin(bookingId, {
+  code, createdAt: new Date().toISOString(),
+  createdBy: actorUsername,
+  validFrom: validFrom.toISOString(),
+  validUntil: validUntil.toISOString(),
+  lockPasswordId: command.passwordId,
+  lockCommandId: command.requestId,
+  lockDeliveredAt: command.publishedAt,
+});
+\end{lstlisting}
+
+Ở phía máy chủ Java, \texttt{saveTemporaryPin} kiểm tra lại toàn bộ điều kiện thay vì tin dữ liệu từ ứng dụng: mã phải gồm 4 đến 12 chữ số theo biểu thức chính quy \texttt{\textbackslash d\{4,12\}}, passwordId trong khoảng 1 đến 255, phiên sử dụng chưa kết thúc, booking chưa có mã đang hiệu lực, và người gọi không phải Admin thì phải có \texttt{PinPermission} đang hoạt động. Khoảng hiệu lực cũng được máy chủ tự tính lại từ cấu hình theo \eqref{eq:pin}.
+
+\subsection{Kết quả đạt được}
+Giải pháp loại bỏ bước nhân viên lên tận khóa đối với phòng đã gắn khóa thông minh: sau khi được duyệt, giảng viên tự tạo mã trong vài giây và mã tự hết hiệu lực trên khóa. Các ca TC-06 đến TC-11 trong Bảng~\ref{tab:tc_pin} xác nhận mã chỉ được tạo sau khi duyệt, đúng khoảng hiệu lực, quyền có thể thu hồi và cấp lại theo phòng, và lệnh chỉ được gửi cho phòng đang gắn khóa. Quyền phòng không nâng vai trò người dùng, đáp ứng nguyên tắc đặc quyền tối thiểu. Nhóm cũng ghi nhận ba điểm cần hoàn thiện về bảo mật: cấu hình demo đang tắt xác minh chứng chỉ TLS của broker (\texttt{VERIFY\_TLS = False}); mã PIN đang được lưu dạng rõ trong booking để hiển thị lại cho người dùng, chưa đáp ứng khuyến nghị ``không mặc định lưu pass dạng rõ'' của tài liệu nghiệp vụ; và khóa AES được dẫn xuất tất định từ định danh thiết bị theo yêu cầu của firmware, nên độ an toàn phụ thuộc vào việc giữ bí mật quy tắc dẫn xuất. Các điểm này được đưa vào hướng phát triển ở Chương~\ref{chapter:conclusion}.
+
+\section{Kiến trúc module hai chế độ dữ liệu}
+\label{section:5.3}
+
+\subsection{Vấn đề}
+Trong quá trình thực hiện, nhóm cần demo luồng nghiệp vụ trên điện thoại thật trước khi dịch vụ Java và hạ tầng mạng hoàn thiện; đồng thời sản phẩm cuối phải kiểm tra quy tắc ở máy chủ để chống truy cập trái phép và trùng lịch đa thiết bị. Nếu viết hai phiên bản ứng dụng, một cho cục bộ và một cho máy chủ, mã giao diện bị nhân đôi và hai bộ quy tắc dễ lệch nhau. Nếu chỉ viết phiên bản máy chủ, việc kiểm thử và demo phụ thuộc vào mạng Wi-Fi và máy tính chạy dịch vụ.
+
+\subsection{Giải pháp}
+Nhóm áp dụng mẫu Repository \cite{fowler2002peaa} ở tầng dịch vụ của mỗi module và một điểm cấu hình duy nhất \texttt{runtimeFlags.ts}. Hàm \texttt{isRemoteApiEnabled()} trả về \texttt{true} khi cờ \texttt{ENABLE\_REMOTE\_SYNC} bật và môi trường không phải kiểm thử. Mỗi hàm repository như \texttt{createBooking}, \texttt{reviewBooking}, \texttt{saveTemporaryPin}, \texttt{authenticate} có hai nhánh: nhánh máy chủ gọi \texttt{apiRequest} với token Bearer tới API Java tương ứng; nhánh cục bộ thực thi cùng quy tắc trên kho JSON của Async Storage (Đoạn mã~\ref{lst:repo}). Giao diện chỉ gọi hàm repository và hiển thị thông điệp của ngoại lệ, nên không thay đổi giữa hai chế độ.
+
+\begin{lstlisting}[language=Java,caption={Một hàm repository hai chế độ (bookingRepository.ts, rút gọn)},label={lst:repo}]
+export async function createBooking(
+    input: CreateBookingInput): Promise<Booking> {
+  if (isRemoteApiEnabled()) {          // che do dong bo may chu Java
+    const result = await apiRequest<{ booking: Booking }>(
+      '/api/bookings', { method: 'POST', body: input });
+    return result.booking;
+  }
+  // che do cuc bo
+  await assertAccountRole(input.requesterUsername, 'user');
+  const bookings = await getBookings();
+  await validateBooking(input, bookings);  // BR-01..BR-06
+  const booking: Booking = { ...input, id: `booking-${Date.now()}`,
+    status: 'PENDING', createdAt: new Date().toISOString() };
+  await writeJson(BOOKINGS_KEY, [...bookings, booking]);
+  return booking;
+}
+\end{lstlisting}
+
+Để hai nhánh cho cùng kết quả, dịch vụ Java được viết tương ứng một -- một với tầng dịch vụ TypeScript: cùng tên ca sử dụng, cùng thứ tự kiểm tra và cùng thông điệp lỗi tiếng Việt. Bảng~\ref{tab:mapping} đối chiếu các hàm chính. Nhờ đó thông điệp mà người dùng nhìn thấy, ví dụ ``Chỉ được đặt trước từ 1 đến 3 ngày.'', là như nhau dù lỗi phát sinh ở điện thoại hay ở máy chủ. Mô hình dữ liệu cũng được giữ đồng dạng: kiểu \texttt{Booking} trong TypeScript và lớp thực thể \texttt{Booking} trong Java có cùng tên trường, cùng định dạng chuỗi ngày giờ, nên Jackson tuần tự hóa trực tiếp mà không cần lớp chuyển đổi.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Đối chiếu tầng dịch vụ TypeScript và dịch vụ Java}
+\label{tab:mapping}
+\begin{tabularx}{\textwidth}{|X|X|p{5.5cm}|}
+\hline
+\textbf{Hàm TypeScript (ứng dụng)} & \textbf{Phương thức Java (máy chủ)} & \textbf{API} \\ \hline
+\texttt{authenticate} & \texttt{login} & \texttt{POST /api/auth/login} \\ \hline
+\texttt{assertAccountRole} & \texttt{requireAccount} + kiểm tra role & Bộ lọc \texttt{SessionAuthFilter} \\ \hline
+\texttt{createBooking}, \texttt{validateBooking} & \texttt{createBooking}, \texttt{validateBooking} & \texttt{POST /api/bookings} \\ \hline
+\texttt{reviewBooking} & \texttt{reviewBooking} & \texttt{POST /api/bookings/\{id\}/}\newline\texttt{review} \\ \hline
+\texttt{grantRoomPin}\newline
+\texttt{Permission} & \texttt{grantPin} & (nội bộ khi duyệt) \\ \hline
+\texttt{saveTemporaryPin} & \texttt{saveTemporaryPin} & \texttt{POST /api/bookings/\{id\}/}\newline\texttt{temporary-pin} \\ \hline
+\texttt{hasMaintenance\-Conflict},\newline\texttt{overlaps} & \texttt{hasMaintenance\-Conflict},\newline\texttt{overlaps} & (nội bộ) \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Kết quả đạt được}
+Kiến trúc này cho phép nhóm phát hành APK Release chạy hoàn toàn độc lập trên điện thoại để demo và kiểm thử chấp nhận, trong khi mã nguồn máy chủ và các nhánh gọi API vẫn được giữ để hợp nhất với nhánh \texttt{syncdata}. Việc chuyển sang chế độ máy chủ chỉ cần đổi cờ và địa chỉ \texttt{REMOTE\_API\_BASE\_URL}, không sửa màn hình nào. Bộ kiểm thử Jest luôn chạy trên nhánh cục bộ nhờ điều kiện \texttt{NODE\_ENV = test}, giúp kiểm thử nhanh và không phụ thuộc mạng. Hạn chế của chế độ cục bộ là dữ liệu chỉ nằm trên một thiết bị, các thao tác được xử lý tuần tự trên thiết bị đó nên không có khóa đồng thời liên thiết bị; hạn chế này được giải quyết khi bật chế độ máy chủ với khóa bi quan đã trình bày ở mục~\ref{section:5.1}.
+
+\end{document}

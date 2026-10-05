@@ -1,0 +1,72 @@
+
+\section{Cấu trúc kho mã nguồn}
+
+Kho mã nguồn \url{https://github.com/xwomen1/classroom-booking} được tổ chức như Đoạn mã \ref{lst:tree}. Kho chỉ lưu mã nguồn cần thiết; tệp APK, bộ nhớ đệm, \texttt{node\_modules} và thư mục build không được đưa lên Git, mỗi thành viên tự build sau khi clone.
+
+\begin{code}[H]
+\caption{Cấu trúc thư mục chính}\label{lst:tree}
+\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
+classroom-booking/
+|-- README.md                    Hướng dẫn clone, build, cài APK
+|-- du_an_dat_phong.tex/.pdf     Đề xuất dự án
+|-- workflow_booking_app.tex/.pdf Workflow nghiệp vụ
+|-- hien_trang_trien_khai.tex/.pdf Hiện trạng triển khai
+|-- code/
+|   |-- booking_classroom/       Ứng dụng React Native (Android)
+|   |   |-- App.tsx              Điểm vào, điều hướng theo vai trò
+|   |   |-- src/core/            api client, cờ cấu hình, storage
+|   |   |-- src/shared/          component dùng chung
+|   |   |-- src/modules/         10 module nghiệp vụ
+|   |   |-- __tests__/           36 ca kiểm thử Jest
+|   |   |-- android/.../OneIoTMqttPackage.kt     MQTT/TLS tới OneIoT
+|   |   |-- android/.../PriorityNotificationPackage.kt  banner
+|   |   |-- docs/, evidence/     sơ đồ luồng, ảnh kiểm tra thiết bị
+|   |   `-- scripts/             build Debug/Release (PowerShell)
+|   `-- booking-server/          Spring Boot + H2
+|       `-- src/main/java/com/bookingclassroom/server/
+|           ApiController, BookingService, SessionAuthFilter,
+|           ApiExceptionHandler, DataSeeder, Domain
+|-- tunghv2/                     Giả lập SmartLock (Python)
+`-- tunghv3/                     Gateway HTTP-MQTT cũ (Python)
+\end{Verbatim}
+\end{code}
+
+\section{Build và cài đặt}
+
+Ứng dụng được build và cài đặt bằng các lệnh trong Đoạn mã \ref{lst:build}. Bản Release chạy độc lập sau khi cài, không cần Metro, cáp USB hay booking server.
+
+\begin{code}[H]
+\caption{Build và cài đặt bản Release}\label{lst:build}
+\begin{Verbatim}[breaklines, breakanywhere, frame=single, framesep=2mm, rulecolor=\color{gray!50}, fontsize=\footnotesize]
+git clone https://github.com/xwomen1/classroom-booking.git
+cd classroom-booking/code/booking_classroom
+npm ci
+npm run build:android:release
+adb install -r ./android/app/build/outputs/apk/release/app-release.apk
+npm test        # chạy bộ kiểm thử Jest
+npm run lint    # kiểm tra ESLint
+\end{Verbatim}
+\end{code}
+
+\section{Tổng hợp tài liệu và phụ lục}
+
+Bảng \ref{tab:docs} tóm tắt các tài liệu đi kèm dự án và nơi chúng được tham chiếu trong báo cáo.
+
+\begin{table}[H]
+\centering
+\caption{Tài liệu đi kèm dự án}
+\label{tab:docs}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.6cm} X}
+\toprule
+\textbf{Tài liệu} & \textbf{Nội dung} \\
+\midrule
+\path{du_an_dat_phong.pdf} & Đề xuất dự án, phạm vi, tiêu chí kiểm chứng \\
+\path{workflow_booking_app.pdf} & Workflow nghiệp vụ đặt phòng, phê duyệt, bàn giao \\
+\path{hien_trang_trien_khai.pdf} & Hiện trạng các chức năng đã kiểm tra \\
+\path{evidence/device-verification.txt} & Nhật ký kiểm tra trên Samsung M21 \\
+\path{RoomHub_final.pptx} & Slide trình bày sản phẩm \\
+Phụ lục \ref{appendix:prompt} & Prompt sử dụng trong quá trình phát triển \\
+\bottomrule
+\end{tabularx}
+\end{table}

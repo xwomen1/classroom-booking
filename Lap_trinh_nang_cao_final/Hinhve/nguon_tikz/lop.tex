@@ -1,0 +1,59 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\tikzset{
+ cls/.style n args={2}{rectangle split,rectangle split parts=3,draw=navy,thick,fill=white,
+   rectangle split part fill={#1,white,white},font=\scriptsize,align=left,text width=#2,inner sep=3pt},
+ inh/.style={-{Triangle[open,length=3mm]},thick},
+ dep/.style={-{Stealth[length=2mm]},dashed,thick},
+ ass/.style={-{Stealth[length=2mm]},thick},
+ comp/.style={{Diamond[length=3mm,fill=navy]}-,thick},
+}
+\newcommand{\cn}[2][]{\centering\textbf{#2}\\[-1pt]{\centering\tiny #1}}
+\begin{document}
+\begin{tikzpicture}
+ \node[cls={lyel}{4.3cm}] (flt) at (0,0) {\nodepart{one}\cn[\guillemotleft Component\guillemotright]{SessionAuthFilter}
+   \nodepart{two}$-$ bookingService: BookingService
+   \nodepart{three}\# doFilterInternal(req, res, chain)};
+ \node[cls={lyel}{4.9cm}] (ctl) at (6.2,0) {\nodepart{one}\cn[\guillemotleft RestController\guillemotright]{ApiController}
+   \nodepart{two}$-$ bookingService: BookingService
+   \nodepart{three}+ login(body): LoginResult\\+ rooms(), bookings(), maintenance()\\+ create(input, req): BookingResult\\+ review(id, body, req): BookingResult\\+ temporaryPin(id, input, req)\\+ notifications(), markRead(), ...};
+ \node[cls={lyel}{4.3cm}] (exh) at (12.4,0) {\nodepart{one}\cn[\guillemotleft RestControllerAdvice\guillemotright]{ApiExceptionHandler}
+   \nodepart{two}
+   \nodepart{three}+ badRequest(e): 400\\+ forbidden(e): 403\\+ unauthorized(e): 401};
+ \node[cls={lyel}{6.3cm}] (svc) at (5.4,-5.0) {\nodepart{one}\cn[\guillemotleft Service\guillemotright]{BookingService}
+   \nodepart{two}$\sim$ ZONE: ZoneId = Asia/Ho\_Chi\_Minh\\$-$ em: EntityManager
+   \nodepart{three}+ requireAccount(token): Account\\+ login(username, password): LoginResult\\+ createBooking(actor, input): BookingResult\\+ reviewBooking(actor, id, decision): BookingResult\\+ saveTemporaryPin(actor, id, input): BookingResult\\$-$ validateBooking(username, input, bookings)\\$-$ validateDateAndTime(date, start, end): LocalDateTime\\$-$ overlaps(booking, date, start, end): boolean\\$-$ hasMaintenanceConflict(roomId, date, s, e): boolean\\$-$ grantPin(username, roomId, admin)\\$-$ storeNotification(username, title, msg)};
+ \node[cls={lgray}{3.9cm}] (ue) at (12.6,-3.6) {\nodepart{one}\cn{UnauthorizedException}\nodepart{two}\nodepart{three}+ UnauthorizedException(msg)};
+ \node[cls={lgray}{3.9cm}] (fe) at (12.6,-5.6) {\nodepart{one}\cn{ForbiddenException}\nodepart{two}\nodepart{three}+ ForbiddenException(msg)};
+ \node[cls={lgray}{3.2cm}] (rte) at (12.6,-7.9) {\nodepart{one}\cn{RuntimeException}\nodepart{two}\nodepart{three}};
+ \draw[inh] (ue.east) -- ++(0.5,0) |- ([yshift=2pt]rte.east);
+ \draw[inh] (fe.east) -- ++(0.3,0) |- ([yshift=-2pt]rte.east);
+ \node[cls={lgray}{4.3cm}] (rec) at (-0.6,-5.0) {\nodepart{one}\cn[\guillemotleft record\guillemotright]{LoginResult, BookingInput,\\BookingResult, TemporaryPinInput}\nodepart{two}(DTO bất biến)\nodepart{three}};
+
+ % entities
+ \node[cls={lgreen}{3.3cm}] (acc) at (-0.4,-10.4) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Account}
+   \nodepart{two}+ username: String \{id\}\\+ password: String\\+ role: String\\+ active: boolean\nodepart{three}};
+ \node[cls={lgreen}{3.4cm}] (room) at (3.4,-10.4) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Room}
+   \nodepart{two}+ id, name: String\\+ floor, capacity: int\\+ equipment: List<String>\\+ lockType, status: String\nodepart{three}};
+ \node[cls={lgreen}{3.7cm}] (bk) at (7.4,-10.4) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Booking}
+   \nodepart{two}+ id, requesterUsername\\+ roomId, date\\+ startTime, endTime\\+ purpose, status\\+ reviewedAt, reviewedBy\\+ temporaryPin: TemporaryPin\nodepart{three}};
+ \node[cls={lgreen}{3.4cm}] (tp) at (11.6,-10.9) {\nodepart{one}\cn[\guillemotleft Embeddable\guillemotright]{TemporaryPin}
+   \nodepart{two}+ code, validFrom\\+ validUntil\\+ lockPasswordId: Integer\\+ lockCommandId\\+ revokedAt\nodepart{three}};
+ \node[cls={lgreen}{3.3cm}] (mt) at (-0.4,-14.3) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Maintenance}\nodepart{two}+ roomId, date\\+ startTime, endTime\\+ reason, cancelledAt\nodepart{three}};
+ \node[cls={lgreen}{3.4cm}] (pp) at (3.4,-14.3) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{PinPermission}\nodepart{two}+ username, roomId\\+ active: boolean\\+ grantedBy, revokedBy\nodepart{three}};
+ \node[cls={lgreen}{3.7cm}] (nt) at (7.4,-14.3) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Notification}\nodepart{two}+ username, title\\+ message, createdAt\\+ read: boolean\nodepart{three}};
+ \node[cls={lgreen}{3.4cm}] (cf) at (11.6,-14.6) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{Configuration}\nodepart{two}+ minAdvanceDays\\+ maxAdvanceDays\\+ maxActiveBookingsPerUser\\+ cancellationCutoffMinutes\\+ roomChangeCutoffMinutes\\+ pinGraceMinutes\\+ notificationsEnabled\nodepart{three}};
+ \node[cls={lgreen}{3.3cm}] (ss) at (-0.4,-17.3) {\nodepart{one}\cn[\guillemotleft Entity\guillemotright]{AuthSession}\nodepart{two}+ token \{id\}\\+ username, createdAt\nodepart{three}};
+ \node[draw=navy!60,dashed,thick,rounded corners=4pt,fit=(acc)(tp)(ss)(cf),inner sep=6pt,label={[font=\small\bfseries,text=navy]south:Domain (lớp final chứa các lớp thực thể lồng tĩnh)}] (dom) {};
+
+ \draw[ass] (flt) -- node[font=\tiny,above]{1} (svc.north west);
+ \draw[ass] (ctl) -- node[font=\tiny,right]{1} (svc);
+ \draw[dep] (ctl.east) -- node[font=\tiny,above]{\guillemotleft handles\guillemotright} (exh.west);
+ \draw[dep] (svc.east) -- node[font=\tiny,above]{\guillemotleft throws\guillemotright} (fe.west);
+ \draw[dep] (svc.north east) -- (ue.west);
+ \draw[dep] (svc.west) -- (rec.east);
+ \draw[dep] (svc.south) -- node[font=\tiny,right]{\guillemotleft persist/query\guillemotright} (dom.north-|svc.south);
+ \draw[comp] (bk.east) -- node[font=\tiny,above]{0..1} (tp.west|-bk.east);
+ \draw[dep] (bk.west) -- node[font=\tiny,above]{roomId} (room.east);
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,76 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương~\ref{chapter:Related_works} đã xác định các yêu cầu chức năng và phi chức năng của RoomHub, trong đó nổi bật là kiểm tra quyền và quy tắc nghiệp vụ ở phía máy chủ, chống trùng lịch khi có truy cập đồng thời, chạy trên điện thoại Android và tích hợp khóa thông minh. Chương này tóm lược nền tảng lý thuyết và công nghệ được dùng để đáp ứng từng nhóm yêu cầu, gồm lập trình hướng đối tượng với Java, khung Spring Boot, JPA và cơ sở dữ liệu H2, kiến trúc REST, React Native với TypeScript, giao thức MQTT cùng mã hóa AES, và các công cụ mô hình hóa, kiểm thử. Với mỗi lựa chọn, báo cáo nêu phương án thay thế và lý do quyết định.
+
+\section{Lập trình hướng đối tượng với Java 17}
+\label{section:3.1}
+Lập trình hướng đối tượng tổ chức chương trình thành các đối tượng gồm dữ liệu và hành vi, dựa trên bốn nguyên lý đóng gói, trừu tượng hóa, kế thừa và đa hình \cite{gamma1994design}. Java là ngôn ngữ hướng đối tượng có kiểu tĩnh, chạy trên máy ảo JVM, được đặc tả chính thức trong \emph{Java Language Specification} \cite{gosling2021jls}. Phiên bản 17 là bản hỗ trợ dài hạn, bổ sung các cấu trúc giúp mã nghiệp vụ ngắn gọn hơn như \texttt{record}, biểu thức \texttt{switch} và \texttt{var}.
+
+Trong RoomHub, các nguyên lý trên được áp dụng trực tiếp ở dịch vụ \texttt{booking-server}. Tính đóng gói thể hiện ở lớp \texttt{BookingService}: các phương thức kiểm tra như \texttt{validateBooking}, \texttt{overlaps}, \texttt{hasMaintenanceConflict} được khai báo \texttt{private}, chỉ các ca sử dụng như \texttt{createBooking}, \texttt{reviewBooking} là \texttt{public}. Tính kế thừa và đa hình thể hiện ở hai lớp ngoại lệ nghiệp vụ \texttt{UnauthorizedException} và \texttt{ForbiddenException} cùng kế thừa \texttt{RuntimeException}; bộ xử lý ngoại lệ tập trung dựa vào kiểu động của ngoại lệ để chọn mã HTTP 401, 403 hoặc 400. Lớp \texttt{SessionAuthFilter} kế thừa lớp trừu tượng \texttt{OncePerRequestFilter} và ghi đè phương thức \texttt{doFilterInternal}; lớp \texttt{EquipmentConverter} hiện thực giao diện \texttt{AttributeConverter}. Các đối tượng truyền dữ liệu (DTO) như \texttt{BookingInput}, \texttt{LoginResult} được khai báo bằng \texttt{record} để bất biến và tự sinh \texttt{equals}, \texttt{hashCode}, đúng khuyến nghị ưu tiên đối tượng bất biến trong \cite{bloch2018effective}.
+
+Phương án thay thế là C\# trên nền .NET hoặc Node.js với TypeScript ở phía máy chủ. Nhóm chọn Java vì đây là yêu cầu của học phần Lập trình nâng cao, đồng thời hệ sinh thái Java có sẵn khung Spring và đặc tả JPA đã chuẩn hóa, giúp nhóm tập trung vào mô hình nghiệp vụ.
+
+\section{Spring Boot và cơ chế đảo ngược điều khiển}
+\label{section:3.2}
+Spring Framework cung cấp vùng chứa IoC (Inversion of Control) quản lý vòng đời các đối tượng gọi là \emph{bean} và tiêm phụ thuộc (dependency injection) qua hàm khởi tạo. Spring Boot bổ sung cơ chế tự cấu hình, máy chủ web nhúng và các \emph{starter} gom sẵn thư viện \cite{springboot34}. Nhờ đó, một lớp chỉ cần gắn chú thích \texttt{@Service}, \texttt{@RestController} hoặc \texttt{@Component} để được khởi tạo và nối với nhau.
+
+RoomHub sử dụng bốn khả năng của Spring. Thứ nhất, tiêm phụ thuộc qua hàm khởi tạo: \texttt{ApiController} nhận \texttt{BookingService}, còn \texttt{BookingService} nhận \texttt{EntityManager}, giúp các lớp không tự tạo phụ thuộc và dễ thay thế khi kiểm thử. Thứ hai, chuỗi bộ lọc Servlet: \texttt{SessionAuthFilter} chặn mọi yêu cầu \texttt{/api/**} trừ đăng nhập để xác thực token trước khi vào controller, hiện thực mẫu Chain of Responsibility. Thứ ba, xử lý ngoại lệ tập trung bằng \texttt{@RestControllerAdvice}, giúp tầng dịch vụ chỉ cần ném ngoại lệ có thông điệp tiếng Việt. Thứ tư, quản lý giao dịch khai báo bằng \texttt{@Transactional}: mỗi ca sử dụng ghi dữ liệu chạy trong một giao dịch, các truy vấn chỉ đọc được đánh dấu \texttt{readOnly = true}.
+
+Các lựa chọn thay thế gồm Jakarta EE thuần với Servlet hoặc các khung nhẹ như Micronaut, Quarkus. Nhóm chọn Spring Boot 3.4.4 vì tài liệu phong phú, cấu hình tối thiểu và hỗ trợ đầy đủ Java 17.
+
+\section{Jakarta Persistence, Hibernate và cơ sở dữ liệu H2}
+\label{section:3.3}
+Jakarta Persistence (JPA) là đặc tả ánh xạ đối tượng -- quan hệ (ORM) của Java, cho phép khai báo lớp thực thể bằng các chú thích \texttt{@Entity}, \texttt{@Table}, \texttt{@Id}, \texttt{@Embeddable} và truy vấn bằng ngôn ngữ JPQL \cite{jakartapersistence31}. Hibernate là bản hiện thực JPA mặc định trong Spring Boot. Đối tượng \texttt{EntityManager} đóng vai trò đơn vị công việc (Unit of Work) và bản đồ định danh (Identity Map) theo cách phân loại của Fowler \cite{fowler2002peaa}: thay đổi trên thực thể được theo dõi và ghi xuống cơ sở dữ liệu khi giao dịch xác nhận.
+
+JPA hỗ trợ hai chiến lược điều khiển tương tranh. Khóa lạc quan dùng cột phiên bản và phát hiện xung đột khi ghi; khóa bi quan (\texttt{LockModeType.PESSIMISTIC\_WRITE}) phát lệnh \texttt{SELECT \ldots{} FOR UPDATE} để giữ khóa ghi cho tới khi giao dịch kết thúc \cite{bernstein2009transaction}. Với bài toán đặt phòng, xung đột không nằm trên một bản ghi có sẵn mà nằm ở việc \emph{chèn} một booking mới chồng thời gian, nên RoomHub dùng khóa bi quan trên tập booking trước khi kiểm tra và chèn (xem mục~\ref{section:5.1}).
+
+H2 là hệ quản trị cơ sở dữ liệu quan hệ viết bằng Java, chạy nhúng trong tiến trình ứng dụng và hỗ trợ chế độ lưu tệp \cite{h2database}. RoomHub cấu hình \texttt{jdbc:h2:file:./data/booking} với \texttt{ddl-auto=update} để Hibernate tự sinh lược đồ từ các lớp thực thể, kèm giao diện quản trị \texttt{/h2-console}. So với MySQL hoặc PostgreSQL, H2 không cần cài đặt máy chủ riêng nên phù hợp giai đoạn phát triển và demo; do mã truy cập dữ liệu chỉ dùng JPA, việc chuyển sang PostgreSQL khi triển khai thật chỉ cần đổi chuỗi kết nối và trình điều khiển.
+
+\section{Kiến trúc REST và định dạng JSON}
+\label{section:3.4}
+REST (Representational State Transfer) là kiểu kiến trúc do Fielding đề xuất, trong đó tài nguyên được định danh bằng URI, thao tác qua các phương thức HTTP chuẩn và giao tiếp không trạng thái giữa máy khách và máy chủ \cite{fielding2000rest}. Dữ liệu trao đổi trong RoomHub dùng JSON do thư viện Jackson của Spring tự chuyển đổi từ các record và thực thể. Tài nguyên chính gồm \texttt{/api/rooms}, \texttt{/api/bookings}, \texttt{/api/maintenance}, \texttt{/api/configuration}, \texttt{/api/notifications}; các hành động nghiệp vụ được biểu diễn thành tài nguyên con như \texttt{POST /api/bookings/\{id\}/review} và \texttt{POST /api/bookings/\{id\}/temporary-pin}. Xác thực dùng token ngẫu nhiên UUID lưu trong bảng \texttt{auth\_sessions}, gửi kèm tiêu đề \texttt{Authorization: Bearer}.
+
+Các phương án thay thế là GraphQL, phù hợp khi máy khách cần truy vấn linh hoạt nhiều dạng dữ liệu, và gRPC, phù hợp giao tiếp giữa các dịch vụ nội bộ. Với số lượng tài nguyên nhỏ và máy khách di động gọi bằng \texttt{fetch} chuẩn, REST là lựa chọn đơn giản và dễ kiểm thử bằng công cụ dòng lệnh.
+
+\section{React Native và TypeScript}
+\label{section:3.5}
+React Native là khung phát triển ứng dụng di động đa nền tảng dựa trên thư viện React; giao diện được mô tả bằng các thành phần khai báo và được hiển thị bằng thành phần gốc của Android hoặc iOS \cite{reactnative}. TypeScript bổ sung hệ thống kiểu tĩnh cho JavaScript, cho phép khai báo kiểu hợp (union type) như \texttt{BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED'} và phát hiện lỗi truy cập thuộc tính ngay khi biên dịch \cite{typescript}. Dữ liệu cục bộ được lưu bằng Async Storage, kho khóa -- giá trị bất đồng bộ bền vững trên thiết bị \cite{asyncstorage}. Chức năng thông báo ưu tiên dùng một native module viết bằng Kotlin để tạo kênh thông báo của Android.
+
+Các phương án thay thế gồm Flutter với ngôn ngữ Dart và ứng dụng Android gốc bằng Kotlin. Nhóm chọn React Native với TypeScript vì cùng một mã nguồn có thể build cho Android và iOS, hệ thống kiểu của TypeScript giúp mô hình dữ liệu phía di động tương ứng một -- một với các lớp thực thể Java, và môi trường phát triển trùng với môi trường thực hành của nhóm.
+
+\section{Giao thức MQTT, chuẩn oneM2M và mã hóa AES}
+\label{section:3.6}
+MQTT là giao thức nhắn tin theo mô hình xuất bản -- đăng ký (publish/subscribe) qua một broker trung gian, có ba mức chất lượng dịch vụ QoS 0, 1, 2 và phần tiêu đề nhỏ, phù hợp thiết bị IoT \cite{mqtt5}. Nền tảng OneIoT tổ chức chủ đề (topic) theo ràng buộc MQTT của chuẩn oneM2M, dạng \texttt{/oneM2M/req/\{originator\}/\{target\}/json}, và gói dữ liệu trong tài nguyên \texttt{m2m:cin} \cite{onem2mmqtt}. Gateway của RoomHub dùng thư viện paho-mqtt, kết nối broker bằng MQTT 3.1.1 qua TLS tại cổng 2111 với QoS 1, bảo đảm bản tin tạo mật khẩu được chuyển ít nhất một lần.
+
+Mật khẩu tạm thời không được gửi dạng rõ mà mã hóa bằng AES ở chế độ CTR. Chế độ CTR biến mã khối thành mã dòng bằng cách mã hóa một bộ đếm rồi XOR với bản rõ, nên độ dài bản mã bằng độ dài bản rõ và không cần đệm \cite{dworkin2001sp80038a}. Khóa 256 bit được dẫn xuất bằng SHA-256 từ định danh thiết bị, còn giá trị khởi tạo được dẫn xuất từ khoảng hiệu lực và số hiệu mật khẩu theo định dạng mà firmware khóa DLWA12 yêu cầu.
+
+Phương án thay thế là điều khiển khóa qua Bluetooth Low Energy khi người dùng đứng trước cửa, hoặc để máy chủ Java gọi trực tiếp broker. Nhóm chọn tách gateway thành tiến trình riêng vì chỉ gateway giữ token OneIoT, ứng dụng di động chỉ gọi một API HTTP đơn giản, và loại khóa có thể thay đổi mà không ảnh hưởng dịch vụ đặt phòng.
+
+\section{Mô hình hóa UML và kiểm thử tự động}
+\label{section:3.7}
+Các biểu đồ use case, hoạt động, trạng thái, gói, lớp và trình tự trong báo cáo tuân theo đặc tả UML 2.5.1 \cite{uml251}. Kiểm thử tự động phía ứng dụng dùng Jest với preset của React Native \cite{jest}; các ca kiểm thử gọi trực tiếp tầng dịch vụ trên kho Async Storage giả lập, nhờ đó kiểm tra được quy tắc nghiệp vụ mà không cần giao diện. Chất lượng mã được kiểm soát thêm bằng ESLint và trình biên dịch TypeScript ở chế độ \texttt{--noEmit}.
+
+Bảng~\ref{tab:congnghe} tổng hợp liên hệ giữa yêu cầu, công nghệ được chọn và phương án thay thế đã cân nhắc.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Tổng hợp lựa chọn công nghệ theo yêu cầu}
+\label{tab:congnghe}
+\begin{tabularx}{\textwidth}{|p{4.2cm}|p{3.9cm}|X|}
+\hline
+\textbf{Yêu cầu (Chương 2)} & \textbf{Công nghệ chọn} & \textbf{Phương án thay thế} \\ \hline
+Mô hình nghiệp vụ hướng đối tượng, kiểm tra quyền phía máy chủ & Java 17, Spring Boot 3.4.4 & C\#/.NET, Node.js, Jakarta EE thuần \\ \hline
+Lưu trữ, chống trùng lịch đồng thời & JPA/Hibernate, khóa bi quan, H2 & JDBC thủ công, MyBatis; PostgreSQL, MySQL \\ \hline
+Giao tiếp ứng dụng -- máy chủ & REST/JSON, token Bearer & GraphQL, gRPC \\ \hline
+Ứng dụng trên điện thoại Android & React Native 0.86.2, TypeScript 5.8 & Flutter, Kotlin gốc \\ \hline
+Lưu cục bộ khi chưa có máy chủ & Async Storage & SQLite, MMKV \\ \hline
+Gửi mật khẩu tạm thời tới khóa & Gateway Python, MQTT/oneM2M, AES-256-CTR & BLE trực tiếp, máy chủ Java gọi broker \\ \hline
+Kiểm thử quy tắc nghiệp vụ & Jest, ESLint, TypeScript compiler & Kiểm thử thủ công \\ \hline
+\end{tabularx}
+\end{table}
+
+Chương này đã trình bày cơ sở lý thuyết và lý do lựa chọn từng công nghệ. Java cùng Spring Boot và JPA đáp ứng yêu cầu mô hình hóa nghiệp vụ và kiểm soát giao dịch ở máy chủ; React Native với TypeScript đáp ứng yêu cầu chạy trên điện thoại; MQTT và AES-CTR phục vụ tích hợp khóa thông minh. Chương~\ref{chapter:Experiment} sẽ trình bày cách các công nghệ này được tổ chức thành kiến trúc và thiết kế chi tiết của hệ thống.
+
+\end{document}

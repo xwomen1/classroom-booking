@@ -1,0 +1,29 @@
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,fit,calc,backgrounds,shapes.misc}
+\definecolor{hust}{RGB}{170,20,45}
+\definecolor{navy}{RGB}{16,42,94}
+\definecolor{lblue}{RGB}{225,236,250}
+\definecolor{lgreen}{RGB}{226,244,232}
+\definecolor{lyel}{RGB}{255,245,214}
+\definecolor{lred}{RGB}{252,228,232}
+\definecolor{lgray}{RGB}{242,242,242}
+\tikzset{
+  uc/.style={ellipse,draw=navy,fill=lblue,thick,minimum height=0.95cm,minimum width=4.4cm,align=center,font=\small,inner sep=1pt},
+  arr/.style={-{Stealth[length=2.2mm]},thick},
+  dep/.style={-{Stealth[length=2.2mm]},thick,dashed},
+  box/.style={draw=navy,thick,rounded corners=2pt,align=center,font=\small,fill=white},
+}
+\newcommand{\actor}[3]{% name, pos, label
+  \begin{scope}[shift={#2}]
+    \draw[thick] (0,0.55) circle (0.22);
+    \draw[thick] (0,0.33) -- (0,-0.25);
+    \draw[thick] (-0.35,0.12) -- (0.35,0.12);
+    \draw[thick] (0,-0.25) -- (-0.3,-0.7);
+    \draw[thick] (0,-0.25) -- (0.3,-0.7);
+    \node[font=\small\bfseries,align=center,anchor=south] (#1) at (0,0.85) {#3};
+    \coordinate (#1-c) at (0,0);
+    \coordinate (#1-r) at (0.38,0.12);
+    \coordinate (#1-l) at (-0.38,0.12);
+  \end{scope}}

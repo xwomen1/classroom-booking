@@ -1,0 +1,38 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw=navy,thick,rounded corners=4pt,minimum width=11.6cm,minimum height=15.6cm,anchor=north] (sys) at (0,0.6) {};
+  \node[font=\bfseries,text=navy,anchor=north] at (0,0.45) {Hệ thống RoomHub};
+
+  \node[uc] (login) at (0,-0.6) {Đăng nhập / Đăng ký\\/ Khôi phục mật khẩu};
+  \node[uc] (noti) at (0,-1.9) {Xem thông báo};
+  \node[uc] (prof) at (0,-3.2) {Cập nhật hồ sơ cá nhân};
+
+  \node[uc] (search) at (-2.95,-4.8) {Tìm và đặt phòng\\theo sơ đồ tầng};
+  \node[uc] (sched) at (-2.95,-6.2) {Xem lịch đặt phòng};
+  \node[uc] (mybk) at (-2.95,-7.6) {Quản lý đặt phòng\\của tôi (hủy)};
+  \node[uc] (deleg) at (-2.95,-9.8) {Ủy quyền người\\nhận khóa hộ};
+  \node[uc] (pin) at (-2.95,-12.2) {Tạo mã PIN tạm thời};
+
+  \node[uc] (acc) at (2.95,-4.8) {Quản lý tài khoản\\và quyền theo phòng};
+  \node[uc] (room) at (2.95,-6.2) {Quản lý phòng};
+  \node[uc] (review) at (2.95,-7.6) {Duyệt / từ chối /\\đổi phòng};
+  \node[uc] (maint) at (2.95,-9.0) {Quản lý lịch sử dụng\\và bảo trì};
+  \node[uc] (conf) at (2.95,-10.4) {Cấu hình nghiệp vụ};
+  \node[uc] (lock) at (2.95,-11.8) {Quản lý SmartLock};
+  \node[uc] (appt) at (2.95,-13.2) {Hẹn lịch nhận khóa cơ/thẻ};
+
+  \actor{user}{(-7.6,-6.0)}{Giảng viên\\(User)}
+  \actor{admin}{(7.6,-7.2)}{Quản trị viên\\(Admin)}
+  \actor{gw}{(-7.6,-12.6)}{SmartLock\\Gateway}
+
+  \foreach \u in {login,noti,prof,search,sched,mybk} {\draw (user-r) -- (\u.west);}
+  \foreach \u in {login,noti,prof,acc,room,review,maint,conf,lock,appt} {\draw (admin-l) -- (\u.east);}
+  \draw (gw-r) -- (pin.west);
+  \draw (admin-c) ++(0,-0.7) -- (7.6,-14.55) -- (-2.95,-14.55) -- (pin.south);
+
+  \draw[dep] (deleg.north) -- node[right,font=\scriptsize,inner sep=2pt]{\guillemotleft extend\guillemotright} (mybk.south);
+  \draw[dep] (pin.north west) to[bend left=40] node[left,font=\scriptsize,inner sep=2pt,pos=0.5]{\guillemotleft extend\guillemotright} (mybk.south west);
+\end{tikzpicture}
+\end{document}

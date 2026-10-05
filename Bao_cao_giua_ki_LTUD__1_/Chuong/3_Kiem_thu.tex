@@ -1,0 +1,148 @@
+\section{Mục tiêu và phương pháp kiểm thử}
+
+Ứng dụng được kiểm thử bằng các \textbf{kịch bản đầu cuối trên điện thoại thật}: cài bản Release từ APK, thao tác trực tiếp trên màn hình ở cả hai vai trò Admin và User, rồi đối chiếu kết quả với quy tắc nghiệp vụ \cite{istqb}.
+
+Kịch bản bao gồm luồng nghiệp vụ chính, các giá trị biên (cửa sổ đặt 1--3 ngày, sức chứa, giới hạn yêu cầu, thời gian ân hạn) và chuyển trạng thái booking (Hình \ref{fig:state}). Chỉ bản build đạt bộ Jest \cite{jest} mới được đưa lên thiết bị.
+
+\section{Môi trường kiểm thử trên thiết bị}
+
+Các kịch bản nhiều vai trò được thực hiện bằng cách đăng nhập luân phiên Admin và User trên cùng một máy; các quy tắc theo thời gian được kiểm tra bằng cách chỉnh ngày giờ thiết bị.
+
+\begin{table}[H]
+\centering
+\caption{Môi trường kiểm thử trên thiết bị thực tế}
+\label{tab:env}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} X}
+\toprule
+\textbf{Hạng mục} & \textbf{Cấu hình} \\
+\midrule
+Thiết bị & Samsung Galaxy M21 (SM-M215F), Android \\
+Bản cài đặt & \path{app-release.apk} build từ mã nguồn, cài bằng \texttt{adb install -r} \\
+Công cụ theo dõi & \texttt{adb logcat} lọc lỗi \texttt{AndroidRuntime}, \texttt{ReactNativeJS}; ảnh chụp màn hình làm bằng chứng \\
+Dữ liệu ban đầu & Xóa dữ liệu ứng dụng để về 56 phòng mẫu (8 tầng $\times$ 7 phòng), tài khoản \texttt{admin/1}, \texttt{user/2} \\
+Cấu hình mặc định & Đặt trước 1--3 ngày, tối đa 2 yêu cầu, hủy trước 30 phút, ân hạn PIN 10 phút, no-show 15 phút \\
+Mạng & Wi-Fi bật/tắt để kiểm thử trường hợp mất kết nối; OneIoT \texttt{oneiot.com.vn:2111} (MQTT/TLS) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Quy trình kiểm thử trên thiết bị}
+
+Quy trình gồm năm bước, lặp lại sau mỗi bản APK sửa lỗi, như Hình \ref{fig:testprocess}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{quy_trinh_kiem_thu.pdf}
+\caption{Quy trình kiểm thử trên thiết bị thực tế}
+\label{fig:testprocess}
+\end{figure}
+
+Mỗi lỗi được ghi kèm kịch bản liên quan, các bước tái hiện, ảnh chụp màn hình và mức độ: \textit{Nghiêm trọng} (sai dữ liệu, chặn luồng chính), \textit{Cao} (sai quy tắc nghiệp vụ), \textit{Trung bình} (thiếu kiểm tra đầu vào) và \textit{Thấp} (giao diện). Lỗi chỉ được đóng khi kịch bản đạt trên bản APK mới.
+
+\section{Kịch bản kiểm thử trên thiết bị}
+\label{section:testcases}
+
+Bảng \ref{tab:testcases} trình bày mười hai kịch bản; cột ``Lỗi'' tham chiếu tới Bảng \ref{tab:bugs}.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{1.2cm} >{\raggedright\arraybackslash}p{5.9cm} >{\raggedright\arraybackslash}p{4.2cm} >{\centering\arraybackslash}p{1.1cm}}
+\caption{Kịch bản kiểm thử đầu cuối trên thiết bị thực tế}\label{tab:testcases}\\
+\toprule
+\textbf{Mã} & \textbf{Các bước trên thiết bị} & \textbf{Kết quả mong đợi} & \textbf{Lỗi} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Các bước trên thiết bị} & \textbf{Kết quả mong đợi} & \textbf{Lỗi} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+KB-01 & \textbf{Cài đặt và khởi động.} (1) Cài APK bằng \texttt{adb install -r}; (2) rút cáp, buộc dừng ứng dụng; (3) mở lại từ màn hình chính. & Ứng dụng mở màn hình đăng nhập, không cần Metro; logcat không có lỗi crash. & -- \\
+\addlinespace
+KB-02 & \textbf{Đăng nhập theo vai trò.} (1) Đăng nhập \texttt{admin/1}; (2) đăng xuất, đăng nhập \texttt{user/2}; (3) nhập sai mật khẩu. & (1) Chế độ quản trị viên; (2) chế độ người dùng; (3) báo sai thông tin. Màn hình không có chữ thừa. & L03 \\
+\addlinespace
+KB-03 & \textbf{Đăng ký và khôi phục mật khẩu.} (1) Chọn Đăng ký, bỏ trống mã khôi phục; (2) nhập đủ, tạo \texttt{teacher01}; (3) đăng ký lại tên \texttt{teacher01}; (4) Quên mật khẩu, nhập mã khôi phục, đặt mật khẩu mới; (5) đăng nhập bằng mật khẩu mới. & (1) Cảnh báo trường bắt buộc có dấu (*); (2) tạo thành công; (3) báo trùng tên; (4)--(5) đăng nhập được, mật khẩu cũ bị từ chối. & L02 L03 L04 \\
+\addlinespace
+KB-04 & \textbf{Hồ sơ cá nhân.} (1) User mở Thông tin cá nhân, sửa họ tên, email, số điện thoại, nhấn Lưu; (2) đóng hẳn ứng dụng rồi mở lại; (3) đăng nhập Admin, mở Quản lý user xem tài khoản đó. & Thông tin được giữ sau khi mở lại; Admin thấy cùng thông tin; User không thay đổi được vai trò của mình. & L05 L14 \\
+\addlinespace
+KB-05 & \textbf{Tìm phòng trên sơ đồ tầng.} (1) User mở Tìm phòng, chọn ngày mai 08:00--09:00; (2) nhập sức chứa tối thiểu 45; (3) chọn thiết bị Máy chiếu; (4) lần lượt chọn tầng T1--T8. & Mọi phòng $\geq$ 45 chỗ có máy chiếu được tô xanh, kể cả phòng đúng 45 chỗ; phòng không khớp được làm mờ. & L06 L07 \\
+\addlinespace
+KB-06 & \textbf{Đặt phòng và phê duyệt.} (1) User chọn phòng A102, ngày mai 09:00--11:00, bỏ trống Mục đích sử dụng, nhấn Gửi; (2) nhập ``Họp môn đồ án'', gửi lại; (3) đăng nhập Admin, mở Quản lý mượn phòng, duyệt; (4) đăng nhập User, mở Lịch đặt. & (1) Cảnh báo tại trường Mục đích; (2) yêu cầu ở trạng thái Chờ duyệt; (3) Admin thấy huy hiệu và thông báo mới; (4) User thấy Đã duyệt và thông báo màu xanh. & L09 L11 L12 \\
+\addlinespace
+KB-07 & \textbf{Quy tắc đặt phòng.} (1) User đặt phòng cho hôm nay và cho 4 ngày sau; (2) tạo yêu cầu thứ ba khi đã có hai; (3) đăng nhập \texttt{teacher01}, đặt A102 cùng khung giờ ở KB-06; (4) Admin mở Cấu hình nghiệp vụ, đổi tối đa thành 3; User đặt lại bước (2). & (1)--(3) bị từ chối với thông báo đúng quy tắc; (4) sau khi đổi cấu hình, yêu cầu thứ ba được tạo. & -- \\
+\addlinespace
+KB-08 & \textbf{Đặt lặp hàng tuần.} (1) User bật Lặp hàng tuần, 4 tuần, gửi yêu cầu; (2) mở Lịch đặt xem chuỗi; (3) Admin duyệt cả chuỗi; (4) User hủy các lượt tương lai. & Hiển thị đủ 4 lượt với ngày, giờ và trạng thái từng tuần; duyệt và hủy áp dụng cho cả chuỗi, đồng bộ giữa hai vai trò. & L10 L14 \\
+\addlinespace
+KB-09 & \textbf{Quản lý phòng và bảo trì.} (1) Admin mở Quản lý phòng, thêm phòng mới ở tầng 7; (2) lên lịch bảo trì một phòng vào ngày mai; (3) User tìm phòng ngày mai; (4) Admin xóa phòng đang có booking đã duyệt. & (1) Phòng mới xuất hiện trên sơ đồ tầng 7; (3) phòng bảo trì màu xám, không đặt được; (4) từ chối xóa. & L08 L13 \\
+\addlinespace
+KB-10 & \textbf{Báo sự cố khi đang dùng phòng.} (1) Chỉnh giờ thiết bị vào giữa phiên đã duyệt của User; (2) User mở booking, chọn Báo sự cố, nhập lý do; (3) Admin mở Quản lý phòng. & Admin nhận thông báo; tầng và phòng liên quan tô vàng; Admin tiếp nhận và lên lịch bảo trì được. & -- \\
+\addlinespace
+KB-11 & \textbf{Khóa cơ/thẻ từ và điểm danh.} (1) Với booking đã duyệt ở phòng khóa cơ, User đề xuất giờ nhận khóa; (2) Admin đề xuất giờ và địa điểm khác; (3) User chấp nhận; (4) chỉnh giờ vào phiên, Admin xác nhận có mặt; (5) với booking khác không check-in, chỉnh giờ qua 15 phút sau giờ bắt đầu, Admin ghi vắng mặt. & (3) Hai bên thấy lịch đã thống nhất; (4) booking có check-in; (5) trước 15 phút bị từ chối, sau 15 phút chuyển Vắng mặt và khung giờ được giải phóng. & -- \\
+\addlinespace
+KB-12 & \textbf{Khóa số và OneIoT.} (1) Admin cho phép đặt cùng ngày, gắn SmartLock vào A101; (2) User đặt A101 hôm nay khi phiên đã bắt đầu, Admin duyệt; (3) tắt Wi-Fi, User tạo mã tạm thời; (4) bật Wi-Fi, Admin nhập token Tools, nhấn Kiểm tra kết nối; (5) chuyển ứng dụng xuống nền. & (2) Duyệt được vì phiên chưa kết thúc; (3) mã 7 chữ số hiện ngay, trạng thái chờ gửi; (4) kết nối thành công, lệnh tự gửi; (5) phiên OneIoT tự ngắt, token không còn lưu. & -- \\
+\end{longtable}
+}
+
+\section{Kết quả kiểm thử và lỗi đã phát hiện}
+
+Bảng \ref{tab:results} tổng hợp kết quả trên Samsung M21.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả thực hiện kịch bản trên thiết bị}
+\label{tab:results}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.2cm} >{\raggedright\arraybackslash}p{2.4cm} X}
+\toprule
+\textbf{Mã} & \textbf{Kết quả} & \textbf{Ghi chú} \\
+\midrule
+KB-01 & Đạt & Cài đặt, khởi động lại không cần Metro; 0 lỗi crash trong logcat \\
+KB-02 & Đạt, có góp ý & Điều hướng đúng vai trò; còn chữ thừa trên màn hình đăng nhập (L03) \\
+KB-03 & Không đạt & Thiếu đánh dấu bắt buộc, mã khôi phục chưa bắt buộc, lỗi tạo tài khoản (L02--L04) \\
+KB-04 & Không đạt & Chưa kiểm tra quyền khi sửa hồ sơ, thông tin không đồng bộ (L05, L14) \\
+KB-05 & Không đạt & Lọc sức chứa 45 chỉ hiện phòng 40 chỗ; chưa chọn từng thiết bị (L06, L07) \\
+KB-06 & Không đạt & Thiếu cảnh báo Mục đích; lỗi đặt phòng phía server và lỗi khi duyệt (L09, L11, L12) \\
+KB-07 & Đạt & Các quy tắc cửa sổ đặt, trùng lịch, giới hạn yêu cầu hoạt động đúng \\
+KB-08 & Không đạt & Lịch sử chỉ hiện ngày đầu của chuỗi; đặt lặp không đồng bộ (L10, L14) \\
+KB-09 & Không đạt & Không thêm được phòng; trạng thái đặt giờ không đồng bộ; nút Xóa thiếu lọc (L08, L13) \\
+KB-10 & Đạt & Báo sự cố và tô vàng phòng hoạt động đúng \\
+KB-11 & Đạt & Thỏa thuận nhận khóa, check-in, no-show đúng ân hạn \\
+KB-12 & Đạt một phần & Lệnh đã gửi tới OneIoT; chưa kiểm chứng khóa thật mở bằng mã \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các lỗi phát hiện được tổng hợp ở Bảng \ref{tab:bugs}.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.9cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{7.0cm} >{\raggedright\arraybackslash}p{1.9cm}}
+\caption{Danh sách lỗi và vấn đề đã báo cho nhóm}\label{tab:bugs}\\
+\toprule
+\textbf{Mã} & \textbf{Module} & \textbf{Mô tả} & \textbf{Mức độ} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Module} & \textbf{Mô tả} & \textbf{Mức độ} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+L01 & Giao diện & Cần sửa logo và màu sắc & Thấp \\
+L02 & auth, profile & Thiếu Email, Mã nhân viên; trường bắt buộc chưa có dấu (*) & Trung bình \\
+L03 & auth & Cập nhật Database; chữ thừa trên màn hình đăng nhập; mã khôi phục phải bắt buộc & Trung bình \\
+L04 & auth & Xung đột khi đăng ký; lỗi tạo tài khoản liên quan Database & Nghiêm trọng \\
+L05 & profile & Cập nhật thông tin cá nhân chưa kiểm tra Role/Quyền & Cao \\
+L06 & Phòng & Thiết bị chưa chọn được từng mục & Trung bình \\
+L07 & Phòng & Tìm theo sức chứa bỏ qua giới hạn: chọn 45 chỉ hiển thị 40 & Cao \\
+L08 & Phòng & Nút Xóa cần bộ lọc tự động & Thấp \\
+L09 & booking & ``Mục đích sử dụng'' chưa cảnh báo khi bỏ trống & Trung bình \\
+L10 & booking & Lịch sử đặt theo tuần chỉ hiển thị ngày đầu tiên & Cao \\
+L11 & booking & Bug liên quan server khi đặt phòng & Nghiêm trọng \\
+L12 & booking & Lỗi trong quá trình duyệt & Cao \\
+L13 & Phòng, bảo trì & Không thêm được phòng; trạng thái ``Đặt giờ phòng không đồng bộ'' & Nghiêm trọng \\
+L14 & Đồng bộ dữ liệu & Đặt phòng và phê duyệt, thông tin cá nhân và tài khoản, đặt lịch hàng tuần không đồng bộ giữa các chức năng & Nghiêm trọng \\
+\end{longtable}
+}
+
+Bốn lỗi Nghiêm trọng (L04, L11, L13, L14) đều liên quan đến đồng bộ dữ liệu và cần được ưu tiên xử lý, tiếp đến là các lỗi sai quy tắc nghiệp vụ, cuối cùng là giao diện. 

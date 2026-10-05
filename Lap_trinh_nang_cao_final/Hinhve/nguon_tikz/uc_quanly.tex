@@ -1,0 +1,22 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw=navy,thick,rounded corners=4pt,minimum width=16.2cm,minimum height=10.9cm,anchor=north west] at (-1.2,1.0) {};
+  \node[font=\bfseries,text=navy,anchor=north west] at (-1.0,0.9) {Phân rã: Duyệt / từ chối / đổi phòng};
+  \node[uc,minimum width=4.6cm] (base) at (1.3,-4.3) {Quản lý yêu cầu\\đặt phòng};
+  \node[uc] (a) at (7.6,0.0) {Xem danh sách\\yêu cầu chờ duyệt};
+  \node[uc] (b) at (7.6,-1.45) {Duyệt yêu cầu};
+  \node[uc] (r) at (7.6,-2.9) {Từ chối yêu cầu};
+  \node[uc] (ch) at (7.6,-4.35) {Đổi sang phòng\\thay thế phù hợp};
+  \node[uc] (k) at (7.6,-5.8) {Hẹn lịch nhận khóa\\cơ/thẻ từ};
+  \node[uc] (p) at (7.6,-7.25) {Tạo mã PIN hộ\\người đặt};
+  \node[uc] (rv) at (7.6,-8.7) {Thu hồi quyền tự tạo\\mã theo phòng};
+  \node[uc,fill=lyel] (gr) at (12.4,-2.9) {Cấp quyền tự tạo mã\\(User + phòng)};
+  \actor{ad}{(-3.4,-4.3)}{Quản trị viên\\(Admin)}
+  \draw (ad-r) -- (base.west);
+  \draw[dep] (base) -- node[font=\tiny,sloped,above,pos=0.55]{\guillemotleft include\guillemotright} (a.west);
+  \foreach \x in {b,r,ch,k,p,rv} {\draw[dep] (\x.west) -- node[font=\tiny,sloped,above,pos=0.45]{\guillemotleft extend\guillemotright} (base);}
+  \draw[dep] (b.east) -- node[font=\tiny,sloped,above]{\guillemotleft include\guillemotright} node[font=\tiny,sloped,below]{(phòng khóa số)} (gr.north);
+\end{tikzpicture}
+\end{document}

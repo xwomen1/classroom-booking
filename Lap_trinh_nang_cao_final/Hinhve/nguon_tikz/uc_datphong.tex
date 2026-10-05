@@ -1,0 +1,21 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw=navy,thick,rounded corners=4pt,minimum width=12.4cm,minimum height=9.4cm,anchor=north west] at (-1.2,1.0) {};
+  \node[font=\bfseries,text=navy,anchor=north west] at (-1.0,0.9) {Phân rã: Tìm và đặt phòng};
+  \node[uc,minimum width=4.6cm] (base) at (1.3,-3.6) {Tìm và đặt phòng\\theo sơ đồ tầng};
+  \node[uc] (t) at (7.6,0.0) {Chọn ngày, giờ bắt đầu\\và giờ kết thúc};
+  \node[uc] (f) at (7.6,-1.45) {Chọn tầng T1--T8\\(sơ đồ chữ U)};
+  \node[uc] (l) at (7.6,-2.9) {Lọc theo sức chứa,\\thiết bị, loại khóa};
+  \node[uc] (s) at (7.6,-4.35) {Xem trạng thái phòng\\trống / đã đặt / bảo trì};
+  \node[uc] (c) at (7.6,-5.8) {Chọn phòng trên sơ đồ\\hoặc nhập tên phòng};
+  \node[uc] (g) at (7.6,-7.25) {Nhập mục đích và\\gửi yêu cầu đặt phòng};
+  \node[uc,fill=lyel] (v) at (1.3,-7.25) {Kiểm tra quy tắc\\nghiệp vụ BR-01..BR-06};
+  \actor{u}{(-3.4,-3.6)}{Giảng viên\\(User)}
+  \draw (u-r) -- (base.west);
+  \foreach \x in {t,f,s,c,g} {\draw[dep] (base) -- node[font=\tiny,sloped,above,pos=0.55]{\guillemotleft include\guillemotright} (\x.west);}
+  \draw[dep] (l.west) -- node[font=\tiny,sloped,above,pos=0.45]{\guillemotleft extend\guillemotright} (base);
+  \draw[dep] (g.west) -- node[font=\tiny,above]{\guillemotleft include\guillemotright} (v.east);
+\end{tikzpicture}
+\end{document}

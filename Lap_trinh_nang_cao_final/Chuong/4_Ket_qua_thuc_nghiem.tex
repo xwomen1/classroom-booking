@@ -1,0 +1,463 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương~\ref{chapter:Methodology} đã trình bày các công nghệ được lựa chọn. Chương này mô tả cách tổ chức các công nghệ đó thành hệ thống RoomHub, đi từ thiết kế kiến trúc, thiết kế gói, thiết kế giao diện, thiết kế lớp và cơ sở dữ liệu tới kết quả xây dựng, kiểm thử và triển khai trên thiết bị thật.
+
+\section{Thiết kế kiến trúc}
+\subsection{Lựa chọn kiến trúc phần mềm}
+RoomHub áp dụng kiến trúc khách -- chủ nhiều tầng. Ở mức hệ thống có ba thành phần triển khai độc lập như Hình~\ref{fig:kientruc}: ứng dụng di động React Native, dịch vụ nghiệp vụ Java \texttt{booking-server} và gateway khóa thông minh. Ứng dụng giao tiếp với máy chủ qua REST/JSON khi bật cờ \texttt{ENABLE\_REMOTE\_SYNC}, và giao tiếp với gateway qua HTTP để gửi mật khẩu tạm thời; gateway tiếp tục chuyển lệnh tới khóa qua broker MQTT của OneIoT.
+
+% ===== Hình 4.1 – Kiến trúc tổng thể RoomHub =====
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=Stealth, font=\small,
+    lop/.style={draw=hinhNavy, thick, rounded corners=3pt, fill=#1,
+                text width=5.6cm, minimum height=1.15cm, align=center,
+                inner sep=4pt},
+    khoi/.style={draw=#1, very thick, rounded corners=6pt, inner sep=9pt},
+    ngoai/.style={draw=hinhNavy, thick, rounded corners=3pt, fill=hinhXanhLa,
+                  text width=#1, minimum height=1.15cm, align=center, inner sep=4pt},
+    nhan/.style={font=\scriptsize, align=center},
+  ]
+  % ---- Bảng màu ----
+  \definecolor{hinhNavy}{RGB}{16,42,94}
+  \definecolor{hinhDo}{RGB}{170,20,45}
+  \definecolor{hinhXanh}{RGB}{225,236,250}
+  \definecolor{hinhVang}{RGB}{255,245,214}
+  \definecolor{hinhXam}{RGB}{242,242,242}
+  \definecolor{hinhXanhLa}{RGB}{226,244,232}
+  \definecolor{hinhLuc}{RGB}{0,110,40}
+
+  % ---- Ứng dụng di động ----
+  \node[lop=hinhXanh] (m1) at (0,0)
+    {\textbf{Tầng giao diện} (screens/, components/)\\
+     \footnotesize LoginScreen, RoomSearchScreen,\\ \footnotesize AdminBookingScreen, \dots};
+  \node[lop=hinhXanh, below=0.55cm of m1] (m2)
+    {\textbf{Tầng nghiệp vụ} (services/)\\
+     \footnotesize bookingRepository, temporaryPinService, \dots};
+  \node[lop=hinhXanh, below=0.55cm of m2] (m3)
+    {\textbf{Tầng lõi} (core/)\\
+     \footnotesize jsonStorage, api/client, runtimeFlags};
+  \node[lop=hinhXam, below=0.55cm of m3] (m4)
+    {Async Storage (dữ liệu local)\\
+     \footnotesize + Native module Kotlin (thông báo)};
+  \foreach \a/\b in {m1/m2, m2/m3, m3/m4} \draw[->, thick] (\a) -- (\b);
+  \node[khoi=hinhNavy, fit=(m1)(m4)] (G1) {};
+  \node[font=\bfseries, text=hinhNavy, anchor=south] at (G1.north)
+    {Ứng dụng di động (React Native 0.86 + TypeScript)};
+
+  % ---- Booking server ----
+  \node[lop=hinhVang] (s1) at (12.6,0)
+    {\textbf{SessionAuthFilter}\\ \footnotesize kiểm tra Bearer token};
+  \node[lop=hinhVang, below=0.55cm of s1] (s2)
+    {\textbf{ApiController} (@RestController)\\ \footnotesize REST/JSON \texttt{/api/**}};
+  \node[lop=hinhVang, below=0.55cm of s2] (s3)
+    {\textbf{BookingService}\\ \footnotesize (@Service, @Transactional)\\
+     \footnotesize quy tắc nghiệp vụ, khóa bi quan};
+  \node[lop=hinhXam, below=0.55cm of s3] (s4)
+    {JPA / Hibernate $\rightarrow$ H2 (file)\\
+     \footnotesize bảng accounts, rooms, bookings, \dots};
+  \foreach \a/\b in {s1/s2, s2/s3, s3/s4} \draw[->, thick] (\a) -- (\b);
+  \node[khoi=hinhDo, fit=(s1)(s4)] (G2) {};
+  \node[font=\bfseries, text=hinhDo, anchor=south] at (G2.north)
+    {Booking server (Java 17 + Spring Boot 3.4)};
+
+  % ---- Liên kết REST giữa app và server: nhãn đặt giữa khoảng trống ----
+  \coordinate (giua) at ($(G1.east)!0.5!(G2.west)$);
+  \draw[<->, thick, dashed, hinhDo]
+    (m3.east) -- (m3.east -| giua) -- (s1.west -| giua) -- (s1.west);
+  \node[nhan, text=hinhDo, anchor=east, inner sep=2pt]
+    at ($(giua |- m2) + (-0.25,0)$)
+    {REST/JSON\\ + Bearer token\\ (khi bật cờ\\ \texttt{ENABLE\_REMOTE\_SYNC})};
+
+  % ---- Chuỗi SmartLock: đặt thấp hơn, chừa chỗ cho nhãn ----
+  \node[ngoai=4.8cm, below=2.6cm of G1.south, anchor=north, xshift=4.6cm] (g1)
+    {\textbf{SmartLock gateway} (Python)\\ \footnotesize HTTP :8135, mã hóa AES-CTR};
+  \node[ngoai=3.7cm, right=2.0cm of g1] (g2)
+    {\textbf{OneIoT broker}\\ \footnotesize MQTT over TLS :2111};
+  \node[ngoai=2.8cm, right=1.7cm of g2] (g3)
+    {\textbf{SmartLock}\\ \footnotesize DLWA12};
+  \draw[<->, thick] (g1) -- node[nhan, above]{MQTT} (g2);
+  \draw[<->, thick] (g2) -- node[nhan, above]{trait} (g3);
+
+  % Mũi tên app -> gateway: nhãn nằm cạnh đoạn thẳng đứng, không chạm ô
+  \draw[->, thick, hinhLuc] (G1.south) |- (g1.west);
+  \node[nhan, text=hinhLuc, anchor=west, align=left]
+    at ($(G1.south)!0.45!(G1.south |- g1.west) + (0.12,0)$)
+    {\texttt{POST /api/lock/}\\ \texttt{temp-password}};
+
+  % ---- Người dùng ----
+  \begin{scope}[shift={($(G1.west)+(-1.9,1.2)$)}]
+    \draw[thick] (0,0.55) circle (0.22);
+    \draw[thick] (0,0.33) -- (0,-0.25);
+    \draw[thick] (-0.35,0.12) -- (0.35,0.12);
+    \draw[thick] (0,-0.25) -- (-0.3,-0.7) (0,-0.25) -- (0.3,-0.7);
+    \node[font=\bfseries\small, anchor=south] at (0,0.85) {Người dùng};
+    \coordinate (tay) at (0.4,0.12);
+  \end{scope}
+  \draw[->, thick] (tay) -- (tay -| G1.west);
+\end{tikzpicture}%
+}
+\caption{Kiến trúc tổng thể của hệ thống RoomHub}
+\label{fig:kientruc}
+\end{figure}
+
+Bên trong mỗi thành phần, nhóm áp dụng kiến trúc phân tầng theo nguyên tắc tầng trên chỉ phụ thuộc tầng dưới \cite{martin2017clean}. Ở dịch vụ Java, tầng trình diễn API gồm \texttt{SessionAuthFilter} và \texttt{ApiController}; tầng nghiệp vụ là \texttt{BookingService} theo mẫu Service Layer \cite{fowler2002peaa}, nơi tập trung mọi quy tắc BR-01 đến BR-11; tầng dữ liệu gồm các lớp thực thể trong lớp bao \texttt{Domain} và \texttt{EntityManager} của JPA. Controller không chứa quy tắc nghiệp vụ mà chỉ lấy tài khoản đã xác thực từ thuộc tính yêu cầu rồi ủy quyền cho dịch vụ; lỗi nghiệp vụ được chuyển thành mã HTTP tại \texttt{ApiExceptionHandler}.
+
+Ở ứng dụng di động, mỗi module nghiệp vụ tự chia ba tầng: \texttt{screens/} và \texttt{components/} là tầng giao diện, \texttt{services/} là tầng nghiệp vụ theo mẫu Repository, \texttt{model/} chứa kiểu dữ liệu. Tầng \texttt{core/} cung cấp hạ tầng dùng chung gồm kho JSON trên Async Storage, máy khách API và cờ cấu hình. Mỗi hàm repository kiểm tra \texttt{isRemoteApiEnabled()}: nếu bật thì gọi REST tới máy chủ Java, nếu tắt thì thực thi cùng bộ quy tắc trên dữ liệu cục bộ. Nhờ vậy giao diện không cần biết dữ liệu đến từ đâu; chi tiết giải pháp được trình bày tại mục~\ref{section:5.3}.
+
+\subsection{Thiết kế tổng quan}
+Hình~\ref{fig:goi} là biểu đồ gói của ứng dụng di động. Gói \texttt{app} ghép luồng màn hình theo vai trò và chỉ phụ thuộc các module. Mười module nghiệp vụ nằm trong \texttt{modules/}, cùng phụ thuộc hai gói nền \texttt{shared} (thành phần giao diện dùng lại như \texttt{ScreenHeader}, \texttt{PasswordInput}) và \texttt{core} (kiểu \texttt{UserRole}, \texttt{AuthenticatedUser}, lưu trữ, API). Các mũi tên màu đỏ thể hiện phụ thuộc chính giữa các module: \texttt{booking} dùng \texttt{room\_management}, \texttt{schedule\_maintenance}, \texttt{configuration}, \texttt{notifications} và \texttt{auth}; \texttt{access\_control} dùng \texttt{booking} và \texttt{smart\_lock}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Hinhve/goi.pdf}
+    \caption{Biểu đồ gói của ứng dụng di động RoomHub}
+    \label{fig:goi}
+\end{figure}
+
+Giữa \texttt{booking} và \texttt{access\_control} tồn tại phụ thuộc hai chiều: duyệt booking cần cấp quyền PIN, còn tạo PIN cần đọc booking. Nhóm hạn chế ảnh hưởng của vòng phụ thuộc này bằng quy ước chỉ import trực tiếp tệp repository cụ thể (\texttt{roomPinPermissionRepository}) thay vì import qua \texttt{index.ts} của module, để hai module không nạp phần giao diện của nhau. Bảng~\ref{tab:module} tóm tắt nhiệm vụ của từng module.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Nhiệm vụ các module nghiệp vụ của ứng dụng di động}
+\label{tab:module}
+\begin{tabularx}{\textwidth}{|p{3.6cm}|X|p{1.9cm}|}
+\hline
+\textbf{Module} & \textbf{Nhiệm vụ} & \textbf{Vai trò} \\ \hline
+\texttt{auth} & Đăng ký, đăng nhập, đăng xuất, đổi và khôi phục mật khẩu, kiểm tra vai trò & Chung \\ \hline
+\texttt{account\_management} & Thêm, khóa/mở, đặt lại mật khẩu, xóa tài khoản; thu hồi quyền tạo mã theo phòng & Admin \\ \hline
+\texttt{room\_management} & CRUD phòng, tầng, sức chứa, thiết bị, loại khóa, trạng thái; màn tìm và đặt phòng & Admin, User \\ \hline
+\texttt{booking} & Tạo, duyệt, từ chối, hủy, đổi phòng; hẹn nhận khóa; ủy quyền; lịch đặt phòng & Admin, User \\ \hline
+\texttt{access\_control} & Quyền tạo mã theo cặp User -- phòng; sinh và tính hiệu lực mã PIN & Admin, User \\ \hline
+\texttt{smart\_lock} & Gắn/tháo SmartLock với phòng, cấu hình gateway, cấp passwordId, gửi lệnh & Admin \\ \hline
+\texttt{schedule\_maintenance} & Lịch sử dụng phòng; tạo/hủy lịch bảo trì; kiểm tra xung đột bảo trì & Admin \\ \hline
+\texttt{configuration} & Tham số đặt trước, giới hạn yêu cầu, hạn hủy/đổi, khoảng đệm mã, bật/tắt thông báo & Admin \\ \hline
+\texttt{notifications} & Danh sách thông báo, đếm chưa đọc, banner ưu tiên và thông báo hệ thống Android & Chung \\ \hline
+\texttt{profile} & Xem, sửa họ tên, email, số điện thoại, đơn vị & Chung \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Thiết kế chi tiết gói}
+Dịch vụ Java được tổ chức trong gói \texttt{com.bookingclassroom.server} gồm bảy tệp nguồn. Mặc dù nằm chung một gói, các lớp được phân vai rõ ràng theo tầng như Hình~\ref{fig:lop}: \texttt{BookingServerApplication} là điểm khởi động; \texttt{SessionAuthFilter}, \texttt{ApiController}, \texttt{ApiExceptionHandler} thuộc tầng API; \texttt{BookingService} thuộc tầng nghiệp vụ; lớp \texttt{Domain} gom tám lớp thực thể lồng tĩnh và một bộ chuyển đổi thuộc tính; \texttt{DataSeeder} hiện thực \texttt{CommandLineRunner} để khởi tạo dữ liệu mẫu gồm hai tài khoản, 56 phòng trên tám tầng, cấu hình mặc định và lịch bảo trì phòng A103 trong ba ngày tới.
+
+Các quan hệ giữa lớp gồm: kết hợp một -- một từ \texttt{SessionAuthFilter} và \texttt{ApiController} tới \texttt{BookingService}; phụ thuộc từ dịch vụ tới các record DTO và ngoại lệ; kế thừa từ hai ngoại lệ nghiệp vụ tới \texttt{RuntimeException}; hợp thành giữa \texttt{Booking} và \texttt{TemporaryPin} do mã PIN được nhúng (\texttt{@Embedded}) và không tồn tại độc lập với booking. Các liên kết giữa thực thể (booking -- phòng, booking -- tài khoản) được lưu bằng khóa ngoại logic dạng chuỗi để đồng bộ trực tiếp với mô hình JSON của ứng dụng di động.
+
+\section{Thiết kế chi tiết}
+\subsection{Thiết kế giao diện}
+Ứng dụng hướng tới điện thoại Android từ phiên bản 7.0 (API 24) đến Android 16 (API 36), kiểm thử chính trên Samsung M21 màn hình 6,4 inch độ phân giải 1080 $\times$ 2340 điểm ảnh, hiển thị theo chiều dọc. Giao diện thống nhất các quy ước sau: màu chủ đạo đỏ \texttt{\#B01432} gợi màu nhận diện của trường cho nút hành động chính và nút quay lại; chữ tiêu đề màu xanh đậm \texttt{\#172033}; nền trang \texttt{\#F4F7FB}; mỗi màn hình có \texttt{ScreenHeader} với nút quay lại bên trái và tiêu đề ở giữa. Trạng thái phòng được mã hóa màu nhất quán: xanh nhạt \texttt{\#DDF4E7} là trống, hồng \texttt{\#FBE1E4} là đã đặt, xám \texttt{\#ECEEF2} là bảo trì, trắng là không khớp bộ lọc. Thông điệp phản hồi được đặt ngay phía trên nút gửi, màu đỏ khi lỗi và màu xanh khi thành công; các thông báo quan trọng như ``Có yêu cầu đặt phòng mới'' còn hiển thị thành banner ở đầu màn hình và thông báo hệ thống của Android.
+
+Sau khi đăng nhập, người dùng vào bảng điều khiển theo vai trò như Hình~\ref{fig:dashboard}. Góc phải có chuông thông báo kèm số chưa đọc và ảnh đại diện mở menu hồ sơ, đổi mật khẩu, đăng xuất. Phần thân là danh sách thẻ chức năng: sáu thẻ quản lý cho Admin và ba thẻ dịch vụ cho User.
+
+\begin{figure}[H]
+    \centering
+
+    \begin{subfigure}[b]{0.31\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_dangnhap.jpg}
+        \caption{Đăng nhập}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.31\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_admin.jpg}
+        \caption{Chế độ quản trị viên}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.31\textwidth}
+        \centering
+        \includegraphics[height=7cm,keepaspectratio]{Hinhve/man_user.jpg}
+        \caption{Chế độ người dùng}
+    \end{subfigure}
+
+    \caption{Màn hình đăng nhập và bảng điều khiển theo vai trò}
+    \label{fig:dashboard}
+\end{figure}
+
+\subsection{Thiết kế lớp}
+Hình~\ref{fig:lop} là biểu đồ lớp của dịch vụ Java. Hai lớp chủ đạo được thiết kế chi tiết là \texttt{BookingService} và \texttt{Booking}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Hinhve/lop.pdf}
+    \caption{Biểu đồ lớp của dịch vụ nghiệp vụ Java \texttt{booking-server}}
+    \label{fig:lop}
+\end{figure}
+
+Lớp \texttt{BookingService} (Bảng~\ref{tab:bookingservice}) giữ một tham chiếu \texttt{EntityManager} được tiêm qua hàm khởi tạo và hằng \texttt{ZONE} là múi giờ Asia/Ho\_Chi\_Minh để mọi phép so sánh thời gian nhất quán dù máy chủ đặt ở đâu. Các phương thức công khai tương ứng các ca sử dụng; các phương thức riêng tư đóng gói từng quy tắc để có thể dùng lại giữa bước tạo và bước duyệt.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Thiết kế chi tiết lớp BookingService}
+\label{tab:bookingservice}
+\begin{tabularx}{\textwidth}{|p{6.4cm}|X|}
+\hline
+\textbf{Thành phần} & \textbf{Ý nghĩa} \\ \hline
+\texttt{-em: EntityManager} & Truy cập dữ liệu JPA, khóa bản ghi \\ \hline
+\texttt{\textasciitilde ZONE: ZoneId} & Múi giờ nghiệp vụ Asia/Ho\_Chi\_Minh \\ \hline
+\texttt{+requireAccount(token): Account} & Tra phiên, trả tài khoản hoạt động hoặc ném \texttt{UnauthorizedException} \\ \hline
+\texttt{+login(username, password)} & Chuẩn hóa tên, kiểm tra mật khẩu, tạo \texttt{AuthSession} với token UUID \\ \hline
+\texttt{+createBooking(actor, input)} & Kiểm tra vai trò, khóa bi quan, \texttt{validateBooking}, lưu PENDING, thông báo Admin \\ \hline
+\texttt{+reviewBooking(actor, id, decision)} & Khóa booking, kiểm tra BR-07, cập nhật trạng thái, \texttt{grantPin} nếu phòng khóa số \\ \hline
+\texttt{+saveTemporaryPin(actor, id, input)} & Kiểm tra quyền chủ booking/Admin, định dạng mã, passwordId, tính khoảng hiệu lực \\ \hline
+\texttt{-validateBooking(username, input, list)} & Kiểm tra tuần tự BR-01 đến BR-06 \\ \hline
+\texttt{-overlaps(booking, date, start, end)} & Phép giao hai khoảng thời gian nửa mở \\ \hline
+\texttt{-hasMaintenanceConflict\allowbreak(room, date, s, e)}
+& Tìm lịch bảo trì chưa hủy giao với khoảng yêu cầu \\ \hline
+\texttt{-grantPin(username, roomId, admin)} & Tạo mới hoặc kích hoạt lại \texttt{PinPermission} (upsert) \\ \hline
+\end{tabularx}
+\end{table}
+
+Lớp thực thể \texttt{Booking} gồm định danh, người đặt, phòng, ngày, giờ bắt đầu, giờ kết thúc, mục đích, trạng thái, thời điểm tạo, người và thời điểm duyệt. Đối tượng \texttt{TemporaryPin} được nhúng với các cột có tiền tố \texttt{temporary\_pin\_} nhờ \texttt{@AttributeOverrides}, như Đoạn mã~\ref{lst:entity}. Ngày và giờ được lưu dạng chuỗi ISO (\texttt{YYYY-MM-DD}, \texttt{HH:mm}) để so sánh từ điển cho kết quả trùng với so sánh thời gian và để khớp định dạng JSON của ứng dụng.
+
+\begin{lstlisting}[language=Java,caption={Khai báo thực thể Booking với TemporaryPin nhúng (rút gọn)},label={lst:entity}]
+@Entity(name = "Booking")
+@Table(name = "bookings")
+public static class Booking {
+  @Id public String id;
+  public String requesterUsername;
+  public String roomId;
+  public String date;        // YYYY-MM-DD
+  public String startTime;   // HH:mm
+  public String endTime;
+  @Column(length = 1000) public String purpose;
+  public String status;  // PENDING|APPROVED|REJECTED|CANCELLED
+  public String reviewedAt, reviewedBy;
+  @Embedded
+  @AttributeOverrides({
+    @AttributeOverride(name = "code",
+        column = @Column(name = "temporary_pin_code")),
+    @AttributeOverride(name = "validFrom",
+        column = @Column(name = "temporary_pin_valid_from")),
+    // ... validUntil, lockPasswordId, lockCommandId, revokedAt
+  })
+  public TemporaryPin temporaryPin;
+}
+\end{lstlisting}
+
+Luồng thông điệp giữa các đối tượng cho hai ca sử dụng quan trọng được thể hiện bằng biểu đồ trình tự. Hình~\ref{fig:td_datphong} mô tả ca tạo yêu cầu đặt phòng qua máy chủ: yêu cầu đi qua bộ lọc xác thực, controller, rồi tới \texttt{BookingService}, nơi tập booking được khóa ghi trước khi kiểm tra và chèn. Nếu vi phạm quy tắc, ngoại lệ \texttt{IllegalArgumentException} được \texttt{ApiExceptionHandler} chuyển thành phản hồi 400 kèm thông điệp.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Hinhve/td_datphong.pdf}
+    \caption{Biểu đồ trình tự ca sử dụng ``Tìm và đặt phòng'' qua dịch vụ Java}
+    \label{fig:td_datphong}
+\end{figure}
+
+Hình~\ref{fig:td_pin} mô tả hai giai đoạn duyệt yêu cầu và tạo mã PIN. Ở giai đoạn duyệt, dịch vụ khóa bản ghi booking bằng \texttt{find(\ldots, PESSIMISTIC\_WRITE)} để hai quản trị viên không thể duyệt đồng thời, sau đó cấp quyền theo phòng. Ở giai đoạn tạo mã, ứng dụng xin một passwordId của khóa, gọi gateway, rồi mới lưu mã vào booking; nhờ thứ tự này, mã chỉ được ghi nhận khi lệnh đã được phát tới khóa.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Hinhve/td_pin.pdf}
+    \caption{Biểu đồ trình tự ca sử dụng ``Duyệt yêu cầu'' và ``Tạo mã PIN tạm thời''}
+    \label{fig:td_pin}
+\end{figure}
+
+\subsection{Thiết kế cơ sở dữ liệu}
+Từ các lớp thực thể, Hibernate sinh tám bảng trong H2. Hình~\ref{fig:erd} là biểu đồ thực thể liên kết. Bảng \texttt{accounts} liên kết một -- nhiều với \texttt{auth\_sessions}, \texttt{notifications}, \texttt{bookings} và \texttt{pin\_permissions}; bảng \texttt{rooms} liên kết một -- nhiều với \texttt{bookings}, \texttt{maintenance\_records} và \texttt{pin\_permissions}. Bảng \texttt{pin\_permissions} thực chất là quan hệ nhiều -- nhiều giữa tài khoản và phòng có thêm thuộc tính trạng thái và lịch sử cấp/thu hồi. Bảng \texttt{app\_configuration} chỉ có một dòng với khóa \texttt{'app'}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Hinhve/erd.pdf}
+    \caption{Biểu đồ thực thể liên kết của cơ sở dữ liệu RoomHub}
+    \label{fig:erd}
+\end{figure}
+
+Danh sách thiết bị của phòng được lưu trong một cột \texttt{equipment} độ dài 1000 ký tự nhờ \texttt{EquipmentConverter} nối các phần tử bằng ký tự xuống dòng. Cách này đơn giản hóa lược đồ cho phiên bản hiện tại; khi cần quản lý số lượng và tình trạng từng thiết bị theo quy tắc BR-13 đến BR-16 của tài liệu nghiệp vụ, cột này sẽ được tách thành hai bảng \texttt{equipment} và \texttt{room\_equipment}. Bảng~\ref{tab:bookings} mô tả các cột của bảng trung tâm \texttt{bookings}.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.1}
+\caption{Cấu trúc bảng bookings}
+\label{tab:bookings}
+\begin{tabularx}{\textwidth}{|p{5.2cm}|p{2.4cm}|X|}
+\hline
+\textbf{Cột} & \textbf{Kiểu} & \textbf{Mô tả} \\ \hline
+id & varchar (PK) & Định danh dạng \texttt{booking-<UUID>} \\ \hline
+requester\_username & varchar & Tài khoản người đặt \\ \hline
+room\_id & varchar & Phòng được đặt \\ \hline
+date, start\_time, end\_time & varchar & Ngày và khoảng giờ sử dụng \\ \hline
+purpose & varchar(1000) & Mục đích sử dụng \\ \hline
+status & varchar & PENDING, APPROVED, REJECTED, CANCELLED \\ \hline
+created\_at, reviewed\_at & varchar & Thời điểm tạo, duyệt (ISO-8601) \\ \hline
+reviewed\_by & varchar & Admin xử lý yêu cầu \\ \hline
+temporary\_pin\_code & varchar & Mã PIN tạm thời \\ \hline
+temporary\_pin\_valid\_from/\_until & varchar & Khoảng hiệu lực đã cộng đệm \\ \hline
+temporary\_pin\_lock\_password\_id & integer & Vị trí mật khẩu trên khóa (1--255) \\ \hline
+temporary\_pin\_lock\_command\_id & varchar & Mã yêu cầu gateway trả về \\ \hline
+temporary\_pin\_revoked\_at & varchar & Thời điểm thu hồi mã \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Xây dựng ứng dụng}
+\subsection{Thư viện và công cụ sử dụng}
+Bảng~\ref{table:congcu} liệt kê các ngôn ngữ, thư viện và công cụ cùng phiên bản đã dùng.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.1}
+\caption{Danh sách thư viện và công cụ sử dụng}
+\label{table:congcu}
+\begin{tabularx}{\textwidth}{|p{4.3cm}|p{4.6cm}|X|}
+\hline
+\textbf{Mục đích} & \textbf{Công cụ / thư viện} & \textbf{Địa chỉ URL} \\ \hline
+Ngôn ngữ máy chủ & Java (OpenJDK) 17 & \url{https://openjdk.org} \\ \hline
+Khung ứng dụng máy chủ & Spring Boot 3.4.4 (web, data-jpa) & \url{https://spring.io} \\ \hline
+Cơ sở dữ liệu & H2 Database (chế độ tệp) & \url{https://h2database.com} \\ \hline
+Quản lý build Java & Apache Maven & \url{https://maven.apache.org} \\ \hline
+Khung ứng dụng di động & React Native 0.86.2, React 19.2.3 & \url{https://reactnative.dev} \\ \hline
+Ngôn ngữ di động & TypeScript 5.8, Kotlin 2.1.20 & \url{https://www.typescriptlang.org} \\ \hline
+Lưu trữ cục bộ & Async Storage 3.1.1 & \url{https://react-native-async-storage.github.io} \\ \hline
+Build Android & Android SDK 36, Gradle, Node.js 22 & \url{https://developer.android.com} \\ \hline
+Kiểm thử, kiểm tra mã & Jest 29, ESLint 8, Prettier 2.8 & \url{https://jestjs.io} \\ \hline
+Gateway khóa & Python 3, paho-mqtt 2.x, cryptography & \url{https://pypi.org/project/paho-mqtt} \\ \hline
+Quản lý mã nguồn & Git, GitHub & \url{https://github.com} \\ \hline
+\url{https://www.overleaf.com} \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Kết quả đạt được}
+Sản phẩm của bài tập lớn gồm bốn thành phần được lưu trong kho mã nguồn \cite{roomhubrepo}: (i) ứng dụng di động \texttt{booking\_classroom} kèm tệp cài đặt \texttt{booking\_classroom-v1.0.apk} chạy độc lập, không cần Metro hay cáp USB; (ii) dịch vụ Java \texttt{booking-server} cung cấp REST API, lưu dữ liệu vào H2 và tự khởi tạo dữ liệu mẫu; (iii) gateway \texttt{tunghv3} nhận lệnh HTTP và phát bản tin MQTT tới SmartLock; (iv) bộ tài liệu đề xuất dự án, sơ đồ workflow và biên bản hiện trạng triển khai. Hai tài khoản mẫu là \texttt{admin/1} và \texttt{user/2}. Bảng~\ref{tab:thongke} thống kê quy mô mã nguồn.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Thống kê mã nguồn và sản phẩm đóng gói}
+\label{tab:thongke}
+\begin{tabularx}{\textwidth}{|X|r|}
+\hline
+\textbf{Chỉ số} & \textbf{Giá trị} \\ \hline
+Số tệp TypeScript/TSX trong \texttt{src/} của ứng dụng & 61 tệp \\ \hline
+Số dòng mã TypeScript/TSX (\texttt{src/} và \texttt{App.tsx}) & 5.241 dòng \\ \hline
+Số module nghiệp vụ / số màn hình & 10 module / 15 màn hình \\ \hline
+Số dòng mã kiểm thử Jest (4 tệp, 14 ca) & 289 dòng \\ \hline
+Số dòng mã Kotlin (native module thông báo, Activity) & 197 dòng \\ \hline
+Số lớp Java (tính cả lớp lồng, record) / số dòng & 23 lớp / 860 dòng \\ \hline
+Số lớp thực thể JPA / số bảng & 8 / 8 \\ \hline
+Số điểm cuối REST API & 12 \\ \hline
+Số dòng mã gateway Python & 399 dòng \\ \hline
+Dung lượng APK Release v1.0 & 57.942.770 byte ($\approx$ 55,3 MB) \\ \hline
+Dữ liệu mẫu & 8 tầng $\times$ 7 phòng = 56 phòng \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Minh họa các chức năng chính}
+\paragraph{Tìm và đặt phòng trên sơ đồ tầng.} Hình~\ref{fig:timphong} là chức năng quan trọng nhất của User. Phần trên cho phép vuốt dọc ba cột ngày, giờ bắt đầu, giờ kết thúc; dòng tóm tắt hiển thị khoảng đã chọn, ví dụ 2026-09-26 08:00--09:00. Bộ lọc gồm sức chứa tối thiểu, thiết bị cần có và loại khóa. Phần dưới là cột chọn tầng T1--T8 và sơ đồ chữ U của tầng đang chọn: mỗi ô phòng ghi tên, số chỗ, thiết bị và được tô màu theo trạng thái trong khung giờ. Dòng ``Tầng 1: 7/7 phòng phù hợp đang trống'' giúp người dùng biết nhanh có nên chuyển tầng hay không. Khi chọn một phòng trống, ô nhập mục đích và nút gửi xuất hiện ngay trên cùng màn hình.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.36\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_timphong.jpg}
+        \caption{Chọn khung giờ, bộ lọc và sơ đồ}
+    \end{subfigure}\hspace{0.6cm}
+    \begin{subfigure}{0.36\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_datphong.jpg}
+        \caption{Nhập phòng, mục đích và gửi}
+    \end{subfigure}
+    \caption{Màn hình tìm phòng theo sơ đồ tầng và gửi yêu cầu đặt phòng}
+    \label{fig:timphong}
+\end{figure}
+
+\paragraph{Quản lý phòng và lịch bảo trì.} Hình~\ref{fig:quanlyphong} minh họa các màn hình của Admin. Danh sách 56 phòng được gom thành tám thanh tầng có thể mở rộng để tránh cuộn dài; mỗi phòng hiển thị vị trí, sức chứa, thiết bị, loại khóa và nhãn trạng thái \emph{Khả dụng} hoặc \emph{Tạm khóa}, kèm nút Sửa, Xóa. Màn lịch bảo trì dùng cùng bộ chọn theo tầng để tạo lịch bảo trì theo ngày và khung giờ; hệ thống chặn tạo bảo trì trùng booking đã duyệt.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.3\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_quanlyphong.jpg}
+        \caption{Danh sách phòng}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.3\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_phongtheotang.jpg}
+        \caption{Nhóm theo tầng}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.3\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_baotri.jpg}
+        \caption{Tạo lịch bảo trì}
+    \end{subfigure}
+    \caption{Màn hình quản lý phòng và lịch bảo trì của Admin}
+    \label{fig:quanlyphong}
+\end{figure}
+
+\paragraph{Quản lý tài khoản, quyền theo phòng và cấu hình nghiệp vụ.} Hình~\ref{fig:quyen} gồm hai màn hình quản trị. Màn ``Quản lý user và quyền phòng'' cho phép thêm tài khoản User với mật khẩu ban đầu và mã khôi phục, tìm theo tên đăng nhập, khóa/mở, đặt lại mật khẩu, xóa và xem danh sách phòng mà User được tự tạo mật khẩu tạm thời. Dòng chú thích nhấn mạnh quyền được cấp tự động khi duyệt booking phòng khóa số và việc thu hồi không đổi User thành Admin. Màn ``Cấu hình nghiệp vụ'' cho phép chỉnh số ngày đặt trước tối thiểu, tối đa, số booking hoạt động tối đa mỗi User, hạn hủy, hạn đổi phòng và khoảng đệm hiệu lực mã số.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.36\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_quyenphong.jpg}
+        \caption{Quản lý user và quyền phòng}
+    \end{subfigure}\hspace{0.6cm}
+    \begin{subfigure}{0.36\textwidth}\centering
+        \includegraphics[width=\linewidth]{Hinhve/man_cauhinh.jpg}
+        \caption{Cấu hình nghiệp vụ}
+    \end{subfigure}
+    \caption{Màn hình quản lý quyền theo phòng và cấu hình tham số nghiệp vụ}
+    \label{fig:quyen}
+\end{figure}
+
+\section{Kiểm thử}
+Nhóm kết hợp hai mức kiểm thử. Mức thứ nhất là kiểm thử tự động bằng Jest trên tầng dịch vụ của ứng dụng, áp dụng kỹ thuật hộp đen với phân hoạch tương đương và phân tích giá trị biên: mỗi quy tắc được thử với một đầu vào hợp lệ và các đầu vào vi phạm tiêu biểu, ví dụ đặt trước 1 ngày (biên dưới hợp lệ) và 4 ngày (vượt biên trên). Trước mỗi ca, kho Async Storage được xóa để các ca độc lập nhau; lời gọi tới gateway được thay bằng kết quả giả lập khi \texttt{NODE\_ENV = test}. Mức thứ hai là kiểm thử chấp nhận thủ công trên điện thoại thật theo danh sách kiểm tra. Bảng~\ref{tab:tc_booking}, \ref{tab:tc_pin} và \ref{tab:tc_admin} trình bày các ca kiểm thử cho ba nhóm chức năng quan trọng nhất.
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Ca kiểm thử chức năng tạo yêu cầu đặt phòng}
+\label{tab:tc_booking}
+\begin{tabularx}{\textwidth}{|p{1.2cm}|X|X|p{1.3cm}|}
+\hline
+\textbf{Mã} & \textbf{Đầu vào / bước} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\ \hline
+TC-01 & User đặt A101 ngày mai 08:00--09:00, mục đích ``Họp nhóm đồ án'' & Tạo booking PENDING, Admin nhận thông báo & Đạt \\ \hline
+TC-02 & User khác đặt A101 cùng ngày 08:30--09:30 & Từ chối: ``Phòng đã có yêu cầu khác\ldots'' (BR-05) & Đạt \\ \hline
+TC-03 & Đặt A101 sau 4 ngày với cấu hình mặc định & Từ chối: ``Chỉ được đặt trước từ 1 đến 3 ngày.'' (BR-03) & Đạt \\ \hline
+TC-04 & Tạo bảo trì A101 08:00--09:00, đặt 08:15--08:45 & Từ chối do trùng lịch bảo trì (BR-04) & Đạt \\ \hline
+TC-05 & Đổi cấu hình tối đa 5 ngày, đặt B202 sau 4 ngày & Chấp nhận, trạng thái PENDING (cấu hình có hiệu lực) & Đạt \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Ca kiểm thử chức năng duyệt yêu cầu và tạo mã PIN}
+\label{tab:tc_pin}
+\begin{tabularx}{\textwidth}{|p{1.2cm}|X|X|p{1.3cm}|}
+\hline
+\textbf{Mã} & \textbf{Đầu vào / bước} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\ \hline
+TC-06 & Admin tạo mã cho booking còn PENDING & Từ chối: ``Chỉ tạo mã cho yêu cầu đã được duyệt.'' & Đạt \\ \hline
+TC-07 & Duyệt booking A101, Admin tạo mã & Mã 6 chữ số; validFrom = bắt đầu $-$ 10 phút, validUntil = kết thúc $+$ 10 phút & Đạt \\ \hline
+TC-08 & Duyệt booking phòng khóa số & \texttt{hasRoomPinPermission(user, A101)} = true & Đạt \\ \hline
+TC-09 & Admin thu hồi quyền, User tạo mã & Từ chối: ``Quyền tự tạo mã tại phòng này đã bị thu hồi\ldots'' & Đạt \\ \hline
+TC-10 & Cấp lại quyền, User tạo mã & Tạo thành công, \texttt{createdBy = user} & Đạt \\ \hline
+TC-11 & Chuyển SmartLock sang phòng khác rồi tạo mã cho A101 & Từ chối: ``Phòng chưa được gắn với SmartLock\ldots'' & Bổ sung 30/09 \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.15}
+\caption{Ca kiểm thử chức năng quản trị và phân quyền}
+\label{tab:tc_admin}
+\begin{tabularx}{\textwidth}{|p{1.2cm}|X|X|p{1.3cm}|}
+\hline
+\textbf{Mã} & \textbf{Đầu vào / bước} & \textbf{Kết quả mong đợi} & \textbf{Kết quả} \\ \hline
+TC-12 & Tài khoản \texttt{user} gọi tạo tài khoản, tạo phòng & Từ chối ``không có quyền'' & Đạt \\ \hline
+TC-13 & Admin khóa \texttt{teacher01}, đăng nhập lại; mở khóa, khôi phục mật khẩu & Khóa: đăng nhập thất bại; sau khôi phục: đăng nhập bằng mật khẩu mới & Đạt \\ \hline
+TC-14 & Admin tạo, sửa, xóa phòng C303 & Tên đổi thành C304; phòng biến mất sau khi xóa & Đạt \\ \hline
+TC-15 & Hẹn nhận khóa B202 lúc 14:00, User ủy quyền ``Nguyễn Văn B'' & Lưu địa điểm hẹn và mã sinh viên người nhận hộ & Đạt \\ \hline
+TC-16 & Đổi booking A101 sang B202 (khác loại khóa), rồi sang A201 & Lần 1 bị từ chối ``cùng loại khóa''; lần 2 thành công, lịch sử đổi phòng có 1 bản ghi & Đạt \\ \hline
+TC-17 & Đăng nhập \texttt{admin/1}, \texttt{user/2}; sai mật khẩu; đăng ký trùng tên & Mở đúng chế độ; trả \texttt{null}; báo ``Tên đăng nhập đã tồn tại.'' & Đạt \\ \hline
+\end{tabularx}
+\end{table}
+
+Tổng hợp lại, bộ kiểm thử tự động hiện có 14 ca trong bốn tệp, bao phủ 17 kịch bản ở các bảng trên. Biên bản kiểm tra ngày 26/09/2026 ghi nhận 13/13 ca đạt tại thời điểm đó, cùng với ESLint và trình biên dịch TypeScript không báo lỗi; ca TC-11 kiểm tra liên kết SmartLock được bổ sung ngày 30/09/2026 khi hoàn thiện tích hợp khóa. Ở mức thiết bị, danh sách kiểm tra 20 mục trên Samsung M21 gồm khởi động lạnh không cần Metro, điều hướng theo vai trò, CRUD phòng, bộ chọn tầng, luồng chọn phòng -- nhập mục đích -- gửi trên một màn hình, tách màn lịch chỉ đọc với màn thao tác, tạo mã do Admin, cấp và thu hồi quyền theo phòng đều đạt; nhật ký logcat không ghi nhận lỗi nghiêm trọng. Hạn chế hiện tại là dịch vụ Java chưa có bộ kiểm thử tự động riêng; các quy tắc phía máy chủ được viết tương ứng một -- một với tầng dịch vụ TypeScript đã kiểm thử và sẽ được bổ sung kiểm thử JUnit ở giai đoạn đồng bộ.
+
+\section{Triển khai}
+Mô hình triển khai thử nghiệm gồm ba nút. Nút thứ nhất là điện thoại Samsung SM-M215F chạy Android, cài gói \texttt{com.bookingclassroom} phiên bản 1.0 từ APK Release; bản cài đặt đã tắt cờ debug và được ký bằng khóa demo của dự án. Ở chế độ mặc định \texttt{ENABLE\_REMOTE\_SYNC = false}, toàn bộ tài khoản, phòng, booking, quyền, thông báo và liên kết SmartLock được lưu cục bộ bằng Async Storage và giữ nguyên sau khi tắt mở ứng dụng. Nút thứ hai là máy tính trong cùng mạng Wi-Fi chạy gateway ở cổng 8135 và, khi bật đồng bộ, chạy dịch vụ Java bằng lệnh \texttt{mvn spring-boot:run} tại cổng 8080 với tệp dữ liệu \texttt{./data/booking}. Nút thứ ba là broker OneIoT tại \texttt{oneiot.com.vn:2111} và khóa DLWA12 kết nối Wi-Fi.
+
+Việc cài đặt được kiểm chứng bằng lệnh \texttt{adb install -r} và bằng cách gửi trực tiếp tệp APK sang điện thoại. Sau khi xóa quy tắc \texttt{adb reverse} và dừng hẳn ứng dụng, bản Release khởi động lại bình thường với cả hai tài khoản mẫu. Mã băm SHA-256 của APK được lưu trong \texttt{release/SHA256.txt} để người nhận kiểm tra tính toàn vẹn. Hướng dẫn cài đặt chi tiết và danh sách API được trình bày tại Phụ lục~\ref{appendix:api}.
+
+Chương này đã trình bày kiến trúc ba thành phần, thiết kế gói của mười module, thiết kế lớp của dịch vụ Java, cơ sở dữ liệu tám bảng, giao diện theo vai trò, kết quả xây dựng, các ca kiểm thử và mô hình triển khai trên thiết bị thật. Một số giải pháp kỹ thuật đáng chú ý được nhắc tới trong chương, gồm chống trùng lịch khi truy cập đồng thời, cấp quyền tạo mã theo phòng tích hợp khóa thông minh và kiến trúc hai chế độ dữ liệu, sẽ được phân tích chi tiết trong Chương~\ref{chapter:SolutionAndContribution}.
+
+\end{document}

@@ -68,7 +68,7 @@
 \counterwithin{figure}{chapter}
 \counterwithin{table}{chapter}
 \setcounter{secnumdepth}{3}
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{1}
 
 \titleformat{\chapter}[display]
   {\centering\bfseries\color{RoomHubBlue}}
@@ -131,8 +131,8 @@
 \input{Bia}
 
 \clearpage
-\pagenumbering{roman}
-\setcounter{page}{1}
+\pagenumbering{arabic}
+\setcounter{page}{2}
 \pagestyle{plain}
 
 \chapter*{TÓM TẮT}
@@ -143,7 +143,10 @@ Báo cáo trình bày phạm vi MVP, kiến trúc và tổ chức mã nguồn th
 
 \clearpage
 \renewcommand*\contentsname{MỤC LỤC}
+\begingroup
+\setstretch{1.05}
 \tableofcontents
+\endgroup
 
 \clearpage
 \renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
@@ -177,8 +180,6 @@ UAT & Kiểm thử chấp nhận người dùng (User Acceptance Testing) \\
 \end{longtable}
 
 \clearpage
-\pagenumbering{arabic}
-\setcounter{page}{1}
 \pagestyle{roomhub}
 
 \chapter{GIỚI THIỆU}
@@ -227,9 +228,5 @@ UAT & Kiểm thử chấp nhận người dùng (User Acceptance Testing) \\
 \chapter{PROMPT HỖ TRỢ QUÁ TRÌNH PHÁT TRIỂN}
 \label{appendix:prompt}
 \input{Chuong/Phu_luc_B}
-
-\chapter{ẢNH GIAO DIỆN ỨNG DỤNG HIỆN TẠI}
-\label{appendix:ui-archive}
-\input{Chuong/Phu_luc_C}
 
 \end{document}

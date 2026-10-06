@@ -1,4 +1,4 @@
-Nhóm sử dụng trợ lý lập trình để hỗ trợ phân tích yêu cầu, rà soát mã, đề xuất kiểm thử và soạn tài liệu. Trợ lý không tự quyết định phạm vi sản phẩm hoặc xác nhận một chức năng đã hoàn thành. Mọi thay đổi đều phải được thành viên phụ trách đọc lại, chạy kiểm thử và kiểm tra trên nhánh làm việc trước khi hợp nhất.
+Trong quá trình phát triển RoomHub, nhóm sử dụng trợ lý lập trình để phân tích yêu cầu, tổ chức mã nguồn, rà soát chức năng, kiểm thử và biên soạn tài liệu. Phụ lục này hệ thống hóa các mẫu yêu cầu tiêu biểu theo nội dung công việc. Các mẫu được biên tập ngắn gọn và không chứa thông tin kết nối bí mật.
 
 \section{Nguyên tắc sử dụng}
 
@@ -11,34 +11,33 @@ Nhóm sử dụng trợ lý lập trình để hỗ trợ phân tích yêu cầu
   \item Chỉ commit sau khi xem lại diff; chỉ push khi người phụ trách cho phép.
 \end{enumerate}
 
-\section{Các nhóm prompt tiêu biểu}
+\section{Các nhóm prompt đại diện}
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{10.0cm}}
-\caption{Prompt tiêu biểu trong quá trình phát triển}\label{tab:prompts}\\
+\begin{longtable}{>{\centering\arraybackslash}p{1.0cm}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{9.8cm}}
+\caption{Prompt đại diện trong quá trình phát triển}\label{tab:prompts}\\
 \toprule
 \rowcolor{RoomHubLight}
-\textbf{Mục đích} & \textbf{Nội dung rút gọn} \\
+\textbf{STT} & \textbf{Mục tiêu} & \textbf{Mẫu yêu cầu gửi trợ lý} \\
 \midrule
 \endfirsthead
 \toprule
 \rowcolor{RoomHubLight}
-\textbf{Mục đích} & \textbf{Nội dung rút gọn} \\
+\textbf{STT} & \textbf{Mục tiêu} & \textbf{Mẫu yêu cầu gửi trợ lý} \\
 \midrule
 \endhead
 \bottomrule
 \endfoot
-Phân tích nghiệp vụ & ``Đối chiếu yêu cầu đặt phòng với mã hiện tại; xác định thực thể, trạng thái và quy tắc còn thiếu. Không tự bổ sung yêu cầu chưa có căn cứ.'' \\
-Tổ chức module & ``Sắp xếp mã theo module để các thành viên phát triển độc lập; chỉ rõ màn hình, dịch vụ, mô hình dữ liệu và API công khai của từng module.'' \\
-Triển khai chức năng & ``Cài đặt luồng tạo PIN tạm thời: mã gồm 7 chữ số, thời hạn lấy từ lịch đặt, lưu cục bộ trước và chỉ gửi khi phiên OneIoT đã kết nối.'' \\
-Rà soát đồng bộ & ``So sánh repository cục bộ với REST API; tìm sai khác về quyền, trạng thái và cấu trúc dữ liệu; kiểm thử bằng Spring Boot/H2 cục bộ khi máy chủ thật chưa hoạt động.'' \\
-Kiểm thử & ``Viết hoặc cập nhật ca kiểm thử cho quy tắc vừa sửa; chạy Jest, TypeScript và ESLint; báo rõ lệnh, kết quả và giới hạn chưa kiểm chứng.'' \\
-Hợp nhất nhánh & ``Đọc toàn bộ xung đột; ưu tiên thay đổi mới của nhánh được hợp nhất, nhưng giữ chức năng hiện có nếu nhánh đó làm mất endpoint hoặc quy tắc đã triển khai.'' \\
-Build thiết bị & ``Build APK Release với chế độ cục bộ, cài lên điện thoại thật, mở ứng dụng, đăng nhập tài khoản trình diễn và kiểm tra log lỗi nghiêm trọng.'' \\
-Rà soát tài liệu & ``Đối chiếu báo cáo với mã nguồn và kết quả kiểm thử; loại bỏ khẳng định không có bằng chứng; chuẩn hóa thuật ngữ, bảng biểu, hình và tham chiếu.'' \\
+1 & Chốt bài toán & Xác định hai vai trò quản trị viên và giảng viên; xây dựng ứng dụng đặt phòng chạy với dữ liệu cục bộ trước khi triển khai đồng bộ giữa nhiều thiết bị. \\
+2 & Tổ chức mã nguồn & Sắp xếp mã theo module nghiệp vụ để các thành viên phụ trách từng phần; mô tả ranh giới và trách nhiệm của từng module. \\
+3 & Xác thực theo vai trò & Tạo màn hình đăng nhập với hai tài khoản trình diễn; điều hướng tới giao diện và quyền thao tác phù hợp với từng vai trò. \\
+4 & Nghiệp vụ đặt phòng & Rà soát quy tắc trùng phòng, trùng lịch người dùng, phòng bảo trì và giới hạn số lượt đặt; phân biệt lịch sử với các thao tác quản lý yêu cầu. \\
+5 & Giao diện theo tầng & Nhóm phòng theo tám tầng, chỉ hiện phòng khi chọn tầng; gộp tìm phòng và gửi yêu cầu đặt phòng vào cùng một luồng. \\
+6 & Quyền tạo mã & Khi duyệt lượt đặt phòng dùng khóa số, cho phép người đặt tự tạo mã tại đúng phòng đó; hỗ trợ thu hồi quyền khi cần. \\
+7 & Mã khi chưa kết nối & Tạo và hiển thị mã tạm thời theo lịch đặt ngay trên ứng dụng; giữ lệnh gửi OneIoT ở trạng thái chờ đến khi có kết nối, không chờ phản hồi từ khóa. \\
+8 & Giao tiếp khóa & Tích hợp cơ chế của công cụ giao tiếp với khóa vào ứng dụng; gắn khóa đang quản lý với một phòng và gửi lệnh từ lượt đặt phòng tương ứng. \\
+9 & Yêu cầu bảo trì & Cho phép người đang sử dụng phòng gửi yêu cầu bảo trì kèm lý do; giúp quản trị viên nhận biết và xử lý phòng có yêu cầu. \\
+10 & Bàn giao chìa khóa & Cho người dùng đề xuất giờ nhận khóa; quản trị viên chấp nhận hoặc đề xuất giờ khác cho đến khi hai bên thống nhất. \\
+11 & Check-in và check-out & Đối chiếu bản tin từ khóa với phòng, lượt đặt và thời gian sử dụng để ghi nhận sự kiện vào hoặc ra phòng. \\
+12 & Đồng bộ dữ liệu & Giữ chế độ cục bộ hoạt động độc lập; kiểm tra luồng đồng bộ với dịch vụ Java và cơ sở dữ liệu thử nghiệm khi máy chủ thật chưa sẵn sàng. \\
+13 & Kiểm chứng & Kiểm tra các quy tắc bằng bộ kiểm thử phù hợp, xem lại thay đổi mã nguồn, build ứng dụng và ghi rõ những phần mới được mô phỏng. \\
 \end{longtable}
-
-\section{Quy trình kiểm soát đầu ra}
-
-Đầu ra từ trợ lý được kiểm soát qua bốn bước: (1) xem danh sách tệp thay đổi; (2) đọc diff và đối chiếu quy tắc nghiệp vụ; (3) chạy bộ kiểm tra tương ứng; (4) kiểm tra thủ công luồng chính trên bản Release nếu thay đổi ảnh hưởng giao diện hoặc tích hợp thiết bị. Nếu một bước không đạt, thay đổi được sửa tại nhánh làm việc và kiểm tra lại trước khi commit.
-
-Các nội dung chưa thể kiểm chứng, chẳng hạn máy chủ thật đang tắt hoặc khóa vật lý chưa sẵn sàng, phải được ghi rõ là giới hạn. Báo cáo không coi kết quả mô phỏng là bằng chứng cho hoạt động của hạ tầng thật.

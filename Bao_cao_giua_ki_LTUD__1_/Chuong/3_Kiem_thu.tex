@@ -1,8 +1,8 @@
 \section{Mục tiêu và phạm vi kiểm thử}
 
-Hoạt động kiểm thử tập trung vào ba mục tiêu: xác nhận quy tắc nghiệp vụ, kiểm tra khả năng hoạt động độc lập của bản Release và đánh giá luồng đồng bộ khi có máy chủ. Mỗi thay đổi chỉ được chấp nhận khi vượt qua kiểm tra mã nguồn, kiểm thử tự động và kiểm tra khởi động trên thiết bị thật. Cách tiếp cận này giúp tách lỗi nghiệp vụ khỏi lỗi môi trường hoặc lỗi kết nối \cite{istqb}.
+Hoạt động kiểm thử tập trung vào ba mục tiêu: xác nhận quy tắc nghiệp vụ, kiểm tra khả năng hoạt động độc lập của bản Release và đánh giá luồng đồng bộ khi có máy chủ. Mã nguồn được kiểm tra bằng các công cụ tự động; bản Release được cài và khởi động trên thiết bị Android. Kết quả của từng bước được ghi nhận riêng để xác định lỗi phát sinh ở nghiệp vụ, môi trường chạy hay kết nối.
 
-Phạm vi kiểm thử bao gồm tài khoản, tìm và đặt phòng, phê duyệt, đặt lặp, bảo trì, quyền tạo PIN, thông báo, cấu hình và đồng bộ dữ liệu. Việc xác nhận mã PIN trên khóa vật lý và vận hành với máy chủ triển khai diện rộng nằm ngoài lượt kiểm thử được ghi nhận trong báo cáo này.
+Phạm vi kiểm thử bao gồm tài khoản, tìm và đặt phòng, phê duyệt, đặt lặp, bảo trì, quyền tạo PIN, thông báo, cấu hình và đồng bộ dữ liệu. Việc xác nhận mã PIN trên khóa vật lý và vận hành với máy chủ triển khai thực tế chưa nằm trong phạm vi kiểm thử được ghi nhận ở đây.
 
 \section{Môi trường kiểm thử}
 
@@ -28,7 +28,7 @@ Tài khoản trình diễn & Hai tài khoản thử nghiệm tương ứng với
 
 \section{Quy trình kiểm thử}
 
-Quy trình kiểm thử được thực hiện theo năm bước ở Hình \ref{fig:testprocess}. Khi một bước không đạt, nhóm sửa nguyên nhân tại module liên quan và chạy lại từ bước kiểm tra mã nguồn. Cách tổ chức này ngăn việc tạo APK từ phiên bản chưa vượt qua kiểm thử hồi quy.
+Quy trình xác nhận bản Release gồm năm bước, được tóm tắt ở Hình \ref{fig:testprocess}. Nếu một bước phát hiện lỗi, nhóm sửa phần liên quan rồi chạy lại bước đó cùng những kiểm tra có thể bị ảnh hưởng.
 
 \begin{figure}[H]
 \centering
@@ -47,7 +47,7 @@ Quy trình kiểm thử được thực hiện theo năm bước ở Hình \ref{
 
 \section{Nhóm ca kiểm thử chính}
 
-Bảng \ref{tab:testcases} tóm tắt các nhóm ca kiểm thử được duy trì trong mã nguồn. Các ca được tổ chức theo nghiệp vụ thay vì phụ thuộc vào thứ tự thao tác trên giao diện, nhờ đó có thể chạy lặp lại sau mỗi lần hợp nhất nhánh.
+Bảng \ref{tab:testcases} tóm tắt các nhóm ca dùng để đánh giá phiên bản hiện tại, gồm kiểm thử tự động và kiểm tra trên thiết bị. Các ca được nhóm theo nghiệp vụ để thuận tiện chạy lại sau khi thay đổi chức năng.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{1.2cm}>{\raggedright\arraybackslash}p{4.1cm}>{\raggedright\arraybackslash}p{7.4cm}}
 \caption{Các nhóm ca kiểm thử chính}\label{tab:testcases}\\
@@ -77,7 +77,7 @@ TC-10 & Bản Release trên thiết bị & Cài APK, mở ứng dụng không c�
 
 \section{Kết quả}
 
-Kết quả gần nhất được tổng hợp tại Bảng \ref{tab:results}. Các lệnh được chạy trên cùng mã nguồn dùng để tạo PDF này và trước khi hợp nhất nội dung báo cáo vào nhánh chính.
+Kết quả kiểm tra của phiên bản được mô tả trong báo cáo được tổng hợp tại Bảng \ref{tab:results}.
 
 \begin{table}[H]
 \centering
@@ -91,7 +91,7 @@ Kết quả gần nhất được tổng hợp tại Bảng \ref{tab:results}. C
 \midrule
 TypeScript & Đạt & Kiểm tra kiểu dữ liệu hoàn thành, không phát hiện lỗi. \\
 ESLint & Đạt & Kiểm tra quy ước mã nguồn không phát hiện lỗi. \\
-Jest & Đạt & 6 bộ kiểm thử, 36/36 ca đạt. \\
+Jest & Đạt & 7 bộ kiểm thử, 39/39 ca đạt. \\
 Spring Boot/H2 & Đạt & Một ca kiểm thử tích hợp giữa ứng dụng và máy chủ đạt yêu cầu. \\
 Build Release & Đạt & Gradle hoàn thành và tạo được gói cài đặt Android. \\
 Thiết bị Android & Đạt & Cài đặt thành công; ứng dụng mở độc lập; đăng nhập tài khoản thử nghiệm; không có lỗi nghiêm trọng trong logcat. \\
@@ -101,6 +101,6 @@ Thiết bị Android & Đạt & Cài đặt thành công; ứng dụng mở đ�
 
 \section{Giới hạn và hướng kiểm chứng tiếp theo}
 
-Bộ kiểm thử hiện tại chứng minh luồng cục bộ hoạt động ổn định và lớp REST API có thể đồng bộ với máy chủ Spring Boot/H2 trong môi trường kiểm thử. Kết quả này chưa thay thế kiểm thử tải, kiểm thử đồng thời trên nhiều điện thoại hoặc kiểm thử với máy chủ triển khai thật. Bước tiếp theo là chạy cùng kịch bản trên ít nhất hai thiết bị dùng chung máy chủ, mô phỏng mất kết nối giữa giao dịch và xác nhận dữ liệu sau khi kết nối lại.
+Các ca đã chạy cho thấy những luồng cục bộ được kiểm tra đạt yêu cầu và lớp REST API trao đổi dữ liệu với máy chủ Spring Boot/H2 trong môi trường thử nghiệm. Kết quả này chưa bao gồm kiểm thử tải, kiểm thử đồng thời trên nhiều điện thoại hoặc kiểm thử với máy chủ triển khai thật. Bước tiếp theo là chạy cùng kịch bản trên ít nhất hai thiết bị dùng chung máy chủ và kiểm tra tính nhất quán của dữ liệu sau khi mất kết nối rồi kết nối lại.
 
 Đối với OneIoT, ứng dụng đã có cơ chế nhập token theo phiên, kiểm tra kết nối, xếp hàng lệnh tạo PIN và ngắt phiên khi đóng ứng dụng. Việc xác nhận khóa vật lý nhận lệnh, áp dụng đúng thời hạn và phát sự kiện check-in/check-out cần được thực hiện khi thiết bị khóa thật sẵn sàng.

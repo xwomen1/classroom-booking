@@ -70,13 +70,13 @@
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{1}
 
-\titleformat{\chapter}[display]
-  {\centering\bfseries\color{RoomHubBlue}}
-  {\large CHƯƠNG \thechapter}
-  {5pt}
-  {\LARGE}
-  [\vspace{5pt}\color{RoomHubBlue}\titlerule]
-\titlespacing*{\chapter}{0pt}{-12pt}{22pt}
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\color{RoomHubBlue}\fontsize{15}{18}\selectfont}
+  {Chương \thechapter.}
+  {0.7em}
+  {}
+  [\vspace{3pt}\color{RoomHubBlue}\titlerule]
+\titlespacing*{\chapter}{0pt}{-8pt}{16pt}
 
 \titleformat{\section}
   {\large\bfseries\color{RoomHubBlue}}
@@ -139,7 +139,7 @@
 \addcontentsline{toc}{chapter}{Tóm tắt}
 RoomHub là ứng dụng Android hỗ trợ quản lý vòng đời mượn phòng học và phòng họp, từ tìm phòng, gửi yêu cầu, phê duyệt, bàn giao quyền truy cập đến check-in, check-out và xử lý bảo trì. Ứng dụng phục vụ hai vai trò: giảng viên và cán bộ quản lý cơ sở vật chất. Dữ liệu có thể hoạt động hoàn toàn cục bộ trên một thiết bị; dịch vụ Java Spring Boot cung cấp nền tảng đồng bộ khi chế độ trực tuyến được kích hoạt. Với phòng dùng khóa số, hệ thống tạo mã PIN tạm thời theo lịch đặt và giao tiếp với nền tảng OneIoT.
 
-Báo cáo trình bày phạm vi MVP, kiến trúc và tổ chức mã nguồn theo module, các quy tắc nghiệp vụ chính, kết quả giao diện và quy trình kiểm thử. Phiên bản hiện tại đã vượt qua 36 ca kiểm thử Jest, kiểm tra kiểu TypeScript, ESLint, kiểm thử tích hợp với Spring Boot/H2 và kiểm tra cài đặt bản Release trên điện thoại Android. Chế độ cục bộ được chọn cho bản trình diễn để ứng dụng hoạt động ổn định mà không phụ thuộc máy chủ.
+Báo cáo trình bày phạm vi sản phẩm khả dụng tối thiểu, kiến trúc và tổ chức mã nguồn theo module, các quy tắc nghiệp vụ chính, giao diện ứng dụng và kết quả kiểm thử. Phiên bản hiện tại đạt 39/39 ca Jest thuộc bảy bộ kiểm thử. Kiểm tra kiểu TypeScript, ESLint và một ca tích hợp Spring Boot/H2 cũng đạt; bản Release đã được cài và mở trên điện thoại Android. Bản trình diễn sử dụng chế độ cục bộ để không phụ thuộc vào máy chủ đặt phòng.
 
 \clearpage
 \renewcommand*\contentsname{MỤC LỤC}
@@ -209,18 +209,16 @@ UAT & Kiểm thử chấp nhận người dùng (User Acceptance Testing) \\
 \bibitem{springboot} Broadcom, ``Spring Boot Reference Documentation.'' \url{https://docs.spring.io/spring-boot/}. Truy cập 10/2026.
 \bibitem{mqtt} OASIS, ``MQTT Version 3.1.1, OASIS Standard,'' 2014. \url{https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html}.
 \bibitem{onem2m} oneM2M Partners, ``oneM2M TS-0010: MQTT Protocol Binding.'' \url{https://www.onem2m.org/technical/published-specifications}. Truy cập 10/2026.
-\bibitem{istqb} ISTQB, ``Certified Tester Foundation Level Syllabus v4.0,'' 2023. \url{https://www.istqb.org/}.
-\bibitem{jest} OpenJS Foundation, ``Jest Documentation.'' \url{https://jestjs.io/docs/getting-started}. Truy cập 10/2026.
 \end{thebibliography}
 
 \clearpage
 \appendix
-\titleformat{\chapter}[display]
-  {\centering\bfseries\color{RoomHubBlue}}
-  {\large PHỤ LỤC \thechapter}
-  {5pt}
-  {\LARGE}
-  [\vspace{5pt}\color{RoomHubBlue}\titlerule]
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\color{RoomHubBlue}\fontsize{15}{18}\selectfont}
+  {Phụ lục \thechapter.}
+  {0.7em}
+  {}
+  [\vspace{3pt}\color{RoomHubBlue}\titlerule]
 \chapter{THÀNH PHẦN VÀ CẤU TRÚC DỰ ÁN}
 \label{appendix:components}
 \input{Chuong/Phu_luc_A}

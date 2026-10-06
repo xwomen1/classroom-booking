@@ -33,7 +33,7 @@ Hình~\ref{fig:architecture} thể hiện quan hệ giữa các thành phần. T
 \section{Phạm vi sản phẩm khả dụng tối thiểu}
 \label{section:mvp}
 
-Sản phẩm khả dụng tối thiểu được xác định bằng khả năng thực hiện trọn luồng mượn phòng trên một điện thoại Android: tìm phòng, gửi yêu cầu, phê duyệt, sử dụng và kết thúc. Bản cài đặt độc lập phải tạo được từ mã nguồn; các quy tắc quan trọng cần có kiểm thử. Bảng~\ref{tab:mvp} phân biệt chức năng đã triển khai với phần còn cần kiểm chứng trong môi trường nhiều thiết bị hoặc với khóa thật.
+Phạm vi sản phẩm khả dụng tối thiểu là thực hiện trọn luồng mượn phòng trên một điện thoại Android: tìm phòng, gửi yêu cầu, phê duyệt, sử dụng và kết thúc. Ứng dụng có bản cài đặt chạy độc lập, còn các quy tắc nghiệp vụ chính được kiểm tra bằng ca kiểm thử tương ứng. Bảng~\ref{tab:mvp} phân biệt chức năng đã triển khai với phần cần kiểm chứng thêm trên nhiều thiết bị hoặc với khóa thật.
 
 \begin{table}[H]
 \centering
@@ -61,7 +61,7 @@ Chức năng mở rộng & Thống kê mức sử dụng, gợi ý phòng nâng 
 \end{tabularx}
 \end{table}
 
-Quản trị viên có thể điều chỉnh khoảng thời gian được phép đặt trước. Cấu hình ban đầu yêu cầu đặt trước từ một đến ba ngày; nếu cho phép đặt cùng ngày, giới hạn tối thiểu có thể giảm về không. Mỗi người dùng có tối đa hai yêu cầu đang chờ hoặc sắp sử dụng. Yêu cầu hủy và quyết định đổi phòng phải tuân theo hạn trước giờ bắt đầu. Với khóa số, mã PIN có hiệu lực từ mười phút trước đến mười phút sau phiên sử dụng; trường hợp không đến được xác định sau thời gian ân hạn mười lăm phút. Các mốc thời gian này được kiểm tra theo cấu hình hiện hành thay vì cố định trong từng màn hình. Vòng đời một lượt đặt phòng được minh họa ở Hình~\ref{fig:state}.
+Quản trị viên có thể điều chỉnh khoảng thời gian được phép đặt trước. Cấu hình ban đầu cho phép đặt trước từ một đến ba ngày; nếu cho phép đặt cùng ngày, giới hạn tối thiểu có thể giảm về không. Tổng số yêu cầu đang chờ xử lý và lượt đã duyệt sắp sử dụng của mỗi người dùng không vượt quá hai. Việc hủy và đổi phòng phải tuân theo thời hạn trước giờ bắt đầu. Với khóa số, mã PIN có hiệu lực từ mười phút trước giờ bắt đầu đến mười phút sau giờ kết thúc. Nếu chưa có check-in sau thời gian chờ mặc định mười lăm phút kể từ giờ bắt đầu, quản trị viên có thể xác nhận vắng mặt. Các mốc thời gian này được kiểm tra theo cấu hình hiện hành. Vòng đời một lượt đặt phòng được minh họa ở Hình~\ref{fig:state}.
 
 \begin{figure}[H]
 \centering
@@ -79,7 +79,7 @@ Khi hoạt động cục bộ, thao tác nghiệp vụ đọc và ghi dữ liệ
 \section{Các module nghiệp vụ}
 \label{section:modules}
 
-Bảng~\ref{tab:modules} trình bày mười module theo trách nhiệm đối với người sử dụng. Các mục sau giải thích cách những module này phối hợp để thực hiện quy tắc nghiệp vụ, thay vì liệt kê từng hàm hoặc biến trong chương trình.
+Bảng~\ref{tab:modules} trình bày trách nhiệm của mười module nghiệp vụ. Các mục tiếp theo giải thích cách chúng phối hợp trong những luồng chính của ứng dụng.
 
 \begin{table}[H]
 \centering
@@ -113,7 +113,7 @@ Trước những thao tác có ảnh hưởng đến dữ liệu, ứng dụng k
 
 \subsection{Phòng và tra cứu phòng}
 
-Dữ liệu trình diễn gồm 56 phòng thuộc tám tầng, mỗi tầng bảy phòng với sức chứa và thiết bị khác nhau. Khi thêm hoặc sửa phòng, hệ thống kiểm tra tầng, sức chứa và tên phòng để tránh dữ liệu không hợp lệ hoặc trùng lặp. Phòng còn gắn với yêu cầu đang hoạt động không thể bị xóa tùy tiện.
+Dữ liệu trình diễn gồm 56 phòng thuộc tám tầng, mỗi tầng bảy phòng với sức chứa và thiết bị khác nhau. Khi thêm hoặc sửa phòng, hệ thống kiểm tra tầng, sức chứa và tên phòng để tránh dữ liệu không hợp lệ hoặc trùng lặp. Phòng còn gắn với yêu cầu đang hoạt động không được xóa.
 
 Giảng viên có thể lọc phòng theo tầng, khung giờ, sức chứa, thiết bị và loại khóa. Kết quả được thể hiện trên sơ đồ tầng với màu trạng thái. Ở phía quản trị, danh sách phòng được thu gọn theo tám tầng; chọn một phòng sẽ mở các thao tác sửa, xóa, lên lịch bảo trì và xem lịch sử sử dụng.
 
@@ -123,11 +123,11 @@ Khi gửi yêu cầu, ứng dụng kiểm tra phòng còn hoạt động, mục 
 
 Với yêu cầu lặp hàng tuần, hệ thống tạo tối đa tám lượt và kiểm tra cả chuỗi trước khi ghi nhận. Nếu một lượt vi phạm quy tắc, thao tác không được lưu dở dang. Quản trị viên duyệt hoặc từ chối yêu cầu sau khi kiểm tra lại lịch phòng và lịch bảo trì. Khi cần đổi phòng, phòng thay thế phải có cùng loại khóa, sức chứa không nhỏ hơn và đủ thiết bị so với phòng ban đầu.
 
-Lịch sắp tới, lịch đã sử dụng và lịch đã hủy được trình bày theo trạng thái để tránh lặp thao tác ở nhiều nơi. Nếu người đặt không đến sau thời gian ân hạn và chưa có bằng chứng vào phòng, quản trị viên có thể ghi nhận vắng mặt; khung giờ được giải phóng và quyền dùng mã tương ứng được thu hồi.
+Lịch sắp tới, lịch đã sử dụng và lịch đã hủy được trình bày theo trạng thái để tránh lặp thao tác ở nhiều nơi. Nếu đã hết thời gian chờ check-in mà vẫn chưa có bằng chứng vào phòng, quản trị viên có thể ghi nhận vắng mặt; khung giờ được giải phóng và quyền dùng mã tương ứng được thu hồi.
 
 \subsection{Bảo trì và báo sự cố}
 
-Quản trị viên có thể tạo lịch bảo trì cố định, nhưng lịch này không được chồng với bảo trì khác hoặc lượt đặt đã được duyệt. Nếu phòng đã được đặt, người quản lý phải xử lý việc đổi phòng trước khi chặn sử dụng. Trong thời gian sử dụng một lịch đã duyệt, người dùng có thể gửi lý do báo sự cố cho chính phòng đó. Mỗi lượt sử dụng chỉ giữ một yêu cầu đang chờ; tầng và phòng có yêu cầu sẽ được đánh dấu để quản trị viên nhận biết.
+Quản trị viên có thể tạo lịch bảo trì cố định, nhưng lịch này không được chồng với bảo trì khác hoặc lượt đặt đã được duyệt. Nếu phòng đã được đặt, người quản lý phải xử lý việc đổi phòng trước khi chặn sử dụng. Trong thời gian sử dụng phòng theo một lượt đặt đã duyệt, người dùng có thể báo sự cố tại phòng và nêu lý do. Mỗi lượt sử dụng chỉ có một yêu cầu báo sự cố đang chờ xử lý; tầng và phòng liên quan được đánh dấu để quản trị viên nhận biết.
 
 \subsection{Quyền truy cập và khóa thông minh}
 
@@ -139,11 +139,11 @@ Quyền tự tạo mã PIN được cấp theo từng cặp người dùng và p
 
 \subsection{Thông báo, hồ sơ và cấu hình}
 
-Các sự kiện như gửi yêu cầu, duyệt, từ chối, cấp mã hoặc đổi phòng đều có thông báo phù hợp. Thông báo được phân loại theo ý nghĩa tích cực, tiêu cực, cần chú ý hoặc trung tính để màu sắc không gây hiểu nhầm. Sự kiện ưu tiên có thể hiện bằng thông báo nổi. Người dùng quản lý hồ sơ cá nhân; quản trị viên điều chỉnh các giới hạn và thời hạn nghiệp vụ. Trước khi lưu cấu hình, hệ thống kiểm tra các giá trị không âm, khoảng đặt trước hợp lệ và giới hạn yêu cầu ít nhất là một.
+Các sự kiện như gửi yêu cầu, duyệt, từ chối, cấp mã hoặc đổi phòng đều tạo thông báo. Màu sắc thể hiện tính chất tích cực, tiêu cực, cần chú ý hoặc trung tính của từng sự kiện. Thông báo ưu tiên có thể được hiển thị nổi. Người dùng quản lý hồ sơ cá nhân; quản trị viên điều chỉnh các giới hạn và thời hạn nghiệp vụ. Trước khi lưu cấu hình, hệ thống kiểm tra các giá trị không âm, khoảng đặt trước hợp lệ và giới hạn yêu cầu tối thiểu là một.
 
 \subsection{Dịch vụ đồng bộ dữ liệu}
 
-Dịch vụ Java Spring Boot cung cấp giao diện dữ liệu cho tài khoản, phòng, cấu hình, bảo trì, lịch đặt, quyền tạo mã và thông báo. Tại máy chủ, các yêu cầu được xác thực theo phiên, kiểm tra quy tắc nghiệp vụ và trả lỗi theo một cách thống nhất. Cơ sở dữ liệu H2 được dùng để kiểm thử cục bộ; cấu hình kết nối cơ sở dữ liệu từ xa đã được chuẩn bị. Bản trình diễn trên điện thoại hiện dùng dữ liệu cục bộ để không phụ thuộc trạng thái máy chủ.
+Dịch vụ Java Spring Boot cung cấp giao diện dữ liệu cho tài khoản, phòng, cấu hình, bảo trì, lịch đặt, quyền tạo mã và thông báo. Máy chủ xác thực phiên, kiểm tra quy tắc nghiệp vụ và trả lỗi theo cùng một định dạng. Cơ sở dữ liệu H2 được dùng để kiểm thử cục bộ; cấu hình kết nối cơ sở dữ liệu từ xa đã được chuẩn bị. Bản trình diễn trên điện thoại dùng dữ liệu cục bộ để không phụ thuộc trạng thái máy chủ.
 
 \section{Điều hướng giao diện}
 

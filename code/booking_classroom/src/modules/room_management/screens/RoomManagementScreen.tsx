@@ -25,6 +25,11 @@ import {
 } from '../../schedule_maintenance/services/maintenanceRepository';
 import type { LockType, Room } from '../model/room';
 import {
+  equipmentChoices,
+  isEquipmentSelected,
+  toggleEquipment,
+} from '../model/roomFilters';
+import {
   createRoom,
   deleteRoom,
   getRooms,
@@ -33,6 +38,10 @@ import {
 
 type Props = { adminUsername: string; onBack: () => void };
 type Editor = 'add' | 'edit' | 'maintenance' | null;
+
+function parseEquipment(value: string): string[] {
+  return value.split(',').map(item => item.trim()).filter(Boolean);
+}
 
 const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 const EMPTY_ROOM = {
@@ -631,7 +640,17 @@ function RoomEditor({
       <Input label="Tầng (1–8)" value={form.floor} onChangeText={value => onChange('floor', value)} keyboardType="number-pad" />
       <Input label="Vị trí" value={form.location} onChangeText={value => onChange('location', value)} />
       <Input label="Sức chứa" value={form.capacity} onChangeText={value => onChange('capacity', value)} keyboardType="number-pad" />
-      <Input label="Thiết bị (phân cách bằng dấu phẩy)" value={form.equipment} onChangeText={value => onChange('equipment', value)} />
+      <Text style={styles.label}>Trang thiết bị</Text>
+      <View style={styles.choiceRow}>
+        {equipmentChoices(parseEquipment(form.equipment)).map(option => (
+          <Choice
+            key={option}
+            label={option}
+            selected={isEquipmentSelected(parseEquipment(form.equipment), option)}
+            onPress={() => onChange('equipment', toggleEquipment(parseEquipment(form.equipment), option).join(', '))}
+          />
+        ))}
+      </View>
       <Text style={styles.label}>Loại khóa</Text>
       <View style={styles.choiceRow}>
         <Choice label="Mã số online" selected={form.lockType === 'PIN_CODE'} onPress={() => onChange('lockType', 'PIN_CODE')} />

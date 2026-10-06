@@ -6,11 +6,20 @@ import { createBooking, getBookings } from '../../booking/services/bookingReposi
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { hasMaintenanceConflict } from '../../schedule_maintenance/services/maintenanceRepository';
 import type { LockType, Room } from '../model/room';
+import {
+  CAPACITY_OPTIONS,
+  EQUIPMENT_OPTIONS,
+  floorMapSlot,
+  isEquipmentSelected,
+  roomHasAllEquipment,
+  roomMeetsMinCapacity,
+  toggleEquipment,
+} from '../model/roomFilters';
 import { getRooms } from '../services/roomRepository';
 
 type Props = { username: string; onBack: () => void };
 type MapStatus = 'AVAILABLE' | 'BOOKED' | 'MAINTENANCE' | 'FILTERED';
-type MapRoom = Room & { mapStatus: MapStatus };
+type MapRoom = Room & { mapStatus: MapStatus; filterReason: string | null };
 
 function buildWeeklyPreview(date: string, weeks: number): string[] {
   if (!date) return [];
@@ -20,6 +29,10 @@ function buildWeeklyPreview(date: string, weeks: number): string[] {
     occurrence.setDate(firstDate.getDate() + index * 7);
     return occurrence.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
   });
+}
+
+function mapSlotRank(id: string): number {
+  return id.startsWith('room-floor-') || id === 'room-a101' || id === 'room-b202' ? 0 : 1;
 }
 
 const MAP_ROWS: ReadonlyArray<ReadonlyArray<number | null>> = [
@@ -32,14 +45,14 @@ export function RoomSearchScreen({ username, onBack }: Props) {
   const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [floor, setFloor] = useState(1);
   const [roomQuery, setRoomQuery] = useState('');
-  const [capacity, setCapacity] = useState('');
-  const [equipment, setEquipment] = useState('');
+  const [capacity, setCapacity] = useState<number | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [lockType, setLockType] = useState<LockType | 'ALL'>('ALL');
   const [dateOptions, setDateOptions] = useState<string[]>([]);
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
-  const [rooms, setRooms] = useState<MapRoom[]>([]);
+  const [rooms, setRooms] = useState<Array<MapRoom | null>>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purpose, setPurpose] = useState('');
   const [repeatWeekly, setRepeatWeekly] = useState(false);
@@ -61,16 +74,28 @@ export function RoomSearchScreen({ username, onBack }: Props) {
     if (!date) return;
     const roomItems = await getRooms();
     setAllRooms(roomItems);
-    const candidates = roomItems
+    const slots: Array<Room | undefined> = Array.from({ length: 7 });
+    const floorRooms = roomItems
       .filter(room => room.floor === floor)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(0, 7);
+      .sort((a, b) => mapSlotRank(a.id) - mapSlotRank(b.id));
+    floorRooms.forEach(room => {
+      const slot = floorMapSlot(room);
+      if (slot !== null && !slots[slot]) slots[slot] = room;
+    });
     const bookings = await getBookings();
-    const mapped = await Promise.all(candidates.map(async room => {
-      const matchesFilter =
-        (!Number(capacity) || room.capacity >= Number(capacity)) &&
-        (!equipment.trim() || room.equipment.some(item => item.toLowerCase().includes(equipment.trim().toLowerCase()))) &&
-        (lockType === 'ALL' || room.lockType === lockType);
+    const mapped = (await Promise.all(slots.map(async room => {
+      if (!room) return null;
+      const enoughSeats = roomMeetsMinCapacity(room.capacity, capacity);
+      const enoughEquipment = roomHasAllEquipment(room.equipment, selectedEquipment);
+      const matchingLock = lockType === 'ALL' || room.lockType === lockType;
+      const matchesFilter = enoughSeats && enoughEquipment && matchingLock;
+      const filterReason = !enoughSeats
+        ? 'Không đủ chỗ'
+        : !enoughEquipment
+          ? 'Thiếu thiết bị'
+          : !matchingLock
+            ? 'Khác loại khóa'
+            : null;
       const booked = bookings.some(item =>
         ['PENDING', 'APPROVED'].includes(item.status) &&
         item.roomId === room.id &&
@@ -83,23 +108,34 @@ export function RoomSearchScreen({ username, onBack }: Props) {
       return {
         ...room,
         mapStatus: !matchesFilter ? 'FILTERED' : maintenance ? 'MAINTENANCE' : booked ? 'BOOKED' : 'AVAILABLE',
+        filterReason,
       } as MapRoom;
-    }));
+    })));
     setRooms(mapped);
-    setSelectedId(current => mapped.some(room => room.id === current) ? current : null);
-    const available = mapped.filter(room => room.mapStatus === 'AVAILABLE').length;
+    setSelectedId(current => mapped.some(room => room?.id === current) ? current : null);
+    const matching = mapped.filter((room): room is MapRoom => room != null && room.mapStatus !== 'FILTERED');
+    const available = matching.filter(room => room.mapStatus === 'AVAILABLE').length;
     setIsError(false);
-    setMessage(`Tầng ${floor}: ${available}/${mapped.length} phòng phù hợp đang trống.`);
-  }, [capacity, date, endTime, equipment, floor, lockType, startTime]);
+    const capacityLabel = capacity == null ? '' : ` từ ${capacity} chỗ`;
+    setMessage(`Tầng ${floor}: ${available}/${matching.length} phòng phù hợp${capacityLabel} đang trống.`);
+  }, [capacity, date, endTime, floor, lockType, selectedEquipment, startTime]);
 
   useEffect(() => { refreshMap(); }, [refreshMap]);
 
-  const selected = useMemo(() => rooms.find(room => room.id === selectedId), [rooms, selectedId]);
+  const selected = useMemo(
+    () => rooms.find(room => room?.id === selectedId) || undefined,
+    [rooms, selectedId],
+  );
   const roomSuggestions = useMemo(() => {
     const query = roomQuery.trim().toLowerCase();
     if (!query) return [];
-    return allRooms.filter(room => room.name.toLowerCase().includes(query)).slice(0, 6);
-  }, [allRooms, roomQuery]);
+    return allRooms.filter(room =>
+      room.name.toLowerCase().includes(query) &&
+      roomMeetsMinCapacity(room.capacity, capacity) &&
+      roomHasAllEquipment(room.equipment, selectedEquipment) &&
+      (lockType === 'ALL' || room.lockType === lockType),
+    ).slice(0, 6);
+  }, [allRooms, capacity, lockType, roomQuery, selectedEquipment]);
 
   const selectRoom = (room: Room) => {
     setFloor(room.floor);
@@ -180,10 +216,29 @@ export function RoomSearchScreen({ username, onBack }: Props) {
           onEndTimeChange={setEndTime}
         />
         <Text style={styles.sectionTitle}>Bộ lọc phòng</Text>
-        <View style={styles.filterRow}>
-          <View style={styles.half}><Input label="Sức chứa tối thiểu" value={capacity} onChangeText={setCapacity} keyboardType="number-pad" /></View>
-          <View style={styles.gap} />
-          <View style={styles.half}><Input label="Thiết bị cần có" value={equipment} onChangeText={setEquipment} /></View>
+        <Text style={styles.inputLabel}>Sức chứa từ</Text>
+        <View style={styles.equipmentChoices}>
+          <Choice label="Tất cả" selected={capacity === null} onPress={() => setCapacity(null)} />
+          {CAPACITY_OPTIONS.map(option => (
+            <Choice
+              key={option}
+              label={`≥ ${option}`}
+              selected={capacity === option}
+              onPress={() => setCapacity(option)}
+            />
+          ))}
+        </View>
+        <Text style={styles.filterHint}>Giữ phòng có số chỗ bằng hoặc lớn hơn mức đã chọn.</Text>
+        <Text style={styles.inputLabel}>Thiết bị cần có</Text>
+        <View style={styles.equipmentChoices}>
+          {EQUIPMENT_OPTIONS.map(option => (
+            <Choice
+              key={option}
+              label={option}
+              selected={isEquipmentSelected(selectedEquipment, option)}
+              onPress={() => setSelectedEquipment(current => toggleEquipment(current, option))}
+            />
+          ))}
         </View>
         <View style={styles.choices}>
           <Choice label="Mọi khóa" selected={lockType === 'ALL'} onPress={() => setLockType('ALL')} />
@@ -216,7 +271,16 @@ export function RoomSearchScreen({ username, onBack }: Props) {
                   if (roomIndex === null) return <View key={`empty-${columnIndex}`} style={styles.mapGap} />;
                   const room = rooms[roomIndex];
                   if (!room) return <View key={`missing-${columnIndex}`} style={styles.mapRoomPlaceholder} />;
-                  return <RoomCell key={room.id} room={room} selected={selectedId === room.id} onPress={() => selectRoom(room)} />;
+                  return (
+                    <RoomCell
+                      key={room.id}
+                      room={room}
+                      selected={selectedId === room.id}
+                      onPress={() => {
+                        if (room.mapStatus !== 'FILTERED') selectRoom(room);
+                      }}
+                    />
+                  );
                 })}
               </View>
             ))}
@@ -338,7 +402,9 @@ function RoomCell({ room, selected, onPress }: { room: MapRoom; selected: boolea
     ]}>
       <Text style={styles.roomName}>{room.name}</Text>
       <Text style={styles.roomMeta}>{room.capacity} chỗ</Text>
-      <Text numberOfLines={2} style={styles.roomEquipment}>{room.equipment.join(', ')}</Text>
+      <Text numberOfLines={2} style={[styles.roomEquipment, room.mapStatus === 'FILTERED' && styles.filteredReason]}>
+        {room.mapStatus === 'FILTERED' ? room.filterReason : room.equipment.join(', ')}
+      </Text>
     </Pressable>
   );
 }
@@ -359,11 +425,11 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row' }, half: { flex: 1 }, gap: { width: 9 }, inputLabel: { color: '#344057', fontSize: 11, fontWeight: '700', marginBottom: 5 },
   input: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 8, borderWidth: 1, color: '#172033', paddingHorizontal: 9, paddingVertical: 9 }, multiline: { minHeight: 76, textAlignVertical: 'top' },
   suggestions: { backgroundColor: '#FFF', borderColor: '#CBD4E1', borderRadius: 9, borderWidth: 1, marginBottom: 12, marginTop: 5, overflow: 'hidden' }, suggestion: { borderBottomColor: '#EDF0F4', borderBottomWidth: 1, padding: 10 }, suggestionName: { color: '#172033', fontWeight: '800' }, suggestionDetail: { color: '#657084', fontSize: 11, marginTop: 3 },
-  choices: { flexDirection: 'row', marginBottom: 9, marginTop: 9 }, choice: { borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, marginRight: 6, paddingHorizontal: 10, paddingVertical: 7 }, choiceOn: { backgroundColor: '#386E9F' }, choiceText: { color: '#386E9F', fontSize: 11, fontWeight: '700' }, choiceTextOn: { color: '#FFF' },
+  choices: { flexDirection: 'row', marginBottom: 9, marginTop: 9 }, equipmentChoices: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 4 }, filterHint: { color: '#657084', fontSize: 11, marginBottom: 8 }, choice: { borderColor: '#386E9F', borderRadius: 8, borderWidth: 1, marginBottom: 6, marginRight: 6, paddingHorizontal: 10, paddingVertical: 7 }, choiceOn: { backgroundColor: '#386E9F' }, choiceText: { color: '#386E9F', fontSize: 11, fontWeight: '700' }, choiceTextOn: { color: '#FFF' },
   legend: { flexDirection: 'row', justifyContent: 'center', marginTop: 5 }, legendItem: { alignItems: 'center', flexDirection: 'row', marginHorizontal: 6 }, legendColor: { borderColor: '#BFC7D2', borderRadius: 3, borderWidth: 1, height: 13, marginRight: 4, width: 13 }, legendText: { color: '#596579', fontSize: 11 }, message: { color: '#315A86', fontSize: 12, marginVertical: 9, textAlign: 'center' }, errorMessage: { color: '#B42318', fontSize: 12, marginVertical: 9, textAlign: 'center' },
   mapSection: { alignItems: 'stretch', flexDirection: 'row' }, floorRail: { backgroundColor: '#FFF', borderColor: '#CAD4E0', borderRadius: 12, borderWidth: 1, marginRight: 8, overflow: 'hidden', width: 53 }, building: { color: '#315A86', fontSize: 10, fontWeight: '900', paddingVertical: 7, textAlign: 'center' }, floorButton: { alignItems: 'center', borderTopColor: '#E4E8EF', borderTopWidth: 1, paddingVertical: 8 }, floorButtonOn: { backgroundColor: '#1769AA' }, floorText: { color: '#344057', fontSize: 12, fontWeight: '800' }, floorTextOn: { color: '#FFF' },
   mapArea: { backgroundColor: '#EAF0F7', borderColor: '#AAB8C8', borderRadius: 13, borderWidth: 1, flex: 1, padding: 7 }, mapTitle: { color: '#344057', fontSize: 11, fontWeight: '900', marginBottom: 7, textAlign: 'center' }, mapRow: { flexDirection: 'row', marginBottom: 6 }, mapGap: { flex: 0.75 }, mapRoomPlaceholder: { flex: 1, minHeight: 72 },
-  roomCell: { borderColor: '#AAB8C8', borderRadius: 8, borderWidth: 1, flex: 1, minHeight: 76, padding: 6 }, available: { backgroundColor: '#DDF4E7' }, booked: { backgroundColor: '#FBE1E4' }, maintenance: { backgroundColor: '#ECEEF2' }, filtered: { backgroundColor: '#FFF', opacity: 0.45 }, roomSelected: { borderColor: '#1769AA', borderWidth: 3 }, roomName: { color: '#172033', fontSize: 12, fontWeight: '900' }, roomMeta: { color: '#4F5B6E', fontSize: 10, marginTop: 2 }, roomEquipment: { color: '#657084', fontSize: 9, marginTop: 2 },
+  roomCell: { borderColor: '#AAB8C8', borderRadius: 8, borderWidth: 1, flex: 1, minHeight: 76, padding: 6 }, available: { backgroundColor: '#DDF4E7' }, booked: { backgroundColor: '#FBE1E4' }, maintenance: { backgroundColor: '#ECEEF2' }, filtered: { backgroundColor: '#F4F6F8', borderColor: '#D5DCE6' }, roomSelected: { borderColor: '#1769AA', borderWidth: 3 }, roomName: { color: '#172033', fontSize: 12, fontWeight: '900' }, roomMeta: { color: '#4F5B6E', fontSize: 10, marginTop: 2 }, roomEquipment: { color: '#657084', fontSize: 9, marginTop: 2 }, filteredReason: { color: '#8D2635', fontWeight: '700' },
   repeatBox: { borderTopColor: '#E5EAF0', borderTopWidth: 1, marginTop: 15, paddingTop: 13 }, repeatHeading: { marginBottom: 9 }, repeatTitle: { color: '#172033', fontSize: 14, fontWeight: '800' }, repeatSubtitle: { color: '#657084', fontSize: 11, marginTop: 3 },
   frequencyControl: { backgroundColor: '#EEF2F6', borderRadius: 8, flexDirection: 'row', padding: 3 }, frequencyOption: { alignItems: 'center', borderColor: 'transparent', borderRadius: 6, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 40 }, frequencyOptionActive: { backgroundColor: '#FFF', borderColor: '#C7D9E9', elevation: 1 }, frequencyText: { color: '#657084', fontSize: 12, fontWeight: '700' }, frequencyTextActive: { color: '#1769AA' },
   weeklyDetails: { marginTop: 14 }, weekCountRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, weekCountCopy: { flex: 1 }, weekCountTitle: { color: '#344057', fontSize: 13, fontWeight: '700' }, weekCountHint: { color: '#7A8492', fontSize: 10, marginTop: 3 }, stepper: { alignItems: 'center', flexDirection: 'row' }, stepButton: { alignItems: 'center', backgroundColor: '#F4F7FA', borderColor: '#CBD6E1', borderRadius: 8, borderWidth: 1, height: 38, justifyContent: 'center', width: 38 }, stepButtonDisabled: { opacity: 0.4 }, stepButtonText: { color: '#1769AA', fontSize: 18, fontWeight: '800' }, weekCountValue: { alignItems: 'center', minWidth: 54 }, weekCountNumber: { color: '#172033', fontSize: 17, fontWeight: '800' }, weekCountUnit: { color: '#657084', fontSize: 10 },

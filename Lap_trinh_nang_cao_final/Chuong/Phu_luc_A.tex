@@ -4,59 +4,59 @@ Phụ lục này đặc tả các use case không được trình bày trong m�
 
 \section{Đặc tả use case ``Hủy đặt phòng''}
 \begin{dacta}{Đặc tả use case UC06 -- Hủy đặt phòng}{tab:uc06}
-Tác nhân & User (chủ booking) \\ \hline
-Tiền điều kiện & Booking ở trạng thái PENDING hoặc APPROVED và chưa đến giờ bắt đầu. \\ \hline
+Tác nhân & Người đặt phòng \\ \hline
+Tiền điều kiện & Yêu cầu đang chờ hoặc đã duyệt, chưa đến giờ bắt đầu. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item User mở ``Đặt phòng của tôi'', chọn booking và bấm hủy (rút yêu cầu).
-\item Hệ thống kiểm tra người gọi là chủ booking và booking còn hoạt động.
-\item Với booking APPROVED, hệ thống kiểm tra còn ít nhất 30 phút (BR-08).
-\item Hệ thống chuyển CANCELLED, ghi thời điểm thu hồi cho mã PIN nếu có.
-\item Hệ thống thông báo ``Yêu cầu đã được hủy'' cho Admin.
+\item Người đặt mở danh sách yêu cầu của mình, chọn yêu cầu và bấm hủy.
+\item Hệ thống kiểm tra quyền sở hữu và tình trạng của yêu cầu.
+\item Với yêu cầu đã duyệt, hệ thống kiểm tra còn ít nhất 30 phút (BR-08).
+\item Hệ thống chuyển sang trạng thái đã hủy và ghi thời điểm thu hồi mã PIN nếu có.
+\item Hệ thống thông báo kết quả cho quản trị viên.
 \end{buoc} \\ \hline
 Luồng phát sinh & 3a. Quá hạn hủy: báo ``Yêu cầu đã duyệt chỉ được hủy trước ít nhất 30 phút''. 2a. Phiên đã bắt đầu: báo không thể hủy. \\ \hline
-Hậu điều kiện & Booking CANCELLED, phòng trở lại trống trong khung giờ đó, mã PIN chuyển REVOKED. \\
+Hậu điều kiện & Yêu cầu đã hủy; phòng trở lại trạng thái trống trong khung giờ đó và mã PIN bị thu hồi. \\
 \end{dacta}
 
 \section{Đặc tả use case ``Hẹn lịch nhận khóa và ủy quyền nhận hộ''}
 \begin{dacta}{Đặc tả use case UC07 -- Hẹn lịch nhận khóa và ủy quyền nhận hộ}{tab:uc07}
-Tác nhân & Admin, User \\ \hline
-Tiền điều kiện & Booking APPROVED tại phòng PHYSICAL\_KEY, chưa đến giờ sử dụng. \\ \hline
+Tác nhân & Quản trị viên, người đặt phòng \\ \hline
+Tiền điều kiện & Yêu cầu đã duyệt tại phòng dùng khóa cơ hoặc thẻ, chưa đến giờ sử dụng. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item Admin chọn booking, nhập ngày, giờ và địa điểm nhận khóa/thẻ (ví dụ ``Phòng trực A1'').
-\item Hệ thống kiểm tra lịch hẹn ở tương lai và trước giờ sử dụng, địa điểm không rỗng (BR-12); lưu và thông báo ``Đã có lịch nhận khóa'' cho User.
-\item Nếu không tự đến nhận, User nhập họ tên và mã sinh viên/cán bộ của người nhận hộ.
-\item Hệ thống lưu ủy quyền và thông báo cho Admin; người nhận hộ xuất trình thẻ khi nhận.
+\item Người đặt đề xuất thời điểm nhận khóa trước giờ sử dụng.
+\item Quản trị viên chấp nhận hoặc đề xuất thời điểm, địa điểm khác; hai bên tiếp tục phản hồi tới khi thống nhất.
+\item Nếu không tự đến nhận, người đặt ghi họ tên và mã định danh của người nhận hộ.
+\item Hệ thống lưu lịch hẹn đã thống nhất và thông báo cho các bên; người nhận hộ xuất trình giấy tờ khi nhận.
 \end{buoc} \\ \hline
 Luồng phát sinh & 2a. Phòng dùng khóa số: báo ``Phòng này không dùng khóa cơ/thẻ''. 3a. Thiếu họ tên hoặc mã: báo lỗi. \\ \hline
-Hậu điều kiện & Booking có \texttt{keyPickupAppointment} và tùy chọn \texttt{pickupDelegate}. \\
+Hậu điều kiện & Lịch hẹn nhận khóa được lưu cùng thông tin người nhận hộ, nếu có. \\
 \end{dacta}
 
 \section{Đặc tả use case ``Quản lý lịch sử dụng và bảo trì''}
 \begin{dacta}{Đặc tả use case UC08 -- Quản lý lịch sử dụng và bảo trì}{tab:uc08}
-Tác nhân & Admin \\ \hline
-Tiền điều kiện & Admin đã đăng nhập. \\ \hline
+Tác nhân & Quản trị viên \\ \hline
+Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item Admin mở ``Lịch phòng và bảo trì'', xem lịch các booking đã duyệt.
-\item Admin chọn tầng, chọn phòng, nhập ngày, giờ bắt đầu, giờ kết thúc và lý do.
-\item Hệ thống kiểm tra phòng tồn tại, khoảng giờ hợp lệ, lý do không rỗng, không trùng bảo trì khác và không trùng booking đã duyệt.
+\item Quản trị viên mở lịch phòng và bảo trì để xem các phiên sử dụng đã được duyệt.
+\item Quản trị viên chọn tầng, phòng, ngày giờ và nhập lý do bảo trì.
+\item Hệ thống kiểm tra phòng tồn tại, khoảng giờ hợp lệ, có lý do và không trùng bảo trì hoặc phiên sử dụng đã duyệt.
 \item Hệ thống lưu lịch bảo trì; phòng hiển thị màu bảo trì trên sơ đồ trong khung giờ đó.
 \end{buoc} \\ \hline
-Luồng phát sinh & 3a. Trùng booking đã duyệt: báo ``cần đổi phòng trước khi lên lịch bảo trì''. 4a. Admin hủy lịch bảo trì: ghi \texttt{cancelledAt}, phòng khả dụng trở lại. \\ \hline
+Luồng phát sinh & 3a. Trùng phiên đã duyệt: yêu cầu đổi phòng trước khi lập lịch bảo trì. 4a. Quản trị viên hủy lịch bảo trì: ghi thời điểm hủy và cập nhật trạng thái phòng. \\ \hline
 Hậu điều kiện & Các yêu cầu mới trùng khung giờ bị chặn theo BR-04. \\
 \end{dacta}
 
 \section{Đặc tả use case ``Cấu hình nghiệp vụ''}
 \begin{dacta}{Đặc tả use case UC09 -- Cấu hình nghiệp vụ}{tab:uc09}
-Tác nhân & Admin \\ \hline
-Tiền điều kiện & Admin đã đăng nhập. \\ \hline
+Tác nhân & Quản trị viên \\ \hline
+Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item Admin mở ``Quy định đặt phòng''; hệ thống hiển thị giá trị hiện tại.
-\item Admin sửa số ngày đặt trước tối thiểu, tối đa, số booking hoạt động tối đa mỗi User, hạn hủy, hạn đổi phòng, khoảng đệm mã số, bật/tắt thông báo.
-\item Hệ thống kiểm tra các giá trị là số nguyên không âm, tối thiểu không lớn hơn tối đa, giới hạn booking ít nhất bằng 1.
+\item Quản trị viên mở phần quy định đặt phòng; hệ thống hiển thị giá trị hiện tại.
+\item Quản trị viên sửa cửa sổ đặt trước, số yêu cầu tối đa của mỗi người, hạn hủy, hạn đổi phòng, khoảng đệm mã số và tùy chọn thông báo.
+\item Hệ thống kiểm tra các giá trị là số nguyên không âm, thời hạn tối thiểu không lớn hơn tối đa và giới hạn yêu cầu ít nhất bằng một.
 \item Hệ thống lưu cấu hình; các module đọc giá trị mới ở lần kiểm tra tiếp theo.
 \end{buoc} \\ \hline
 Luồng phát sinh & 3a. Giá trị không hợp lệ: hiển thị thông điệp tương ứng, không lưu. \\ \hline
@@ -65,31 +65,31 @@ Hậu điều kiện & Quy tắc BR-03, BR-06, BR-08, BR-09, BR-10 dùng tham s�
 
 \section{Đặc tả use case ``Quản lý SmartLock''}
 \begin{dacta}{Đặc tả use case UC10 -- Quản lý SmartLock}{tab:uc10}
-Tác nhân & Admin; SmartLock Gateway \\ \hline
-Tiền điều kiện & Admin đã đăng nhập; gateway chạy trong cùng mạng. \\ \hline
+Tác nhân & Quản trị viên; nền tảng OneIoT \\ \hline
+Tiền điều kiện & Quản trị viên đã đăng nhập; ứng dụng có thông tin khóa số đang quản lý. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item Admin mở ``Quản lý khóa'', nhập địa chỉ gateway dạng \texttt{http://<IP>:8135}.
-\item Hệ thống chuẩn hóa địa chỉ và gọi \texttt{GET /api/lock/status} để hiển thị trạng thái kết nối OneIoT, lệnh và phản hồi gần nhất.
-\item Admin chọn một phòng khóa số để gắn khóa DLWA12.
-\item Hệ thống kiểm tra phòng tồn tại và dùng PIN\_CODE, lưu phòng được gắn, người và thời điểm gắn.
+\item Quản trị viên mở phần quản lý khóa, chọn phòng khóa số để gắn với khóa đang quản lý.
+\item Hệ thống kiểm tra loại khóa của phòng và lưu liên kết phòng -- khóa.
+\item Khi cần kết nối, người dùng nhập token OneIoT cho phiên hiện tại và bấm kiểm tra kết nối.
+\item Ứng dụng hiển thị trạng thái kết nối; khi có phiên kết nối, các mã đang chờ và còn hiệu lực có thể được gửi.
 \end{buoc} \\ \hline
-Luồng phát sinh & 1a. Địa chỉ không bắt đầu bằng http/https: báo lỗi. 3a. Chọn phòng khóa cơ: báo ``Chỉ được gắn SmartLock vào phòng sử dụng khóa mã số''. 4a. Admin tháo khóa: xóa liên kết, mọi yêu cầu tạo mã bị chặn. \\ \hline
-Hậu điều kiện & Chỉ booking của phòng đang gắn khóa mới được gửi lệnh tạo mật khẩu. \\
+Luồng phát sinh & 1a. Chọn phòng khóa cơ hoặc thẻ: báo không phù hợp. 3a. Thông tin xác thực không hợp lệ hoặc mạng lỗi: chưa kết nối, mã vẫn chờ gửi. Quản trị viên có thể tháo liên kết khóa khỏi phòng. \\ \hline
+Hậu điều kiện & Chỉ yêu cầu tại phòng đang gắn khóa mới được gửi lệnh tạo mật khẩu. \\
 \end{dacta}
 
 \section{Đặc tả use case ``Quản lý tài khoản và quyền theo phòng''}
 \begin{dacta}{Đặc tả use case UC11 -- Quản lý tài khoản và quyền theo phòng}{tab:uc11}
-Tác nhân & Admin \\ \hline
-Tiền điều kiện & Admin đã đăng nhập. \\ \hline
+Tác nhân & Quản trị viên \\ \hline
+Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
 Luồng chính &
 \begin{buoc}
-\item Admin nhập tên đăng nhập, mật khẩu ban đầu, mã khôi phục và bấm ``Thêm tài khoản''.
+\item Quản trị viên nhập tên đăng nhập, mật khẩu ban đầu và mã khôi phục để thêm tài khoản.
 \item Hệ thống kiểm tra tên 3--30 ký tự thường, số, dấu chấm, gạch ngang; mật khẩu và mã khôi phục ít nhất 4 ký tự; tên chưa tồn tại.
-\item Admin tìm tài khoản, khóa/mở, đặt lại mật khẩu hoặc xóa.
-\item Admin xem các phòng mà User được tự tạo mã và thu hồi quyền theo từng phòng.
+\item Quản trị viên tìm tài khoản, khóa, mở, đặt lại mật khẩu hoặc xóa.
+\item Quản trị viên xem quyền tự tạo mã của người dùng và có thể thu hồi theo từng phòng.
 \end{buoc} \\ \hline
-Luồng phát sinh & 3a. Tự khóa hoặc tự xóa tài khoản đang đăng nhập: bị chặn. 3b. Tài khoản còn booking hoạt động: không cho xóa. \\ \hline
+Luồng phát sinh & 3a. Tự khóa hoặc tự xóa tài khoản đang đăng nhập: bị chặn. 3b. Tài khoản còn yêu cầu đang hoạt động: không cho xóa. \\ \hline
 Hậu điều kiện & Tài khoản bị khóa không đăng nhập được; quyền bị thu hồi chặn tạo mã theo BR-11. \\
 \end{dacta}
 \end{document}

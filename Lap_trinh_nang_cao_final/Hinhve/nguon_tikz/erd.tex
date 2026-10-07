@@ -1,31 +1,25 @@
-\documentclass[border=6pt]{standalone}
+\documentclass[border=7pt]{standalone}
 \input{preamble}
-\tikzset{
- ent/.style={rectangle split,rectangle split parts=2,draw=navy,thick,rectangle split part fill={navy,white},font=\scriptsize,text width=#1,align=left,inner sep=3pt},
- rel/.style={thick,navy},
- card/.style={font=\scriptsize\bfseries,text=hust},
-}
-\newcommand{\hd}[1]{\centering\textcolor{white}{\textbf{#1}}}
-\newcommand{\pk}[1]{\underline{\textbf{#1}} (PK)}
-\newcommand{\fk}[1]{\textit{#1} (FK)}
 \begin{document}
-\begin{tikzpicture}
- \node[ent=3.6cm] (acc) at (0,0) {\hd{accounts}\nodepart{two}\pk{username}: varchar\\password: varchar\\role: varchar\\active: boolean};
- \node[ent=3.6cm] (ses) at (0,-4.0) {\hd{auth\_sessions}\nodepart{two}\pk{token}: varchar\\\fk{username}\\created\_at};
- \node[ent=3.6cm] (noti) at (0,-7.4) {\hd{notifications}\nodepart{two}\pk{id}\\\fk{username}\\title, message\\created\_at, read};
- \node[ent=4.6cm] (bk) at (6.2,0.3) {\hd{bookings}\nodepart{two}\pk{id}\\\fk{requester\_username}\\\fk{room\_id}\\date, start\_time, end\_time\\purpose, status, created\_at\\reviewed\_at, \fk{reviewed\_by}\\temporary\_pin\_code, \_valid\_from,\\\_valid\_until, \_lock\_password\_id,\\\_lock\_command\_id, \_revoked\_at ...};
- \node[ent=3.8cm] (pp) at (6.2,-5.6) {\hd{pin\_permissions}\nodepart{two}\pk{id}\\\fk{username}\\\fk{room\_id}\\granted\_at, granted\_by\\active, revoked\_at, revoked\_by};
- \node[ent=4.5cm] (room) at (12.5,0) {\hd{rooms}\nodepart{two}\pk{id}\\name, floor, location\\capacity: int\\equipment: varchar(1000)\\lock\_type: PIN\_CODE | PHYSICAL\_KEY\\status: AVAILABLE | MAINTENANCE};
- \node[ent=3.8cm] (mt) at (12.2,-5.2) {\hd{maintenance\_records}\nodepart{two}\pk{id}\\\fk{room\_id}\\date, start\_time, end\_time\\reason, created\_at\\created\_by, cancelled\_at};
- \node[ent=3.8cm] (cf) at (12.2,-9.2) {\hd{app\_configuration}\nodepart{two}\pk{id} = 'app'\\min/max\_advance\_days\\max\_active\_bookings\_per\_user\\cancellation/room\_change\_cutoff\\pin\_grace\_minutes\\notifications\_enabled};
-
- \draw[rel] (acc.south) -- node[card,right,pos=0.12]{1} node[card,right,pos=0.85]{N} (ses.north);
- \draw[rel] (acc.west) -- ++(-0.5,0) |- node[card,above,pos=0.93]{N} (noti.west);
- \node[card] at (-2.05,0.2) {1};
- \draw[rel] (acc.east) -- node[card,above,pos=0.1]{1} node[card,above,pos=0.88]{N} (acc.east-|bk.west);
- \draw[rel] (bk.east|-room.west) -- node[card,above,pos=0.1]{N} node[card,above,pos=0.88]{1} (room.west);
- \draw[rel] (room.south) -- node[card,right,pos=0.1]{1} node[card,right,pos=0.85]{N} (mt.north);
- \draw[rel] (acc.south east) -- node[card,above,pos=0.1]{1} node[card,above,pos=0.9]{N} (pp.north west);
- \draw[rel] (room.south west) -- node[card,above,pos=0.1]{1} node[card,above,pos=0.9]{N} (pp.north east);
+\begin{tikzpicture}[
+  cs/.style={draw=navy,thick,rounded corners=3pt,fill=lblue,
+    align=center,font=\small,text width=3.1cm,minimum height=1.2cm},
+  lk/.style={thick,navy},
+  bc/.style={font=\scriptsize,text=hust,fill=white,inner sep=1pt}]
+\node[cs] (acc) at (0,0) {\textbf{Tài khoản}\\Người đặt và quản trị viên};
+\node[cs] (booking) at (5,0) {\textbf{Yêu cầu đặt phòng}\\Thời gian và kết quả duyệt};
+\node[cs] (room) at (10,0) {\textbf{Phòng}\\Sức chứa và loại khóa};
+\node[cs] (session) at (0,-2.7) {\textbf{Phiên đăng nhập}\\Xác thực truy cập};
+\node[cs] (permission) at (5,-2.7) {\textbf{Quyền tạo mã}\\Người dùng và phòng};
+\node[cs] (maintenance) at (10,-2.7) {\textbf{Lịch bảo trì}\\Khoảng thời gian, lý do};
+\node[cs] (notification) at (0,-5.4) {\textbf{Thông báo}\\Người nhận, nội dung};
+\node[cs] (config) at (10,-5.4) {\textbf{Cấu hình}\\Quy tắc sử dụng phòng};
+\draw[lk] (acc) -- node[bc,above]{1 -- nhiều} (booking);
+\draw[lk] (booking) -- node[bc,above]{nhiều -- 1} (room);
+\draw[lk] (acc) -- node[bc,left]{1 -- nhiều} (session);
+\draw[lk] (acc.south east) -- node[bc,above]{1 -- nhiều} (permission.north west);
+\draw[lk] (permission.north east) -- node[bc,above]{nhiều -- 1} (room.south west);
+\draw[lk] (room) -- node[bc,right]{1 -- nhiều} (maintenance);
+\draw[lk] (acc.south west) to[out=225,in=135] (notification.north west);
 \end{tikzpicture}
 \end{document}

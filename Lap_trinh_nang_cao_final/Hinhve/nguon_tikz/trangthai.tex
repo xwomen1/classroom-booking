@@ -1,43 +1,37 @@
 \documentclass[border=6pt]{standalone}
 \input{preamble}
-\tikzset{
- stt/.style={rectangle,rounded corners=8pt,draw=navy,very thick,fill=lblue,font=\small\bfseries,minimum width=2.9cm,minimum height=1.0cm,align=center},
- tr/.style={font=\scriptsize,align=center,fill=white,inner sep=1.5pt},
-}
 \begin{document}
-\begin{tikzpicture}[>=Stealth]
- \node[circle,fill=black,minimum size=0.35cm,inner sep=0] (s) at (0,0) {};
- \node[stt] (p) at (3.6,0) {PENDING\\[-1pt]\scriptsize\mdseries(Chờ duyệt)};
- \node[stt,fill=lgreen] (a) at (9.6,0) {APPROVED\\[-1pt]\scriptsize\mdseries(Đã duyệt)};
- \node[stt,fill=lred] (r) at (3.6,-3.4) {REJECTED\\[-1pt]\scriptsize\mdseries(Từ chối)};
- \node[stt,fill=lgray] (c) at (9.6,-3.4) {CANCELLED\\[-1pt]\scriptsize\mdseries(Đã hủy)};
- \node[stt,fill=lyel,dashed] (u) at (14.8,0) {USED\\[-1pt]\scriptsize\mdseries(Đã sử dụng)};
- \node[circle,draw,thick,minimum size=0.45cm,inner sep=0,path picture={\fill (path picture bounding box.center) circle (0.13);}] (e) at (14.8,-3.4) {};
-
- \draw[->,thick] (s) -- node[tr,above]{User gửi yêu cầu\\hợp lệ} (p);
- \draw[->,thick] (p) -- node[tr,above]{Admin duyệt\\{[}không trùng, không bảo trì,\\chưa đến giờ{]}} (a);
- \draw[->,thick] (p) -- node[tr,left]{Admin từ chối} (r);
- \draw[->,thick] (p.south east) -- node[tr,sloped,below,pos=0.45]{User rút yêu cầu} (c.north west);
- \draw[->,thick] (a) -- node[tr,right]{User hủy trước giờ\\bắt đầu $\geq$ 30 phút\\/ thu hồi mã PIN} (c);
- \draw[->,thick] (a) to[out=65,in=115,looseness=5] node[tr,above]{Admin đổi phòng ($\geq$ 30 phút trước giờ bắt đầu)} (a);
- \draw[->,thick,dashed] (a) -- node[tr,above]{hết giờ kết thúc\\(trạng thái suy diễn)} (u);
- \draw[->,thick] (u) -- (e);
- \draw[->,thick] (c) -- (e);
- \draw[->,thick] (r.south) -- ++(0,-0.7) -| (e.south);
-
- % PIN lifecycle
- \begin{scope}[yshift=-7.2cm]
-  \node[font=\small\bfseries,text=navy,anchor=west] at (-0.3,1.1) {Vòng đời mã PIN tạm thời gắn với booking APPROVED (hàm getPinDisplayStatus)};
-  \node[circle,fill=black,minimum size=0.35cm,inner sep=0] (s2) at (0,0) {};
-  \node[stt] (pp) at (3.6,0) {PENDING\\[-1pt]\scriptsize\mdseries(chưa hiệu lực)};
-  \node[stt,fill=lgreen] (pa) at (8.2,0) {ACTIVE\\[-1pt]\scriptsize\mdseries(đang hiệu lực)};
-  \node[stt,fill=lgray] (pe) at (12.8,0) {EXPIRED\\[-1pt]\scriptsize\mdseries(hết hạn)};
-  \node[stt,fill=lred] (pr) at (8.2,-2.4) {REVOKED\\[-1pt]\scriptsize\mdseries(bị thu hồi)};
-  \draw[->,thick] (s2) -- node[tr,above]{tạo mã} (pp);
-  \draw[->,thick] (pp) -- node[tr,above]{T\textsubscript{bắt đầu} $-$ 10 phút} (pa);
-  \draw[->,thick] (pa) -- node[tr,above]{T\textsubscript{kết thúc} $+$ 10 phút} (pe);
-  \draw[->,thick] (pp) |- node[tr,pos=0.75,below]{hủy booking / đổi phòng} (pr);
-  \draw[->,thick] (pa) -- node[tr,right]{hủy / đổi phòng} (pr);
- \end{scope}
+\begin{tikzpicture}[
+  >=Stealth,
+  state/.style={draw=navy,thick,rounded corners=4pt,fill=lblue,
+                text width=2.8cm,minimum height=0.9cm,align=center,font=\small},
+  note/.style={font=\scriptsize,fill=white,inner sep=2pt},
+  flow/.style={->,thick,navy}]
+\node[font=\small\bfseries,text=navy,anchor=west] at (-6.4,1.4)
+  {Trạng thái yêu cầu đặt phòng};
+\node[state] (p) at (-4.5,0) {Chờ duyệt};
+\node[state,fill=lgreen] (a) at (0,0) {Đã duyệt};
+\node[state,fill=lyel,dashed] (used) at (4.5,0) {Đã sử dụng\\\scriptsize Suy ra theo thời gian};
+\node[state,fill=lred] (r) at (-4.5,-2.6) {Từ chối};
+\node[state,fill=lgray] (c) at (0,-2.6) {Đã hủy};
+\node[state,fill=lred] (n) at (4.5,-2.6) {Vắng mặt};
+\draw[flow] (-6.4,0)--(p);
+\draw[flow] (p)--node[note,above]{Duyệt}(a);
+\draw[flow] (a)--node[note,above]{Hết giờ}(used);
+\draw[flow] (p)--node[note,left]{Từ chối}(r);
+\draw[flow] (a)--node[note,right]{hủy đúng hạn}(c);
+\draw[flow] (a.south east)--node[note,sloped,above]{quá hạn nhận phòng}(n.north west);
+\draw[flow] (p.south east)--node[note,sloped,below]{rút yêu cầu}(c.north west);
+\node[font=\small\bfseries,text=navy,anchor=west] at (-6.4,-4.4)
+  {Trạng thái hiển thị của mã tạm thời};
+\node[state] (pp) at (-4.5,-5.8) {Chưa hiệu lực};
+\node[state,fill=lgreen] (pa) at (0,-5.8) {Đang hiệu lực};
+\node[state,fill=lgray] (pe) at (4.5,-5.8) {Hết hạn};
+\node[state,fill=lred] (pr) at (0,-8.2) {Đã thu hồi};
+\draw[flow] (-6.4,-5.8)--(pp);
+\draw[flow] (pp)--node[note,above]{bắt đầu hiệu lực}(pa);
+\draw[flow] (pa)--node[note,above]{hết hiệu lực}(pe);
+\draw[flow] (pa)--node[note,right]{hủy / đổi phòng}(pr);
+\draw[flow] (pp.south east)--node[note,sloped,below]{hủy / đổi phòng}(pr.north west);
 \end{tikzpicture}
 \end{document}

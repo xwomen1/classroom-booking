@@ -1,49 +1,29 @@
-\documentclass[border=6pt]{standalone}
+\documentclass[border=7pt]{standalone}
 \input{preamble}
-\input{seqlib}
 \begin{document}
-\begin{tikzpicture}
- \def\B{-14.2}
- \actor{gv}{(0,0.1)}{}
- \node[font=\scriptsize\bfseries] at (0,-0.75) {Giảng viên};
- \draw[dashed,gray] (0,-0.95) -- (0,\B);
- \lifeline{scr}{2.7}{RoomSearch\\Screen}{\B}
- \lifeline{rep}{5.4}{bookingRepository\\(TypeScript)}{\B}
- \lifeline{flt}{8.1}{SessionAuth\\Filter}{\B}
- \lifeline{ctl}{10.8}{ApiController}{\B}
- \lifeline{svc}{13.5}{BookingService}{\B}
- \lifeline{db}{18.4}{EntityManager\\/ H2}{\B}
-
- \act{2.7}{-1.3}{-13.6}
- \act{5.4}{-1.8}{-13.2}
- \act{8.1}{-2.3}{-3.4}
- \act{10.8}{-3.6}{-12.5}
- \act{13.5}{-4.1}{-12.1}
-
- \m{0}{2.7}{-1.3}{1: chọn phòng, nhập\\mục đích, bấm Gửi}
- \m{2.7}{5.4}{-1.8}{2: createBooking(input)}
- \m{5.4}{8.1}{-2.3}{3: POST /api/bookings\\Authorization: Bearer token}
- \m{8.1}{13.5}{-2.75}{4: requireAccount(token)}
- \rt{13.5}{8.1}{-3.15}{5: Account (role = user)}
- \m{8.1}{10.8}{-3.6}{6: chuyển tiếp, gắn thuộc tính ``account''}
- \m{10.8}{13.5}{-4.1}{7: createBooking(actor, input)}
- \self{13.5}{-4.5}{8: kiểm tra role = user,\\requester = actor}
- \m{13.5}{18.4}{-5.4}{9: select b.id from Booking\\LockMode PESSIMISTIC\_WRITE}
- \rt{18.4}{13.5}{-5.85}{danh sách booking (đã khóa)}
- \self{13.5}{-6.2}{10: validateBooking(): phòng AVAILABLE,\\định dạng ngày giờ, đặt trước 1--3 ngày,\\bảo trì, trùng phòng, trùng lịch User,\\giới hạn 2 booking hoạt động}
- % alt frame
- \draw[fr] (4.6,-7.45) rectangle (19.4,-9.45);
- \node[fill=hust,text=white,font=\tiny\bfseries,anchor=north west,inner sep=2pt] at (4.6,-7.45) {alt};
- \node[font=\tiny,text=hust,anchor=north west] at (5.2,-7.5) {[vi phạm quy tắc]};
- \rt{13.5}{10.8}{-8.0}{throw IllegalArgumentException}
- \rt{10.8}{5.4}{-8.35}{400 \{message\} (ApiExceptionHandler)};
- \draw[fr,dashed] (4.6,-8.7) -- (19.4,-8.7);
- \node[font=\tiny,text=hust,anchor=north west] at (5.2,-8.72) {[hợp lệ] tiếp tục bước 11};
- \m{13.5}{18.4}{-10.1}{11: persist(Booking PENDING)}
- \m{13.5}{18.4}{-10.8}{12: storeNotification(``admin'', ...)}
- \rt{13.5}{10.8}{-11.5}{13: BookingResult(booking, notification)}
- \rt{10.8}{5.4}{-12.2}{14: 200 OK (JSON)}
- \rt{5.4}{2.7}{-12.9}{15: Booking}
- \rt{2.7}{0}{-13.6}{16: thông báo gửi thành công}
+\begin{tikzpicture}[
+  >=Stealth,
+  dau/.style={draw=navy,thick,fill=lblue,rounded corners=3pt,
+    text width=2.8cm,minimum height=0.9cm,align=center,font=\small\bfseries},
+  duong/.style={dashed,navy!65},
+  tin/.style={->,thick,navy},
+  tra/.style={->,thick,dashed,navy},
+  nhan/.style={font=\small,fill=white,inner sep=2pt}]
+\node[dau] (u) at (0,0) {Giảng viên};
+\node[dau] (app) at (4.2,0) {Ứng dụng};
+\node[dau] (server) at (8.4,0) {Dịch vụ Java};
+\node[dau] (db) at (12.6,0) {Cơ sở dữ liệu};
+\foreach \n in {u,app,server,db}
+  \draw[duong] (\n.south) -- ++(0,-9.6);
+\draw[tin] (0,-1.3) -- node[nhan,above]{1. Chọn phòng và thời gian} (4.2,-1.3);
+\draw[tin] (4.2,-2.4) -- node[nhan,above]{2. Gửi yêu cầu kèm phiên} (8.4,-2.4);
+\draw[tin] (8.4,-3.5) -- node[nhan,above]{3. Khóa dữ liệu phòng} (12.6,-3.5);
+\draw[tra] (12.6,-4.6) -- node[nhan,above]{4. Trả lịch và bảo trì} (8.4,-4.6);
+\node[draw=navy,rounded corners=3pt,fill=lyel,align=center,font=\small,
+  text width=3.4cm] at (8.4,-5.7)
+  {Kiểm tra quyền, thời gian, xung đột và giới hạn};
+\draw[tin] (8.4,-7.0) -- node[nhan,above]{5. Lưu yêu cầu chờ duyệt} (12.6,-7.0);
+\draw[tra] (8.4,-8.1) -- node[nhan,above]{6. Trả kết quả hoặc lý do từ chối} (4.2,-8.1);
+\draw[tra] (4.2,-9.2) -- node[nhan,above]{7. Hiển thị kết quả} (0,-9.2);
 \end{tikzpicture}
 \end{document}

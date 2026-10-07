@@ -1,40 +1,24 @@
 \documentclass[../DoAn.tex]{subfiles}
 \begin{document}
-
 \section{Đặt vấn đề}
 \label{section:1.1}
-Trong một trường đại học, phòng học và phòng họp là tài nguyên dùng chung có tần suất sử dụng cao. Ngoài thời khóa biểu cố định, giảng viên thường xuyên cần mượn thêm phòng để dạy bù, tổ chức seminar, họp bộ môn hoặc hướng dẫn nhóm đồ án. Với tòa nhà C7 mà nhóm khảo sát, mỗi tầng có bảy phòng bố trí theo sơ đồ chữ U, phòng số lẻ nằm một phía hành lang, phòng số chẵn nằm phía đối diện, xen giữa là thang máy, cầu thang và khu vệ sinh; phần lớn người dùng di chuyển bằng thang máy nên việc biết trước vị trí phòng trên từng tầng giúp tiết kiệm đáng kể thời gian đi lại.
+Phòng học và phòng họp là tài nguyên dùng chung. Ngoài thời khóa biểu cố định, giảng viên có thể cần phòng để dạy bù, họp chuyên môn hoặc hướng dẫn sinh viên. Nếu chỉ trao đổi qua tin nhắn, điện thoại hoặc bảng tính, người dùng khó thấy ngay phòng nào phù hợp với ngày giờ, sức chứa, thiết bị và phương thức tiếp cận. Người quản lý cũng phải đối chiếu nhiều nguồn thông tin trước khi duyệt để tránh trùng lịch hoặc xếp phòng đang bảo trì.
 
-Hiện nay quy trình mượn phòng chủ yếu dựa vào trao đổi trực tiếp, điện thoại hoặc tin nhắn với cán bộ cơ sở vật chất (CSVC). Cách làm này bộc lộ bốn hạn chế. Thứ nhất, người mượn khó biết phòng nào còn trống trong khung giờ mong muốn. Thứ hai, thông tin sức chứa và trang thiết bị như máy chiếu, micro, điều hòa không có sẵn để tra cứu nhanh. Thứ ba, người mượn không rõ phòng nằm ở phía nào của tầng. Thứ tư, các thông báo về kết quả duyệt, lịch nhận khóa hay thay đổi phòng không đến kịp thời. Ở phía quản lý, cán bộ CSVC phải tự đối chiếu lịch để tránh trùng, đồng thời xử lý hai phương thức tiếp cận phòng khác nhau là bàn giao thẻ từ và cấp mật khẩu (pass) cho khóa mã số.
-
-Nếu bài toán được giải quyết, giảng viên có thể tự tra cứu và gửi yêu cầu trong vài thao tác, cán bộ CSVC có công cụ duyệt tập trung với quy tắc được kiểm tra tự động, và nhà trường có dữ liệu để đối soát lịch sử sử dụng phòng. Mô hình này cũng áp dụng được cho các tài nguyên đặt trước khác như phòng thí nghiệm, hội trường hoặc thiết bị dùng chung.
+RoomHub lấy mô hình tòa nhà tám tầng, mỗi tầng bảy phòng, làm dữ liệu minh họa. Sơ đồ chữ U giúp người dùng nhận biết vị trí phòng trên tầng. Đây là kịch bản thiết kế của dự án; báo cáo không dùng dữ liệu này để khẳng định hiện trạng vận hành của một tòa nhà cụ thể. Bài toán còn bao gồm hai cách tiếp cận phòng: nhận khóa cơ hoặc thẻ từ theo lịch hẹn, và dùng mật khẩu tạm thời cho phòng có khóa số quản lý trực tuyến.
 
 \section{Mục tiêu và phạm vi đề tài}
 \label{section:1.2}
-Các công cụ đang được dùng để quản lý lịch phòng có thể chia thành ba nhóm. Nhóm thứ nhất là sổ ghi chép hoặc bảng tính dùng chung, dễ triển khai nhưng không ngăn được trùng lịch và không phân quyền. Nhóm thứ hai là lịch trực tuyến như Google Calendar hay Microsoft Outlook với tài nguyên phòng; các công cụ này hiển thị được lịch bận nhưng không mô hình hóa quy tắc riêng của nhà trường như hạn đặt trước từ một đến ba ngày, giới hạn số yêu cầu đang hoạt động của mỗi người hoặc lịch bảo trì. Nhóm thứ ba là các phần mềm quản lý cơ sở vật chất thương mại, có đầy đủ chức năng nhưng chi phí cao và không gắn với loại khóa mà tòa nhà đang sử dụng. Điểm chung của các nhóm trên là tách rời việc \emph{đặt phòng} với việc \emph{tiếp cận phòng}: sau khi được duyệt, người mượn vẫn phải liên hệ riêng để nhận thẻ hoặc mật khẩu.
+Mục tiêu của đề tài là xây dựng một ứng dụng có thể trình diễn trọn luồng từ tìm phòng, gửi yêu cầu, duyệt hoặc từ chối, đến quản lý lịch và quyền tiếp cận phòng. Người dùng tìm và đặt phòng trên cùng màn hình, theo dõi các yêu cầu của mình, hủy khi còn được phép và thương lượng giờ nhận khóa. Quản trị viên quản lý tài khoản, phòng, lịch bảo trì, quy tắc đặt phòng và liên kết khóa số; khi cần có thể đổi sang phòng thay thế đáp ứng điều kiện sức chứa, thiết bị và loại khóa.
 
-Xuất phát từ các hạn chế đó, bài tập lớn đặt mục tiêu xây dựng hệ thống RoomHub gồm ứng dụng di động cho người dùng cuối và dịch vụ nghiệp vụ Java. Phạm vi của đề tài bao gồm (i) đăng nhập, đăng ký và điều hướng theo hai vai trò Admin và User; (ii) tìm phòng trên sơ đồ tầng theo ngày giờ, sức chứa, thiết bị và loại khóa, rồi gửi yêu cầu ngay trên cùng màn hình; (iii) duyệt, từ chối và đổi phòng thay thế có kiểm tra điều kiện; (iv) quản lý tài khoản, phòng, lịch bảo trì và các tham số nghiệp vụ; (v) cấp quyền tiếp cận theo loại khóa, gồm hẹn lịch nhận khóa cơ hoặc thẻ từ và tạo mã PIN tạm thời cho khóa mã số; (vi) thông báo theo sự kiện. Các nghiệp vụ check-in bằng QR, xử lý no-show, audit log đầy đủ và báo cáo thống kê được mô tả trong quy trình nghiệp vụ nhưng nằm ngoài phạm vi phiên bản hiện tại.
+Phạm vi triển khai có chế độ lưu cục bộ để kiểm thử trên một điện thoại và chế độ dùng dịch vụ Java để đồng bộ nhiều phiên. Hệ thống đã có luồng đánh dấu vắng mặt, thông báo bảo trì, check-in và check-out theo sự kiện khóa; các luồng phụ thuộc khóa thật hoặc hạ tầng mạng cần được kiểm chứng đầu cuối riêng. Báo cáo tập trung giải thích mô hình đối tượng, quy tắc nghiệp vụ, giao dịch dữ liệu, phân quyền và cách các thành phần phối hợp.
 
 \section{Định hướng giải pháp}
 \label{section:1.3}
-Nhóm tiếp cận bài toán theo phương pháp phân tích thiết kế hướng đối tượng. Phía máy chủ sử dụng Java 17 với Spring Boot 3.4 để xây dựng dịch vụ REST, Jakarta Persistence (JPA) để ánh xạ các lớp thực thể xuống cơ sở dữ liệu H2. Lựa chọn này phù hợp với yêu cầu của học phần Lập trình nâng cao về lập trình Java, đồng thời tận dụng cơ chế tiêm phụ thuộc, quản lý giao dịch và xử lý ngoại lệ tập trung của Spring. Phía người dùng là ứng dụng React Native viết bằng TypeScript để chạy trực tiếp trên điện thoại Android, nơi giảng viên thường thao tác khi di chuyển giữa các tầng.
+Phía máy chủ sử dụng Java 17 với Spring Boot, Jakarta Persistence và cơ sở dữ liệu H2 trong môi trường thử nghiệm. Ứng dụng Android dùng React Native và TypeScript. Mã nguồn được chia thành các module nghiệp vụ để phần giao diện gọi dịch vụ phù hợp với vai trò. Ở chế độ máy chủ, các thao tác tạo và duyệt yêu cầu được kiểm tra trong giao dịch; khóa bi quan trên bản ghi cấu hình và phòng giúp hạn chế xung đột khi nhiều yêu cầu cùng tới.
 
-Giải pháp tổ chức mã nguồn thành các module nghiệp vụ độc lập (xác thực, phòng, đặt phòng, kiểm soát truy cập, khóa thông minh, bảo trì, cấu hình, thông báo). Mọi quy tắc đặt phòng được đặt trong tầng dịch vụ và được kiểm tra lại ở máy chủ trong một giao dịch có khóa bi quan. Với phòng dùng khóa mã số, việc duyệt yêu cầu tự động cấp quyền cho đúng cặp người dùng -- phòng; người dùng tự tạo mã PIN sáu chữ số, ứng dụng gửi lệnh tới gateway để gateway mã hóa và phát bản tin MQTT tới khóa DLWA12 qua nền tảng OneIoT.
-
-Kết quả đạt được là một sản phẩm chạy được trên thiết bị thật: APK Release độc lập không cần máy tính, mã nguồn di động khoảng 5.200 dòng TypeScript, dịch vụ Java 860 dòng với tám lớp thực thể, cùng bộ kiểm thử tự động cho các quy tắc chính. Các đóng góp nổi bật được trình bày chi tiết tại Chương~\ref{chapter:SolutionAndContribution}.
+Đối với phòng gắn khóa số, việc duyệt yêu cầu cấp quyền tạo mã cho đúng người dùng và đúng phòng, không chuyển người dùng thành quản trị viên hệ thống. Mã tạm thời gồm bảy chữ số, có khoảng hiệu lực dựa trên lịch đặt phòng. Ứng dụng lưu mã trước và gửi bản tin MQTT trực tiếp qua OneIoT khi người dùng đã kết nối trong phiên. Việc khóa thật nhận và áp dụng mã là bước kiểm chứng riêng, không suy ra chỉ từ kết quả gửi bản tin.
 
 \section{Bố cục báo cáo}
 \label{section:1.4}
-Phần còn lại của báo cáo được tổ chức như sau.
-
-Chương~\ref{chapter:Related_works} trình bày kết quả khảo sát hiện trạng mượn phòng và tài liệu quy trình nghiệp vụ, từ đó xây dựng biểu đồ use case tổng quát, các biểu đồ phân rã, quy trình nghiệp vụ đặt phòng, đặc tả năm use case quan trọng và các yêu cầu phi chức năng.
-
-Chương~\ref{chapter:Methodology} giới thiệu nền tảng lý thuyết và công nghệ sử dụng, gồm lập trình hướng đối tượng với Java, Spring Boot và JPA, kiến trúc REST, React Native với TypeScript, giao thức MQTT và mã hóa AES; với mỗi công nghệ, báo cáo nêu yêu cầu mà công nghệ đó giải quyết và lý do lựa chọn so với phương án thay thế.
-
-Chương~\ref{chapter:Experiment} trình bày thiết kế kiến trúc, thiết kế gói, thiết kế lớp, biểu đồ trình tự, thiết kế cơ sở dữ liệu và giao diện, sau đó mô tả kết quả xây dựng ứng dụng, các ca kiểm thử và mô hình triển khai trên thiết bị thật.
-
-Chương~\ref{chapter:SolutionAndContribution} tập trung vào ba đóng góp chính: thuật toán kiểm tra xung đột lịch kết hợp khóa bi quan, mô hình cấp quyền tạo mã PIN theo phòng tích hợp khóa thông minh, và kiến trúc module hai chế độ dữ liệu.
-
-Chương~\ref{chapter:conclusion} tổng kết kết quả, so sánh với các giải pháp hiện có, nêu hạn chế và hướng phát triển.
-
+Chương~\ref{chapter:Related_works} phân tích bối cảnh, kịch bản nghiệp vụ, tác nhân, use case và quy tắc vận hành. Chương~\ref{chapter:Methodology} giải thích công nghệ và cơ sở lý thuyết được dùng. Chương~\ref{chapter:Experiment} trình bày thiết kế, kết quả triển khai, giao diện và kiểm thử. Chương~\ref{chapter:SolutionAndContribution} phân tích các giải pháp kỹ thuật nổi bật. Chương~\ref{chapter:conclusion} tổng kết kết quả và hướng phát triển.
 \end{document}

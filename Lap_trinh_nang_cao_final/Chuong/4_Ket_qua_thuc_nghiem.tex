@@ -5,7 +5,7 @@ Chương~\ref{chapter:Methodology} đã trình bày các công nghệ được l
 
 \section{Thiết kế kiến trúc}
 \subsection{Lựa chọn kiến trúc phần mềm}
-RoomHub gồm ứng dụng Android, dịch vụ nghiệp vụ Java và nền tảng khóa OneIoT như Hình~\ref{fig:kientruc}. Khi bật đồng bộ, ứng dụng gọi dịch vụ Java qua REST/JSON. Với phòng khóa số, ứng dụng gửi bản tin MQTT trực tiếp qua module Android sau khi người dùng kết nối OneIoT trong phiên. Tiến trình gateway Python trong kho mã nguồn phục vụ thử nghiệm giao thức, không nằm trên đường truyền chính của ứng dụng hiện tại.
+RoomHub trong phạm vi báo cáo gồm ứng dụng Android, backend Java, cơ sở dữ liệu và nhánh tích hợp khóa OneIoT như Hình~\ref{fig:kientruc}. Ứng dụng hiện bật chế độ remote và gọi REST/JSON tới backend; backend xử lý nghiệp vụ và lưu dữ liệu vào H2 qua JPA. Các API cho tài khoản, phòng, booking, bảo trì, cấu hình, quyền PIN và thông báo đã được triển khai. Khi dùng nhiều thiết bị cùng server, dữ liệu được đọc/ghi qua kho dữ liệu chung ở phía server. Chế độ local Async Storage là lựa chọn riêng, không tự đồng bộ ngược lên server khi offline. Với phòng khóa số, ứng dụng gửi MQTT trực tiếp qua module Android sau khi người dùng kết nối OneIoT trong phiên. Gateway Python chỉ phục vụ thử nghiệm giao thức.
 
 % ===== Hình 4.1 – Kiến trúc tổng thể RoomHub =====
 \begin{figure}[H]
@@ -343,7 +343,7 @@ TC-17 & Đăng nhập theo hai vai trò; thử mật khẩu sai và đăng ký t
 Ở lần kiểm tra mã nguồn gần nhất, bảy bộ Jest của ứng dụng đạt 39/39 ca. Kho mã nguồn dịch vụ Java có kiểm thử tích hợp cho nhánh dữ liệu từ xa. Biên bản thiết bị lưu cùng ứng dụng ghi nhận bản Release khởi động và điều hướng theo vai trò ở chế độ cục bộ. Các kịch bản trong bảng là mẫu kiểm tra nghiệp vụ; việc nhận mã tại khóa thật và đồng bộ trên hạ tầng triển khai thực tế chưa được xác nhận bởi các kết quả này.
 
 \section{Triển khai}
-Bản Release Android có thể chạy độc lập với Metro. Khi tắt đồng bộ, tài khoản, phòng và yêu cầu được lưu cục bộ trên một điện thoại. Khi bật đồng bộ, ứng dụng cần địa chỉ API hợp lệ của dịch vụ Java và kết nối mạng; dữ liệu lưu trong cơ sở dữ liệu của dịch vụ. Luồng khóa số dùng kết nối OneIoT trực tiếp từ ứng dụng và chỉ bắt đầu sau khi người dùng nhập token, bấm kiểm tra kết nối trong phiên. Tại thời điểm rà soát, cờ đồng bộ trong mã nguồn đang bật, nên phải chuyển về tắt trước khi build bản demo cục bộ.
+Bản Release Android có thể chạy độc lập với Metro. Cờ \texttt{ENABLE\_REMOTE\_SYNC} hiện đang bật và \texttt{REMOTE\_API\_BASE\_URL} trỏ tới địa chỉ tunnel thử nghiệm. Ở chế độ này, ứng dụng cần mạng, backend Java đang chạy và H2 phía server sẵn sàng; dữ liệu nghiệp vụ được gửi/nhận qua REST API và lưu phía server. Địa chỉ tunnel có thể thay đổi hoặc ngừng hoạt động, nên chưa được xem là endpoint production. Để demo local độc lập, chuyển cờ đồng bộ về \texttt{false} trước khi build; khi đó dữ liệu được lưu riêng trên thiết bị. Luồng khóa số kết nối OneIoT trực tiếp từ ứng dụng sau khi người dùng nhập token và kiểm tra kết nối trong phiên.
 
 Biên bản trong kho ứng dụng xác nhận đã cài và mở bản Release trên điện thoại Android ở chế độ cục bộ, không phụ thuộc Metro. Người khác clone kho mã nguồn cần cài công cụ Android và tự build APK theo hướng dẫn tại Phụ lục~\ref{appendix:api}; tệp APK và cache build không được đưa vào Git.
 

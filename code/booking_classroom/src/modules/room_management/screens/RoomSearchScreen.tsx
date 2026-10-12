@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenHeader } from '../../../shared';
 import { BookingTimePicker, buildDateOptions } from '../../booking/components/BookingTimePicker';
-import { createBooking, getBookings } from '../../booking/services/bookingRepository';
+import { createBooking, getRoomOccupancy } from '../../booking/services/bookingRepository';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { hasMaintenanceConflict } from '../../schedule_maintenance/services/maintenanceRepository';
 import type { LockType, Room } from '../model/room';
@@ -82,7 +82,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
       const slot = floorMapSlot(room);
       if (slot !== null && !slots[slot]) slots[slot] = room;
     });
-    const bookings = await getBookings();
+    const bookings = await getRoomOccupancy();
     const mapped = (await Promise.all(slots.map(async room => {
       if (!room) return null;
       const enoughSeats = roomMeetsMinCapacity(room.capacity, capacity);

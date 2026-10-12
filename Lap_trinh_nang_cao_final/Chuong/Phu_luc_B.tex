@@ -13,6 +13,7 @@ GET & \texttt{/api/rooms} & Đọc danh sách phòng \\ \hline
 GET & \texttt{/api/configuration} & Đọc quy tắc nghiệp vụ \\ \hline
 GET & \texttt{/api/maintenance} & Đọc lịch bảo trì \\ \hline
 GET, POST & \texttt{/api/bookings} & Đọc và tạo yêu cầu \\ \hline
+GET & \texttt{/api/room-occupancy} & Đọc khung giờ phòng đang chờ duyệt hoặc đã duyệt \\ \hline
 POST & \texttt{/api/bookings/}\newline\texttt{\{id\}/review} & Duyệt hoặc từ chối \\ \hline
 POST & \texttt{/api/bookings/}\newline\texttt{\{id\}/temporary-pin} & Lưu mã tạm thời và thông tin giao lệnh \\ \hline
 GET & \texttt{/api/pin-permissions} & Xem quyền theo phòng \\ \hline
@@ -22,7 +23,7 @@ GET & \texttt{/api/notifications} & Đọc thông báo \\ \hline
 Ứng dụng hiện giao tiếp OneIoT trực tiếp qua module Android. Các điểm cuối HTTP của gateway Python là công cụ thử nghiệm độc lập, không nằm trong đường truyền chính của ứng dụng.
 
 \section{Hướng dẫn cài đặt và chạy thử}
-\paragraph{Build bản cục bộ.} Clone kho mã nguồn, vào thư mục ứng dụng và đặt chế độ đồng bộ về tắt trong tệp cấu hình trước khi build nếu muốn demo không cần máy chủ. Mã nguồn tại thời điểm rà soát đang bật chế độ máy chủ, vì vậy cần kiểm tra cờ này trước khi đóng gói.
+\paragraph{Build bản cục bộ.} Clone kho mã nguồn, vào thư mục ứng dụng và đặt \texttt{ENABLE\_REMOTE\_SYNC} thành \texttt{false} trong tệp cấu hình trước khi build nếu muốn demo không cần máy chủ. Mã nguồn tại thời điểm rà soát đang bật chế độ máy chủ; ở cấu hình này APK cần endpoint API và server đang hoạt động.
 \begin{verbatim}
 git clone https://github.com/xwomen1/classroom-booking.git
 cd classroom-booking/code/booking_classroom
@@ -34,7 +35,7 @@ Tài khoản mẫu của dữ liệu cục bộ là \texttt{admin/1} và \texttt
 
 \paragraph{Chạy bản phát triển.} Trong thư mục ứng dụng, chạy \texttt{npm start}; ở cửa sổ khác chạy \texttt{adb reverse tcp:8081 tcp:8081} rồi \texttt{npm run android}. Kiểm tra mã nguồn bằng \texttt{npm test -{}- -{}-runInBand}, \texttt{npm run lint} và \texttt{npx tsc -{}-noEmit}.
 
-\paragraph{Chạy dịch vụ Java.} Tại \texttt{code/booking-server}, chạy \texttt{mvn test} và \texttt{mvn spring-boot:run}. Để ứng dụng gọi máy chủ, bật cờ đồng bộ và đặt địa chỉ API đúng với máy chủ có thể truy cập từ điện thoại. Cần kiểm tra đường truyền, phiên đăng nhập và dữ liệu trả về; việc bật cờ một mình không bảo đảm máy chủ đã sẵn sàng.
+\paragraph{Chạy dịch vụ Java.} Tại \texttt{code/booking-server}, chạy \texttt{mvn test} và \texttt{mvn spring-boot:run}. Server dùng Spring Data JPA và H2 ở chế độ tệp theo cấu hình mặc định; có thể đặt URL, tài khoản và mật khẩu qua biến \texttt{BOOKING\_DB\_URL}, \texttt{BOOKING\_DB\_USERNAME} và \texttt{BOOKING\_DB\_PASSWORD}. Để app gọi máy chủ, bật cờ đồng bộ và đặt địa chỉ API có thể truy cập từ điện thoại. Cần kiểm tra kết nối, phiên đăng nhập và dữ liệu đọc/ghi; cờ bật không bảo đảm server hoặc tunnel luôn sẵn sàng.
 
 \paragraph{Kết nối khóa số.} Gắn khóa đang quản lý với một phòng khóa số trong ứng dụng. Khi cần dùng OneIoT, nhập token cho phiên hiện tại và bấm kiểm tra kết nối. Token không được ghi trong mã nguồn hoặc đưa lên Git. Khi ứng dụng không còn phiên kết nối, mã được tạo vẫn có thể ở trạng thái chờ gửi; chỉ các mã còn hiệu lực của phòng đang gắn khóa mới được thử gửi khi kết nối lại.
 

@@ -7,7 +7,9 @@ Chương~\ref{chapter:Introduction} đã giới thiệu bài toán. Chương nà
 \label{section:2.1}
 
 \subsection{Khảo sát người dùng và quy trình hiện hành}
-Kịch bản sử dụng của nhóm đặt ra yêu cầu người mượn cần tra cứu đồng thời phòng trống theo khung giờ, sức chứa, trang thiết bị và vị trí trên tầng. Mô hình tám tầng và sơ đồ chữ U là dữ liệu minh họa cho ứng dụng. Các yêu cầu này được kiểm tra qua luồng nghiệp vụ và giao diện, chưa được trình bày như kết quả phỏng vấn người dùng thực tế.
+Quy trình nhóm hướng tới cải tiến bắt đầu bằng việc giảng viên ghi nhu cầu đặt phòng trong file Excel. Bảng tính lưu được các đăng ký, nhưng chưa tự phát hiện những dòng bị trùng phòng và thời gian; người phụ trách phải kiểm tra thủ công trước khi xác nhận lịch. Vì vậy người mượn khó biết ngay phòng nào còn trống, còn người quản lý phải dò lịch và điều kiện phòng mỗi khi có yêu cầu mới. Đây là vấn đề nghiệp vụ làm cơ sở cho thiết kế, không phải kết quả khảo sát định lượng hay kết luận về mọi đơn vị.
+
+Từ nhu cầu đó, phạm vi được thu hẹp vào bài toán đặt phòng học/phòng họp: giảng viên tra cứu phòng theo thời gian, sức chứa, trang thiết bị và vị trí; cán bộ quản trị xét duyệt yêu cầu và quản lý lịch. Ở phiên bản pre-MVP, nhóm mô hình hóa và thử nghiệm hệ thống trên tòa nhà tám tầng có cách tổ chức phòng tương tự C7, Đại học Bách khoa Hà Nội. Đây là phạm vi mô hình thử nghiệm, chưa phải triển khai trên toàn trường. Các yêu cầu được cụ thể hóa qua tài liệu quy trình, use case, quy tắc nghiệp vụ và kiểm thử; báo cáo không trình bày chúng như kết quả khảo sát định lượng.
 
 Nguồn nghiệp vụ chính là tài liệu \emph{Quy trình nghiệp vụ RoomHub} do nhóm xây dựng \cite{quytrinh2026}. Tài liệu mô tả các bước từ tra cứu, gửi yêu cầu, phê duyệt, tiếp cận phòng tới hoàn tất. Hai phương thức tiếp cận được xét là nhận khóa cơ hoặc thẻ từ và tạo mã tạm thời cho khóa số quản lý trực tuyến. Bảng~\ref{tab:loaiphong} tóm tắt các trường hợp minh họa trong quy trình.
 

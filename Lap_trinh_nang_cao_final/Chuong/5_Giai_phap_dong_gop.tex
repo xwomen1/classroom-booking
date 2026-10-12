@@ -83,6 +83,6 @@ Tạo mã tạm thời & Lưu mã vào dữ liệu cục bộ & Lưu mã qua API
 \end{tabularx}\end{table}
 
 \subsection{Kết quả đạt được}
-Chế độ cục bộ cho phép chạy bản Release độc lập với máy chủ; dữ liệu vẫn chỉ nằm trên thiết bị đó. Chế độ từ xa dùng dịch vụ Java và cần địa chỉ API đang hoạt động. Tại thời điểm rà soát báo cáo, cờ đồng bộ trong mã nguồn đang bật; để build bản demo cục bộ cần chuyển cờ về tắt trước khi đóng gói. Bộ kiểm thử Jest đặt môi trường kiểm thử để chạy nhánh cục bộ; dự án có thêm kiểm thử tích hợp Java. Việc đồng bộ nhiều thiết bị trên máy chủ triển khai thật cần được kiểm chứng riêng.
+Mã nguồn hiện đã có backend Java, các REST API nghiệp vụ, JPA/H2 và phía app gọi API khi cờ \texttt{ENABLE\_REMOTE\_SYNC} bật; cấu hình hiện tại đang bật cờ này. Khi nhiều thiết bị cùng truy cập một server đang chạy và dùng chung H2 phía server, chúng có thể đọc/ghi tập dữ liệu phía server qua API. Chế độ local vẫn lưu riêng trên Async Storage của từng thiết bị và không tự đẩy hoặc hòa giải thay đổi với server khi mất mạng. Địa chỉ tunnel trong cấu hình phục vụ thử nghiệm, không bảo đảm sẵn sàng như dịch vụ production. Bộ kiểm thử Jest chạy nhánh cục bộ; dự án có kiểm thử tích hợp Java, nhưng cần kiểm thử đầu cuối nhiều thiết bị trên hạ tầng đang chạy để xác nhận triển khai thực tế.
 
 \end{document}

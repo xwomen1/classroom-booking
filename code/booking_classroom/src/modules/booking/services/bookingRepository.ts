@@ -66,6 +66,29 @@ export async function getBookings(): Promise<Booking[]> {
   return readJson<Booking[]>(BOOKINGS_KEY, []);
 }
 
+export type RoomOccupancy = {
+  roomId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+};
+
+export async function getRoomOccupancy(): Promise<RoomOccupancy[]> {
+  if (isRemoteApiEnabled()) {
+    return apiRequest<RoomOccupancy[]>('/api/room-occupancy');
+  }
+  return (await getBookings())
+    .filter(booking => booking.status === 'PENDING' || booking.status === 'APPROVED')
+    .map(booking => ({
+      roomId: booking.roomId,
+      date: booking.date,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+    }));
+}
+
 export async function getBookingsForUser(username: string): Promise<Booking[]> {
   return (await getBookings()).filter(booking => booking.requesterUsername === username)
     .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));

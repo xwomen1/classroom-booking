@@ -140,6 +140,15 @@ public class BookingService {
   }
 
   @Transactional(readOnly = true)
+  public List<RoomOccupancy> roomOccupancy() {
+    return bookings().stream()
+        .filter(booking -> "PENDING".equals(booking.status) || "APPROVED".equals(booking.status))
+        .map(booking -> new RoomOccupancy(
+            booking.roomId, booking.date, booking.startTime, booking.endTime, booking.status))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
   public List<Domain.PinPermission> pinPermissions(Domain.Account account) {
     if ("admin".equals(account.role)) {
       return em.createQuery("select p from PinPermission p", Domain.PinPermission.class).getResultList();
@@ -1561,6 +1570,9 @@ public class BookingService {
   public record PinInput(String username, String roomId) {}
 
   public record AccountInput(String username, String password, String recoveryCode, String role, Boolean active) {}
+
+  public record RoomOccupancy(
+      String roomId, String date, String startTime, String endTime, String status) {}
 
   public record PasswordChangeInput(String currentPassword, String newPassword) {}
 

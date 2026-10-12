@@ -1,6 +1,7 @@
 package com.bookingclassroom.server;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -162,6 +163,11 @@ public class ApiController {
   @GetMapping("/bookings")
   public Object bookings(HttpServletRequest request) {
     return bookingService.bookings(account(request));
+  }
+
+  @GetMapping("/room-occupancy")
+  public List<BookingService.RoomOccupancy> roomOccupancy() {
+    return bookingService.roomOccupancy();
   }
 
   @PostMapping("/bookings")

@@ -2,17 +2,17 @@
 \begin{document}
 \section{Đặt vấn đề}
 \label{section:1.1}
-Đề tài xuất phát từ nhu cầu thực tế của giảng viên khi cần tìm và đăng ký phòng học phục vụ giảng dạy, họp hoặc các hoạt động chuyên môn. Hiện nay, thông tin phòng và lịch sử dụng chủ yếu được quản lý bằng file Excel. Vì vậy, việc tìm phòng trống, kiểm tra sức chứa và trang thiết bị, cũng như đăng ký sử dụng vẫn phụ thuộc nhiều vào thao tác thủ công.
+Đề tài tập trung vào nhu cầu tìm và đăng ký phòng học, phòng họp phục vụ giảng dạy và công việc chuyên môn. Trong kịch bản quản lý lịch bằng bảng tính mà nhóm lựa chọn, người phụ trách phải đối chiếu thủ công thời gian sử dụng, sức chứa và trang thiết bị trước khi xác nhận yêu cầu. Điều này làm chậm quá trình tìm phòng phù hợp và tăng nguy cơ trùng lịch.
 
 Từ nhu cầu đó, nhóm phát triển RoomHub nhằm số hóa quy trình tìm phòng, đặt phòng, phê duyệt, thông báo và cấp quyền truy cập. Hệ thống hướng đến hai nhóm người dùng chính là giảng viên và cán bộ quản trị; hỗ trợ quản lý sức chứa, trang thiết bị, lịch sử dụng và hình thức khóa của từng phòng.
 
 \section{Mục tiêu và phạm vi đề tài}
 \label{section:1.2}
-Trong phạm vi phiên bản pre-MVP, nhóm mô hình hóa và thử nghiệm RoomHub trên một tòa nhà tám tầng có cách tổ chức phòng tương tự tòa C7, Đại học Bách khoa Hà Nội. Đề tài chưa triển khai trên toàn bộ khuôn viên trường. Phạm vi hệ thống tập trung vào ứng dụng Android cho giảng viên và cán bộ quản trị, bao gồm tìm và đặt phòng, phê duyệt yêu cầu, thông báo, quản lý phòng và lịch sử dụng, cùng cấp quyền tiếp cận theo hình thức khóa. Các chức năng backend, API và lưu trữ hỗ trợ cho phiên bản này sẽ được trình bày trong phần giải pháp và kiến trúc hệ thống.
+Phiên bản thử nghiệm ban đầu mô hình hóa một tòa nhà tám tầng và lấy tòa C7 của Đại học Bách khoa Hà Nội làm bối cảnh tham chiếu. Sơ đồ tầng và dữ liệu phòng do nhóm xây dựng, không mô tả mặt bằng thực tế hay việc triển khai trên toàn trường. Ứng dụng Android phục vụ giảng viên và cán bộ quản trị, bao gồm tìm và đặt phòng, phê duyệt yêu cầu, thông báo, quản lý phòng và lịch sử dụng, cùng cấp quyền tiếp cận theo hình thức khóa. Các thành phần máy chủ và lưu trữ được trình bày ở phần kiến trúc và giải pháp.
 
 \section{Định hướng giải pháp}
 \label{section:1.3}
-Giải pháp hiện thực dùng ứng dụng Android React Native/TypeScript và dịch vụ backend Java 17/Spring Boot. Backend cung cấp giao diện trao đổi dữ liệu theo REST/JSON và dùng Jakarta Persistence để lưu dữ liệu vào H2 ở chế độ tệp trong môi trường thử nghiệm. Phiên bản hiện tại được cấu hình để trao đổi dữ liệu với máy chủ khi có kết nối; chế độ lưu cục bộ vẫn được duy trì riêng và không tự hòa giải dữ liệu offline. Kết nối công khai hiện dùng tunnel thử nghiệm, chưa phải hạ tầng sản xuất. Các thao tác tạo và duyệt yêu cầu được kiểm tra trong giao dịch, có khóa bi quan trên bản ghi cấu hình và phòng. Chi tiết kiến trúc được trình bày tại Chương~\ref{chapter:Experiment}.
+Giải pháp gồm ứng dụng Android viết bằng React Native và TypeScript, cùng dịch vụ Java 17/Spring Boot. Dịch vụ cung cấp REST API và dùng Jakarta Persistence để lưu dữ liệu vào H2 ở chế độ tệp trong môi trường thử nghiệm. Cấu hình hiện tại chọn chế độ dùng máy chủ; chế độ lưu cục bộ được duy trì riêng và không tự hợp nhất dữ liệu phát sinh khi mất mạng. Đường truy cập công khai hiện chỉ phục vụ thử nghiệm, chưa bảo đảm tính sẵn sàng của một hệ thống vận hành thực tế. Các thao tác tạo và duyệt yêu cầu được kiểm tra trong giao dịch có khóa bi quan trên bản ghi cấu hình và phòng. Kiến trúc được trình bày tại Chương~\ref{chapter:Experiment}.
 
 Đối với phòng gắn khóa số, việc duyệt yêu cầu cấp quyền tạo mã cho đúng người dùng và đúng phòng, không chuyển người dùng thành quản trị viên hệ thống. Mã tạm thời gồm bảy chữ số, có khoảng hiệu lực dựa trên lịch đặt phòng. Ứng dụng lưu mã trước và gửi bản tin MQTT trực tiếp qua OneIoT khi người dùng đã kết nối trong phiên. Việc khóa thật nhận và áp dụng mã là bước kiểm chứng riêng, không suy ra chỉ từ kết quả gửi bản tin.
 

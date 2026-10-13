@@ -3,11 +3,11 @@
 
 \begin{center}\bfseries\large ABSTRACT\end{center}
 \vspace{0.5cm}
-The project starts from instructors' need to find and book classrooms for teaching, meetings, and other academic activities. Room information and schedules are currently managed mainly in Excel files, so checking availability, capacity, equipment, and submitting requests still involves manual work. RoomHub digitises the room search, booking, approval, notification, and access-permission workflow for instructors and administrators. In this pre-MVP scope, the team models and tests the system in an eight-storey building with a room layout similar to Building C7 at Hanoi University of Science and Technology; deployment across the whole campus is outside the current scope.
+RoomHub supports instructors in finding and booking classrooms or meeting rooms, while administrators review requests and manage schedules. The project uses a spreadsheet-based scheduling process as a reference scenario and implements room search, booking, approval, notification and access-permission workflows. Test data model an eight-storey building, with Building C7 at Hanoi University of Science and Technology serving as a contextual reference. The floor plan and room records are created by the team; they do not represent the building's actual layout or a campus-wide deployment.
 
-The scope narrows from shared-room resource management to a specific Android classroom and meeting-room booking system, RoomHub. Its implemented system includes a React Native/TypeScript client, a Java 17/Spring Boot backend exposing REST APIs, and an H2 database accessed through JPA. Remote mode is enabled in the current source: the client reads and writes business data through the backend. Local Async Storage remains available as a separate mode; offline local changes are not automatically reconciled with the server. The configured public tunnel is for testing and does not represent production availability.
+The system comprises an Android application built with React Native and TypeScript, a Java 17/Spring Boot service exposing REST APIs, and an H2 database accessed through JPA. The current configuration selects server mode, in which the application exchanges data through the API. On-device storage remains available as a separate mode; changes made while offline are not automatically reconciled with server data. The public tunnel is intended for testing and does not establish production availability.
 
-For rooms equipped with a smart lock, an administrator or an authorised user may create a seven-digit temporary PIN. The application records the PIN and its validity interval before attempting delivery. Once a OneIoT session is connected, the mobile client publishes the corresponding MQTT message. Broker publication is not treated as proof that the physical lock has applied the PIN. Automated application tests and Java integration tests are present; a release build has also been checked on an Android device in local mode. End-to-end availability of the remote server and multi-device data sharing still depend on a running backend, database and reachable API endpoint.
+For rooms equipped with a smart lock, an administrator or an authorised user may create a seven-digit temporary PIN. The application records the PIN and its validity interval before attempting delivery. Once a OneIoT session is connected, the application publishes the corresponding MQTT message; publication does not prove that the physical lock has applied the PIN. The source contains the server service, database access and application-to-server flow, but data sharing across multiple devices still requires end-to-end verification on a running deployment. A release build has been checked independently on an Android device in local mode.
 
 \newpage
 
@@ -33,14 +33,14 @@ Bảng dưới đây tổng hợp phân công công việc và đóng góp chín
 \toprule
 \textbf{Thành viên} & \textbf{Phần việc chính} \\
 \midrule
+Đỗ Thùy Linh &
+Phát triển dịch vụ Java, kết nối trao đổi dữ liệu giữa ứng dụng và máy chủ cùng một số chức năng giao diện; tham gia thiết kế nhận diện ứng dụng. \\
 Hoàng Văn Tùng &
 Thiết kế khung ứng dụng và module; triển khai giao diện, nghiệp vụ đặt phòng và quyền theo phòng; tích hợp OneIoT và tạo mã tạm thời; đóng gói bản Android. \\
-Đỗ Thùy Linh &
-Phát triển dịch vụ Java, phần đồng bộ dữ liệu và một số chức năng giao diện; tham gia thiết kế nhận diện ứng dụng. \\
-Nguyễn Đình Phúc &
-Phát triển đặt phòng lặp, quản lý trường hợp vắng mặt và kiểm thử liên quan đến đặt phòng. \\
 Nguyễn Việt Dũng &
 Tổng hợp quy trình nghiệp vụ, xây dựng kịch bản kiểm thử và rà soát các luồng chức năng. \\
+Nguyễn Đình Phúc &
+Phát triển đặt phòng lặp, quản lý trường hợp vắng mặt và kiểm thử liên quan đến đặt phòng. \\
 \bottomrule
 \end{tabularx}
 \end{table}

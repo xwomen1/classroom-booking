@@ -6,7 +6,7 @@ Dịch vụ Java cung cấp API cho xác thực, phòng, yêu cầu đặt phòn
 
 \begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.15}
 \caption{Các nhóm REST API tiêu biểu của dịch vụ Java}\label{tab:api}
-\begin{tabularx}{\textwidth}{|p{1.5cm}|p{5.5cm}|X|}\hline
+\begin{tabularx}{\textwidth}{|p{2.1cm}|p{4.9cm}|X|}\hline
 \textbf{Phương thức} & \textbf{Đường dẫn} & \textbf{Chức năng} \\ \hline
 POST & \texttt{/api/auth/login} & Đăng nhập, tạo phiên \\ \hline
 GET & \texttt{/api/rooms} & Đọc danh sách phòng \\ \hline
@@ -25,7 +25,7 @@ GET & \texttt{/api/notifications} & Đọc thông báo \\ \hline
 \section{Hướng dẫn triển khai và kiểm tra}
 \paragraph{Bản cục bộ.} Có thể cấu hình ứng dụng để lưu dữ liệu trên một thiết bị, phù hợp cho trình diễn không cần máy chủ. Bản phát hành Android sau khi đóng gói có thể chạy độc lập với công cụ phát triển. Tài khoản trình diễn được khởi tạo sẵn trong dữ liệu mẫu.
 
-\paragraph{Bản dùng backend.} Dịch vụ Java sử dụng Spring Boot, Spring Data JPA và cơ sở dữ liệu H2 ở chế độ tệp theo cấu hình mặc định. Có thể điều chỉnh thông tin kết nối cơ sở dữ liệu theo môi trường triển khai. Để ứng dụng trao đổi dữ liệu, dịch vụ cần đang chạy và địa chỉ truy cập phải dùng được từ điện thoại. Kết nối công khai hiện dùng tunnel thử nghiệm, nên cần kiểm tra trạng thái đường truyền trước khi trình diễn.
+\paragraph{Bản dùng máy chủ.} Dịch vụ Java sử dụng Spring Boot, Spring Data JPA và cơ sở dữ liệu H2 ở chế độ tệp theo cấu hình mặc định. Có thể điều chỉnh thông tin kết nối cơ sở dữ liệu theo môi trường triển khai. Để ứng dụng trao đổi dữ liệu, dịch vụ cần đang chạy và địa chỉ truy cập phải dùng được từ điện thoại. Đường truy cập công khai hiện chỉ phục vụ thử nghiệm, nên cần kiểm tra kết nối trước khi trình diễn.
 
 \paragraph{Phát triển và kiểm thử.} Ứng dụng di động được xây dựng bằng React Native và công cụ Android; các kiểm thử tự động tập trung vào quy tắc nghiệp vụ và có kiểm tra định dạng, kiểu dữ liệu. Dịch vụ Java có các kiểm thử tích hợp với cơ sở dữ liệu thử nghiệm. Khi kiểm tra chế độ máy chủ, cần xác nhận đăng nhập, đọc/ghi dữ liệu và kết nối từ điện thoại.
 

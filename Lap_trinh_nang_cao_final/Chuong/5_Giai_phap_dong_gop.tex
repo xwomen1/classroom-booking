@@ -83,6 +83,6 @@ Tạo mã tạm thời & Lưu mã vào dữ liệu cục bộ & Lưu mã qua API
 \end{tabularx}\end{table}
 
 \subsection{Kết quả đạt được}
-Hệ thống đã có backend Java, các dịch vụ nghiệp vụ, cơ sở dữ liệu H2 và luồng trao đổi dữ liệu giữa ứng dụng với server. Phiên bản hiện tại chọn chế độ máy chủ; khi nhiều thiết bị cùng truy cập một server đang hoạt động, chúng có thể đọc và ghi chung dữ liệu phía server. Chế độ lưu cục bộ vẫn lưu riêng trên từng thiết bị, không tự đẩy hoặc hòa giải thay đổi với server khi mất mạng. Kết nối công khai đang dùng tunnel thử nghiệm nên chưa bảo đảm sẵn sàng khi vận hành thực tế. Bộ kiểm thử ứng dụng bao phủ nhánh cục bộ và dự án có kiểm thử tích hợp Java; khả năng chia sẻ dữ liệu giữa nhiều thiết bị cần được xác nhận đầu cuối trên hạ tầng đang chạy.
+Hệ thống đã có dịch vụ Java, các quy tắc nghiệp vụ, cơ sở dữ liệu H2 và luồng trao đổi dữ liệu với ứng dụng. Cấu hình hiện tại chọn chế độ dùng máy chủ; nhiều thiết bị cùng truy cập một máy chủ đang hoạt động có thể đọc và ghi vào kho dữ liệu chung. Chế độ cục bộ lưu riêng trên từng thiết bị, không tự chuyển hoặc hợp nhất thay đổi với máy chủ khi mất mạng. Đường kết nối công khai hiện chỉ phục vụ thử nghiệm, nên chưa bảo đảm tính sẵn sàng khi vận hành thực tế. Bộ kiểm thử ứng dụng bao phủ nhiều quy tắc ở chế độ cục bộ và dịch vụ Java có kiểm thử tích hợp; việc chia sẻ dữ liệu giữa nhiều thiết bị vẫn cần được xác nhận đầu cuối trên hạ tầng đang chạy.
 
 \end{document}

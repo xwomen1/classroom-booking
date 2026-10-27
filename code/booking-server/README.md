@@ -17,10 +17,10 @@ Muốn mỗi lần chạy có một database sạch trong RAM để kiểm thử
 mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.datasource.url=jdbc:h2:mem:bookingtest;DB_CLOSE_DELAY=-1"
 ```
 
-Nếu Maven báo không tìm thấy class khi project nằm trong đường dẫn Windows có dấu, ánh xạ thư mục `final_project` sang một ổ đĩa ASCII rồi chạy lại, ví dụ:
+Nếu Maven báo không tìm thấy class khi project nằm trong đường dẫn Windows có dấu, ánh xạ thư mục `classroom-booking` sang một ổ đĩa ASCII rồi chạy lại, ví dụ:
 
 ```powershell
-subst Q: "C:\duong-dan\toi\final_project"
+subst Q: "C:\duong-dan\toi\classroom-booking"
 cd Q:\code\booking-server
 mvn spring-boot:run
 ```

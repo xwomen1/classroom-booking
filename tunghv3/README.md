@@ -10,7 +10,7 @@ dụng của app. App gọi HTTP tới gateway; gateway mã hóa mật khẩu v�
 2. Cài thư viện và chạy:
 
 ```powershell
-cd final_project\tunghv3
+cd tunghv3
 python -m pip install -r requirements.txt
 .\run_gateway.ps1
 ```

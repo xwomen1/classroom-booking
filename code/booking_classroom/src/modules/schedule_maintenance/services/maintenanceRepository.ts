@@ -1,5 +1,6 @@
 import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
+import { sameDayPeriodsOverlap } from '../../../core/time/intervals';
 import { getRoomById } from '../../room_management/services/roomRepository';
 import type { MaintenanceRecord } from '../model/maintenance';
 import { assertAccountRole } from '../../auth/services/accountRepository';
@@ -28,7 +29,7 @@ export function periodsOverlap(
   dateA: string, startA: string, endA: string,
   dateB: string, startB: string, endB: string,
 ) {
-  return dateA === dateB && startA < endB && endA > startB;
+  return sameDayPeriodsOverlap(dateA, startA, endA, dateB, startB, endB);
 }
 
 export async function hasMaintenanceConflict(

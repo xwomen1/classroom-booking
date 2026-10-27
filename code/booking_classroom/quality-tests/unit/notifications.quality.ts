@@ -8,6 +8,7 @@ import {
 import {
   openPriorityBanner,
   presentPriorityNotification,
+  setActiveNotificationUsername,
   subscribePriorityBannerOpen,
   subscribePriorityBanners,
   type PriorityBanner,
@@ -17,7 +18,10 @@ import { resetStorage, seedConfiguration } from '../support/testUtils';
 
 beforeEach(async () => {
   await resetStorage();
+  setActiveNotificationUsername(null);
 });
+
+afterEach(() => setActiveNotificationUsername(null));
 
 describe('notificationRepository', () => {
   test('creates a single welcome notification on first read', async () => {
@@ -47,6 +51,21 @@ describe('notificationRepository', () => {
     expect(await getUnreadCount('user')).toBe(1);
   });
 
+  test('shows a banner only for the account currently signed in', async () => {
+    const received: PriorityBanner[] = [];
+    const unsubscribe = subscribePriorityBanners(banner => received.push(banner));
+    try {
+      setActiveNotificationUsername('user');
+      await addNotification('admin', 'Có ghi chú về phòng', 'Thiếu bảng viết', 'attention', true);
+      expect((await getNotifications('admin'))[0].title).toBe('Có ghi chú về phòng');
+      expect(received).toHaveLength(0);
+      await addNotification('user', 'Đã duyệt yêu cầu', 'Phòng A102');
+      expect(received).toHaveLength(1);
+    } finally {
+      unsubscribe();
+    }
+  });
+
   test('nothing is stored while notifications are disabled', async () => {
     await seedConfiguration({ notificationsEnabled: false });
     await addNotification('user', 'Yêu cầu đã được duyệt', 'x');
@@ -62,6 +81,7 @@ describe('notificationRepository', () => {
   });
 
   test('a failing banner listener does not roll back the stored notification', async () => {
+    setActiveNotificationUsername('user');
     const unsubscribe = subscribePriorityBanners(() => { throw new Error('UI crashed'); });
     await expect(addNotification('user', 'A', 'x')).resolves.toBeUndefined();
     expect((await getNotifications('user'))[0].title).toBe('A');

@@ -3,6 +3,9 @@
 *.log
 *.out
 *.synctex.gz
+*.fdb_latexmk
+*.fls
+*.xdv
 *.toc
 *.lof
 *.lot
@@ -14,6 +17,8 @@
 Thumbs.db
 .vscode/
 code/.tooling/
+.serena/
+/AGENTS.md
 
 # Generated Android packages
 code/booking_classroom/release/

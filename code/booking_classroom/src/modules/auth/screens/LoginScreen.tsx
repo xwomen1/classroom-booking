@@ -143,12 +143,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </View>
         </View>
 
-        <View style={styles.demoBox}>
-          <Text style={styles.demoTitle}>Tài khoản dùng thử</Text>
-          <Text style={styles.demoText}>Quản trị viên: admin / 1</Text>
-          <Text style={styles.demoText}>Giảng viên: user / 2</Text>
-        </View>
-
       </View>
     </KeyboardAvoidingView>
   );
@@ -220,17 +214,4 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   secondaryActionText: { color: '#B01432', fontSize: 14, fontWeight: '700' },
-  demoBox: {
-    alignSelf: 'center',
-    backgroundColor: '#FFF5E6',
-    borderColor: '#F0C98A',
-    borderRadius: 10,
-    borderWidth: 1,
-    marginTop: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    width: '100%',
-  },
-  demoTitle: { color: '#704C12', fontSize: 13, fontWeight: '800' },
-  demoText: { color: '#704C12', fontSize: 13, marginTop: 3 },
 });

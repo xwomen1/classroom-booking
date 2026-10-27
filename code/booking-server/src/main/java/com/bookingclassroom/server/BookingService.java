@@ -537,8 +537,12 @@ public class BookingService {
   }
 
   private Domain.Notification storeNotification(String username, String title, String message) {
+    return storeNotification(username, title, message, false);
+  }
+
+  private Domain.Notification storeNotification(String username, String title, String message, boolean alwaysSave) {
     Domain.Configuration configuration = em.find(Domain.Configuration.class, "app");
-    if (configuration != null && !configuration.notificationsEnabled) {
+    if (!alwaysSave && configuration != null && !configuration.notificationsEnabled) {
       return null;
     }
     Domain.Notification notification = new Domain.Notification();
@@ -689,6 +693,33 @@ public class BookingService {
     storeNotification("admin", "Có yêu cầu bảo trì mới",
         actor.username + " báo sự cố tại phòng " + (room == null ? booking.roomId : room.name) + ": " + request.reason);
     return request;
+  }
+
+  @Transactional
+  public Domain.Notification reportRoomObservation(Domain.Account actor, String bookingId, String note) {
+    requireUser(actor);
+    if (note == null || note.isBlank()) {
+      throw new IllegalArgumentException("Vui lòng nhập nội dung ghi chú.");
+    }
+    String description = note.trim();
+    if (description.length() > 500) {
+      throw new IllegalArgumentException("Ghi chú tối đa 500 ký tự.");
+    }
+    Domain.Booking booking = em.find(Domain.Booking.class, bookingId);
+    if (booking == null || !actor.username.equals(booking.requesterUsername)) {
+      throw new ForbiddenException("Bạn không có quyền ghi chú cho lượt đặt phòng này.");
+    }
+    LocalDateTime now = LocalDateTime.now(ZONE);
+    if (!"APPROVED".equals(booking.status)
+        || now.isBefore(localDateTime(booking.date, booking.startTime))
+        || now.isAfter(localDateTime(booking.date, booking.endTime))) {
+      throw new IllegalArgumentException("Chỉ gửi ghi chú khi bạn đang sử dụng phòng đã được duyệt.");
+    }
+    Domain.Room room = em.find(Domain.Room.class, booking.roomId);
+    return storeNotification("admin", "Có ghi chú về phòng",
+        actor.username + " ghi chú về phòng " + (room == null ? booking.roomId : room.name)
+            + " (" + booking.date + " " + booking.startTime + "–" + booking.endTime + "): " + description,
+        true);
   }
 
   @Transactional

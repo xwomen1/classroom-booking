@@ -175,6 +175,14 @@ public class ApiController {
     return bookingService.createBooking(account(request), input);
   }
 
+  @PostMapping("/bookings/{id}/room-observation")
+  public Domain.Notification reportRoomObservation(
+      @PathVariable String id,
+      @RequestBody Map<String, String> body,
+      HttpServletRequest request) {
+    return bookingService.reportRoomObservation(account(request), id, body.get("note"));
+  }
+
   @PostMapping("/bookings/{id}/review")
   public BookingService.BookingResult review(
       @PathVariable String id,

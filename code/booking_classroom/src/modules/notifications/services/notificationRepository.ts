@@ -42,6 +42,7 @@ export async function addNotification(
   title: string,
   message: string,
   tone?: NotificationTone,
+  alwaysSave = false,
 ): Promise<void> {
   const resolvedTone = getNotificationTone({ title, message, tone });
   if (isRemoteApiEnabled()) {
@@ -54,7 +55,7 @@ export async function addNotification(
     }
     return;
   }
-  if (!(await getConfiguration()).notificationsEnabled) return;
+  if (!alwaysSave && !(await getConfiguration()).notificationsEnabled) return;
   const notifications = await getNotifications(username);
   const item: NotificationItem = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,

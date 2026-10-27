@@ -112,12 +112,11 @@ describe('roomRepository – CRUD', () => {
     expect(await getRoomById(room.id)).toBeUndefined();
   });
 
-  // BUG đã biết: getRooms() gộp lại mọi DEMO_ROOMS còn thiếu, nên phòng demo
-  // vừa xóa xuất hiện trở lại ở lần đọc kế tiếp. Khi sửa xong, đổi
-  // `test.failing` thành `test`.
-  test.failing('a deleted demo room stays deleted', async () => {
+  test('a deleted demo room stays deleted', async () => {
     await deleteRoom('room-a101', 'admin');
     expect(await getRoomById('room-a101')).toBeUndefined();
+    expect(await readJson<string[]>('rooms.deletedDemoIds', [])).toContain('room-a101');
+    expect(await getRooms()).toHaveLength(55);
   });
 });
 

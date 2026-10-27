@@ -18,6 +18,7 @@ export {
   reviewRecurringSeries,
   proposeKeyPickup,
   recordSmartLockAccessEvent,
+  reportRoomObservation,
   saveTemporaryPin,
   scheduleKeyPickup,
   setPickupDelegate,

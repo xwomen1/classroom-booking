@@ -5,7 +5,7 @@
  *
  * Mỗi hàm service được gọi ở chế độ remote với `fetch` giả lập. Mọi request
  * app gửi ra (method + path) được đối chiếu với các @XxxMapping khai báo trong
- * ApiController.java, để phát hiện sớm việc hai phía lệch endpoint.
+ * các controller theo tính năng của booking-server.
  */
 import fs from 'fs';
 import path from 'path';
@@ -23,20 +23,31 @@ import { DEFAULT_CONFIGURATION } from '../../src/modules/configuration/model/app
 
 type RecordedRequest = { method: string; path: string; body?: unknown; headers: Record<string, string> };
 
-const CONTROLLER = path.resolve(
+const CONTROLLERS = path.resolve(
   __dirname,
-  '../../../booking-server/src/main/java/com/bookingclassroom/server/ApiController.java',
+  '../../../booking-server/src/main/java/com/bookingclassroom/server/api',
 );
 
 type Route = { method: string; template: string; pattern: RegExp };
 
 function serverRoutes(): Route[] {
-  const source = fs.readFileSync(CONTROLLER, 'utf8');
-  const prefix = source.match(/@RequestMapping\("([^"]+)"\)/)?.[1] ?? '';
-  return [...source.matchAll(/@(Get|Post|Put|Delete|Patch)Mapping\("([^"]+)"\)/g)].map(match => {
-    const template = `${prefix}${match[2]}`;
-    const pattern = new RegExp(`^${template.replace(/\{[^}]+\}/g, '[^/]+')}$`);
-    return { method: match[1].toUpperCase(), template, pattern };
+  const controllerFiles = fs.readdirSync(CONTROLLERS, { withFileTypes: true }).flatMap(entry => {
+    const entryPath = path.join(CONTROLLERS, entry.name);
+    return entry.isDirectory()
+      ? fs.readdirSync(entryPath)
+          .filter(name => name.endsWith('Controller.java'))
+          .map(name => path.join(entryPath, name))
+      : [];
+  });
+
+  return controllerFiles.flatMap(file => {
+    const source = fs.readFileSync(file, 'utf8');
+    const prefix = source.match(/@RequestMapping\("([^"]+)"\)/)?.[1] ?? '';
+    return [...source.matchAll(/@(Get|Post|Put|Delete|Patch)Mapping(?:\("([^"]*)"\))?/g)].map(match => {
+      const template = `${prefix}${match[2] ?? ''}`;
+      const pattern = new RegExp(`^${template.replace(/\{[^}]+\}/g, '[^/]+')}$`);
+      return { method: match[1].toUpperCase(), template, pattern };
+    });
   });
 }
 

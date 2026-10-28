@@ -18,8 +18,8 @@ Mỗi thư mục con là một phạm vi có thể giao cho một thành viên p
 ## Quy ước làm việc
 
 1. Mỗi người sửa trong module được giao và mở pull request riêng.
-2. Màn hình dùng API qua `index.ts`; các service có thể import trực tiếp repository của module khác để tránh vòng phụ thuộc với phần giao diện.
-3. Kiểu dữ liệu hoặc tiện ích dùng chung đặt trong `src/core` hoặc `src/shared`.
+2. Màn hình và module khác dùng hợp đồng được export qua `index.ts`; tránh import sâu vào tệp nội bộ của module khác. Khi cần phối hợp nghiệp vụ, gọi hàm công khai và không tạo phụ thuộc vòng.
+3. Kiểu dữ liệu hoặc tiện ích kỹ thuật dùng chung đặt trong `src/core`; component giao diện dùng lại đặt trong `src/shared`. Không đưa quy tắc nghiệp vụ riêng của một module vào vùng dùng chung.
 4. Không đánh dấu chức năng hoàn thành trong README trước khi đã có code và kiểm thử tương ứng.
 5. Business rules của booking được tập trung tại module `booking`; quy tắc cấp mã khóa nằm tại `access_control`.
 

@@ -1,5 +1,6 @@
 import { apiRequest, isRemoteApiEnabled } from '../../../core/api/client';
 import { readJson, writeJson } from '../../../core/storage/jsonStorage';
+import { sameDayPeriodsOverlap } from '../../../core/time/intervals';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
 import { addNotification } from '../../notifications';
 import { getRoomById } from '../../room_management/services/roomRepository';
@@ -131,8 +132,11 @@ function calendarDayDifference(target: Date, now: Date) {
   return Math.round((a - b) / 86_400_000);
 }
 
-function overlaps(booking: Booking, date: string, startTime: string, endTime: string) {
-  return booking.date === date && startTime < booking.endTime && endTime > booking.startTime;
+function bookingOverlapsPeriod(booking: Booking, date: string, startTime: string, endTime: string) {
+  return sameDayPeriodsOverlap(
+    booking.date, booking.startTime, booking.endTime,
+    date, startTime, endTime,
+  );
 }
 
 export function isBookingStillActive(booking: Booking, now = new Date()) {
@@ -169,10 +173,14 @@ async function validateBooking(
     throw new Error('Phòng có lịch bảo trì trong khoảng thời gian này.');
   }
   const activeBookings = bookings.filter(item => isBookingStillActive(item));
-  if (activeBookings.some(item => item.roomId === input.roomId && overlaps(item, input.date, input.startTime, input.endTime))) {
+  if (activeBookings.some(item => item.roomId === input.roomId && bookingOverlapsPeriod(
+    item, input.date, input.startTime, input.endTime,
+  ))) {
     throw new Error('Phòng đã có yêu cầu khác trong khoảng thời gian này.');
   }
-  if (activeBookings.some(item => item.requesterUsername === input.requesterUsername && overlaps(item, input.date, input.startTime, input.endTime))) {
+  if (activeBookings.some(item => item.requesterUsername === input.requesterUsername && bookingOverlapsPeriod(
+    item, input.date, input.startTime, input.endTime,
+  ))) {
     throw new Error('Bạn đã có lịch đặt khác trùng thời gian.');
   }
   if (!options.skipUserLimitCheck && activeBookings.filter(item => item.requesterUsername === input.requesterUsername).length >= configuration.maxActiveBookingsPerUser) {
@@ -288,7 +296,7 @@ export async function reviewBooking(id: string, decision: 'APPROVED' | 'REJECTED
     if (await hasMaintenanceConflict(target.roomId, target.date, target.startTime, target.endTime)) {
       throw new Error('Phòng đã có lịch bảo trì trong khung giờ này.');
     }
-    if (bookings.some(item => item.id !== id && item.status === 'APPROVED' && item.roomId === target.roomId && overlaps(item, target.date, target.startTime, target.endTime))) {
+    if (bookings.some(item => item.id !== id && item.status === 'APPROVED' && item.roomId === target.roomId && bookingOverlapsPeriod(item, target.date, target.startTime, target.endTime))) {
       throw new Error('Phòng đã có yêu cầu được duyệt trùng thời gian.');
     }
   }
@@ -341,10 +349,10 @@ export async function reviewRecurringSeries(
         !pendingIds.has(item.id) &&
         item.status === 'APPROVED' &&
         item.roomId === booking.roomId &&
-        overlaps(item, booking.date, booking.startTime, booking.endTime),
+        bookingOverlapsPeriod(item, booking.date, booking.startTime, booking.endTime),
       );
       const conflictsWithinSeries = approvedCandidates.some(item =>
-        item.roomId === booking.roomId && overlaps(item, booking.date, booking.startTime, booking.endTime),
+        item.roomId === booking.roomId && bookingOverlapsPeriod(item, booking.date, booking.startTime, booking.endTime),
       );
       if (conflictsWithApproved || conflictsWithinSeries) {
         throw new Error('Có lượt trong chuỗi trùng lịch đã duyệt; chưa lượt nào được duyệt.');
@@ -847,7 +855,7 @@ export async function changeBookingRoom(id: string, newRoomId: string, adminUser
   if (await hasMaintenanceConflict(newRoomId, booking.date, booking.startTime, booking.endTime)) {
     throw new Error('Phòng thay thế có lịch bảo trì trong khung giờ này.');
   }
-  if (bookings.some(item => item.id !== id && ACTIVE_STATUSES.includes(item.status) && item.roomId === newRoomId && overlaps(item, booking.date, booking.startTime, booking.endTime))) {
+  if (bookings.some(item => item.id !== id && ACTIVE_STATUSES.includes(item.status) && item.roomId === newRoomId && bookingOverlapsPeriod(item, booking.date, booking.startTime, booking.endTime))) {
     throw new Error('Phòng thay thế đã có yêu cầu chờ hoặc yêu cầu được duyệt trùng thời gian.');
   }
   const updated = await updateBooking(id, current => ({

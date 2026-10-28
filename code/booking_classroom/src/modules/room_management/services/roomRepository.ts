@@ -46,6 +46,7 @@ type RoomInput = {
   equipment: readonly string[];
   lockType: LockType;
   status: Room['status'];
+  requiresApproval?: boolean;
 };
 
 function normalizeRoom(input: RoomInput): RoomInput {
@@ -59,7 +60,7 @@ function normalizeRoom(input: RoomInput): RoomInput {
   if (!Number.isInteger(input.capacity) || input.capacity < 1) {
     throw new Error('Sức chứa phải là số nguyên dương.');
   }
-  return { ...input, name, location, equipment };
+  return { ...input, name, location, equipment, requiresApproval: input.requiresApproval === true };
 }
 
 export async function createRoom(input: RoomInput, adminUsername: string): Promise<Room> {

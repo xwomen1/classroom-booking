@@ -82,6 +82,7 @@ describe('local booking and temporary PIN flow', () => {
       pinGraceMinutes: 10,
       noShowGraceMinutes: 15,
       notificationsEnabled: true,
+      autoApprovalEnabled: false,
     }, 'admin');
 
     const booking = await createBooking({

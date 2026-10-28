@@ -87,6 +87,71 @@ class RemoteSyncIntegrationTest {
     assertThat(get("/api/bookings", adminToken).size()).isEqualTo(2);
   }
 
+  @Test
+  void autoApprovesNormalRoomsAndKeepsSpecialRoomsForAdmin() {
+    String adminToken = login("admin", "1");
+    request(HttpMethod.POST, "/api/auth/register", null,
+        Map.of("username", "auto.user", "password", "1234", "recoveryCode", "9999"));
+    String userToken = login("auto.user", "1234");
+    String date = LocalDate.now(BookingService.ZONE).plusDays(1).toString();
+
+    JsonNode special = request(HttpMethod.PUT, "/api/rooms/room-floor-2-1", adminToken,
+        roomBody(room("room-floor-2-1", adminToken), true));
+    assertThat(special.path("requiresApproval").asBoolean()).isTrue();
+
+    saveAutoApproval(adminToken, true);
+    try {
+      assertThat(get("/api/configuration", userToken).path("autoApprovalEnabled").asBoolean()).isTrue();
+
+      JsonNode normal = request(HttpMethod.POST, "/api/bookings", userToken, Map.of(
+          "roomId", "room-floor-3-2", "date", date, "startTime", "07:00", "endTime", "08:00",
+          "purpose", "Tự động duyệt")).path("booking");
+      assertThat(normal.path("status").asText()).isEqualTo("APPROVED");
+      assertThat(normal.path("autoApproved").asBoolean()).isTrue();
+      assertThat(normal.path("reviewedBy").asText()).isEqualTo(AutoApprovalPolicy.SYSTEM_REVIEWER);
+
+      JsonNode pending = request(HttpMethod.POST, "/api/bookings", userToken, Map.of(
+          "roomId", "room-floor-2-1", "date", date, "startTime", "08:00", "endTime", "09:00",
+          "purpose", "Phòng đặc biệt")).path("booking");
+      assertThat(pending.path("status").asText()).isEqualTo("PENDING");
+
+      JsonNode reviewed = request(HttpMethod.POST, "/api/bookings/" + pending.path("id").asText() + "/review",
+          adminToken, Map.of("decision", "APPROVED")).path("booking");
+      assertThat(reviewed.path("status").asText()).isEqualTo("APPROVED");
+      assertThat(reviewed.path("reviewedBy").asText()).isEqualTo("admin");
+    } finally {
+      saveAutoApproval(adminToken, false);
+    }
+  }
+
+  private JsonNode room(String id, String token) {
+    for (JsonNode item : get("/api/rooms", token)) {
+      if (id.equals(item.path("id").asText())) return item;
+    }
+    throw new AssertionError("Không tìm thấy phòng " + id);
+  }
+
+  private Map<String, Object> roomBody(JsonNode room, boolean requiresApproval) {
+    java.util.List<String> equipment = new java.util.ArrayList<>();
+    room.path("equipment").forEach(item -> equipment.add(item.asText()));
+    return Map.of(
+        "name", room.path("name").asText(),
+        "floor", room.path("floor").asInt(),
+        "location", room.path("location").asText(),
+        "capacity", room.path("capacity").asInt(),
+        "equipment", equipment,
+        "lockType", room.path("lockType").asText(),
+        "status", room.path("status").asText(),
+        "requiresApproval", requiresApproval);
+  }
+
+  private void saveAutoApproval(String adminToken, boolean enabled) {
+    request(HttpMethod.PUT, "/api/configuration", adminToken, Map.of(
+        "minAdvanceDays", 1, "maxAdvanceDays", 3, "maxActiveBookingsPerUser", 2,
+        "cancellationCutoffMinutes", 30, "roomChangeCutoffMinutes", 30, "pinGraceMinutes", 10,
+        "noShowGraceMinutes", 15, "notificationsEnabled", true, "autoApprovalEnabled", enabled));
+  }
+
   private String login(String username, String password) {
     JsonNode body = request(HttpMethod.POST, "/api/auth/login", null,
         Map.of("username", username, "password", password));

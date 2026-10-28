@@ -46,6 +46,8 @@ public final class Domain {
     public List<String> equipment = new ArrayList<>();
     public String lockType;
     public String status;
+    /** Phòng đặc biệt: luôn chờ admin duyệt. null được hiểu là phòng thường. */
+    public Boolean requiresApproval;
     public String createdAt;
     public String updatedAt;
   }
@@ -70,6 +72,7 @@ public final class Domain {
     public String createdAt;
     public String reviewedAt;
     public String reviewedBy;
+    public Boolean autoApproved;
     public Boolean userCanGeneratePin;
     @Embedded
     @AttributeOverrides({
@@ -289,6 +292,8 @@ public final class Domain {
     public int pinGraceMinutes;
     public Integer noShowGraceMinutes;
     public boolean notificationsEnabled;
+    /** null được hiểu là tắt, để dữ liệu cũ giữ nguyên luồng duyệt thủ công. */
+    public Boolean autoApprovalEnabled;
   }
 
   @Converter

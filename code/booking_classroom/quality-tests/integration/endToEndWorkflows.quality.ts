@@ -221,7 +221,7 @@ test('vắng mặt giải phóng khung giờ cho người khác', async () => {
   freezeTime(new Date(2030, 0, 11, 9, 16));
   await saveConfiguration({
     minAdvanceDays: 0, maxAdvanceDays: 3, maxActiveBookingsPerUser: 2, cancellationCutoffMinutes: 30,
-    roomChangeCutoffMinutes: 30, pinGraceMinutes: 10, noShowGraceMinutes: 15, notificationsEnabled: true,
+    roomChangeCutoffMinutes: 30, pinGraceMinutes: 10, noShowGraceMinutes: 15, notificationsEnabled: true, autoApprovalEnabled: false,
   }, 'admin');
   const replacement = await createBooking({ requesterUsername: 'user', roomId: KEY_ROOM, date: TOMORROW, startTime: '09:30', endTime: '11:00', purpose: 'Dùng thay' });
   expect(replacement.status).toBe('PENDING');

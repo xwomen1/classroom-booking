@@ -8,6 +8,11 @@ import { hasMaintenanceConflict } from '../../schedule_maintenance/services/main
 import type { Booking, BookingStatus, CreateBookingInput } from '../model/booking';
 import { assertAccountRole } from '../../auth/services/accountRepository';
 import { grantRoomPinPermission } from '../../access_control/services/roomPinPermissionRepository';
+import {
+  autoApprovalFields,
+  completeAutoApproval,
+  resolveApprovalMode,
+} from '../../auto_approval/services/autoApprovalService';
 import type { UserRole } from '../../../core/types/userRole';
 import type { SmartLockAccessEvent } from '../model/booking';
 
@@ -216,9 +221,19 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     createdBookings.push(booking);
   }
 
+  // validateBooking đã chặn mọi xung đột, nên booking ở phòng thường có thể
+  // được duyệt ngay mà không cần kiểm tra lại như reviewBooking.
+  const firstRoom = await getRoomById(createdBookings[0].roomId);
+  if (firstRoom && await resolveApprovalMode(firstRoom) === 'AUTO') {
+    const approval = autoApprovalFields();
+    const approved = createdBookings.map(booking => ({ ...booking, ...approval }));
+    await writeJson(BOOKINGS_KEY, [...bookings, ...approved]);
+    await completeAutoApproval(approved, firstRoom);
+    return approved[0];
+  }
+
   await writeJson(BOOKINGS_KEY, [...bookings, ...createdBookings]);
 
-  const firstRoom = await getRoomById(createdBookings[0].roomId);
   await addNotification(
     'admin',
     'Có yêu cầu đặt phòng mới',

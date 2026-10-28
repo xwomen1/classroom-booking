@@ -52,6 +52,7 @@ const EMPTY_ROOM = {
   equipment: '',
   lockType: 'PIN_CODE' as LockType,
   status: 'AVAILABLE' as Room['status'],
+  approval: 'AUTO' as 'AUTO' | 'MANUAL',
 };
 
 function tomorrow() {
@@ -175,6 +176,7 @@ export function RoomManagementScreen({ adminUsername, onBack }: Props) {
       equipment: selectedRoom.equipment.join(', '),
       lockType: selectedRoom.lockType,
       status: selectedRoom.status,
+      approval: selectedRoom.requiresApproval ? 'MANUAL' : 'AUTO',
     });
     setEditor('edit');
     setActiveRequestId(null);
@@ -182,8 +184,10 @@ export function RoomManagementScreen({ adminUsername, onBack }: Props) {
 
   const saveRoom = async () => {
     try {
+      const { approval, ...form } = roomForm;
       const input = {
-        ...roomForm,
+        ...form,
+        requiresApproval: approval === 'MANUAL',
         floor: Number(roomForm.floor),
         capacity: Number(roomForm.capacity),
         equipment: roomForm.equipment
@@ -476,6 +480,11 @@ export function RoomManagementScreen({ adminUsername, onBack }: Props) {
                 ? 'Khóa mã số online'
                 : 'Khóa cơ / thẻ từ'}
             </Text>
+            <Text style={styles.detail}>
+              {selectedRoom.requiresApproval
+                ? 'Phòng đặc biệt · luôn cần admin duyệt'
+                : 'Phòng thường · tự duyệt khi bật trong Quy định'}
+            </Text>
             <View style={styles.actionRow}>
               <ActionButton label="Sửa phòng" onPress={openEditRoom} />
               <ActionButton
@@ -660,6 +669,11 @@ function RoomEditor({
       <View style={styles.choiceRow}>
         <Choice label="Khả dụng" selected={form.status === 'AVAILABLE'} onPress={() => onChange('status', 'AVAILABLE')} />
         <Choice label="Tạm khóa" selected={form.status === 'MAINTENANCE'} onPress={() => onChange('status', 'MAINTENANCE')} />
+      </View>
+      <Text style={styles.label}>Duyệt yêu cầu đặt phòng</Text>
+      <View style={styles.choiceRow}>
+        <Choice label="Phòng thường" selected={form.approval === 'AUTO'} onPress={() => onChange('approval', 'AUTO')} />
+        <Choice label="Phòng đặc biệt (admin duyệt)" selected={form.approval === 'MANUAL'} onPress={() => onChange('approval', 'MANUAL')} />
       </View>
       <Pressable style={styles.primaryButton} onPress={onSave}>
         <Text style={styles.primaryButtonText}>

@@ -132,6 +132,7 @@ public class DataSeeder implements CommandLineRunner {
     configuration.pinGraceMinutes = 10;
     configuration.noShowGraceMinutes = 15;
     configuration.notificationsEnabled = true;
+    configuration.autoApprovalEnabled = false;
     em.persist(configuration);
   }
 

@@ -13,6 +13,7 @@ Mỗi thư mục con là một phạm vi có thể giao cho một thành viên p
 | `profile`              | Xem và sửa thông tin cá nhân                               | Chung       | Đã triển khai cục bộ | Chưa phân công  |
 | `notifications`        | Thông báo theo sự kiện booking và hệ thống                 | Chung       | Đã có thông báo cục bộ | Chưa phân công  |
 | `configuration`        | Thời gian đặt, hủy phòng và cấu hình thông báo             | Admin       | Đã triển khai local  | Chưa phân công  |
+| `auto_approval`        | Tự động duyệt phòng thường; phòng đặc biệt chờ admin duyệt | Admin, User | Đã triển khai local + server | Chưa phân công  |
 
 ## Quy ước làm việc
 

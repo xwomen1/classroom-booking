@@ -7,6 +7,8 @@ export type AppConfiguration = {
   pinGraceMinutes: number;
   noShowGraceMinutes: number;
   notificationsEnabled: boolean;
+  /** Bật thì yêu cầu ở phòng thường được duyệt ngay khi tạo; phòng đặc biệt vẫn chờ admin. */
+  autoApprovalEnabled: boolean;
 };
 
 export const DEFAULT_CONFIGURATION: AppConfiguration = {
@@ -18,4 +20,5 @@ export const DEFAULT_CONFIGURATION: AppConfiguration = {
   pinGraceMinutes: 10,
   noShowGraceMinutes: 15,
   notificationsEnabled: true,
+  autoApprovalEnabled: false,
 };

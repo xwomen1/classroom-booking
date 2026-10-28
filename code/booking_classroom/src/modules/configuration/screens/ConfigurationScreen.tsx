@@ -8,7 +8,7 @@ type Props = { adminUsername: string; onBack: () => void };
 export function ConfigurationScreen({ adminUsername, onBack }: Props) {
   const [config, setConfig] = useState<AppConfiguration>(DEFAULT_CONFIGURATION); const [message, setMessage] = useState('');
   useEffect(() => { getConfiguration().then(setConfig); }, []);
-  const numeric = (field: keyof Omit<AppConfiguration, 'notificationsEnabled'>, value: string) => setConfig(current => ({ ...current, [field]: Number(value.replace(/\D/g, '')) }));
+  const numeric = (field: keyof Omit<AppConfiguration, 'notificationsEnabled' | 'autoApprovalEnabled'>, value: string) => setConfig(current => ({ ...current, [field]: Number(value.replace(/\D/g, '')) }));
   const save = async () => { try { await saveConfiguration(config, adminUsername); setMessage('Đã lưu quy định đặt phòng.'); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể lưu quy định.'); } };
   return <View style={styles.page}><ScreenHeader title="Quy định đặt phòng" onBack={onBack} /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
     <NumberField label="Đặt trước tối thiểu (ngày)" value={config.minAdvanceDays} onChange={value => numeric('minAdvanceDays', value)} />
@@ -19,6 +19,7 @@ export function ConfigurationScreen({ adminUsername, onBack }: Props) {
     <NumberField label="Khoảng đệm hiệu lực mã số (phút)" value={config.pinGraceMinutes} onChange={value => numeric('pinGraceMinutes', value)} />
     <NumberField label="Thời gian chờ check-in trước khi xác nhận vắng (phút)" value={config.noShowGraceMinutes} onChange={value => numeric('noShowGraceMinutes', value)} />
     <View style={styles.switchRow}><View style={styles.switchText}><Text style={styles.label}>Thông báo hoạt động</Text><Text style={styles.note}>Tắt mục này sẽ ngừng tạo thông báo mới.</Text></View><Switch value={config.notificationsEnabled} onValueChange={value => setConfig(current => ({ ...current, notificationsEnabled: value }))} /></View>
+    <View style={styles.switchRow}><View style={styles.switchText}><Text style={styles.label}>Tự động duyệt phòng thường</Text><Text style={styles.note}>Yêu cầu ở phòng thường được duyệt ngay khi hợp lệ. Phòng đặc biệt vẫn chờ admin duyệt.</Text></View><Switch testID="auto-approval-switch" value={config.autoApprovalEnabled} onValueChange={value => setConfig(current => ({ ...current, autoApprovalEnabled: value }))} /></View>
     {message ? <Text style={styles.message}>{message}</Text> : null}<Pressable style={styles.primary} onPress={save}><Text style={styles.primaryText}>Lưu quy định</Text></Pressable>
   </ScrollView></View>;
 }

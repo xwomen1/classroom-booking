@@ -32,6 +32,18 @@ export async function grantRoomPinPermission(
     });
   }
   await assertAccountRole(adminUsername, 'admin');
+  return storeRoomPinPermission(username, roomId, adminUsername);
+}
+
+/**
+ * Ghi quyền tự tạo mã mà không kiểm tra vai trò người cấp. Chỉ dùng cho luồng
+ * hệ thống (tự động duyệt); thao tác của người dùng phải đi qua grantRoomPinPermission.
+ */
+export async function storeRoomPinPermission(
+  username: string,
+  roomId: string,
+  grantedBy: string,
+): Promise<RoomPinPermission> {
   const room = await getRoomById(roomId);
   if (!room || room.lockType !== 'PIN_CODE') {
     throw new Error('Chỉ cấp quyền tự tạo mã cho phòng dùng khóa mã số.');
@@ -43,7 +55,7 @@ export async function grantRoomPinPermission(
     username,
     roomId,
     grantedAt: new Date().toISOString(),
-    grantedBy: adminUsername,
+    grantedBy,
     active: true,
   };
   const next = [...permissions];

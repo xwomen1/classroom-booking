@@ -276,7 +276,7 @@ public class BookingService {
     Domain.Room room = em.find(Domain.Room.class, input.roomId());
     int occurrences = repeatWeekly ? repeatWeeks : 1;
     String recurringSeriesId = repeatWeekly ? "booking-series-" + UUID.randomUUID() : null;
-    Domain.Booking firstBooking = null;
+    List<Domain.Booking> created = new ArrayList<>();
     for (int index = 0; index < occurrences; index++) {
       String occurrenceDate;
       try {
@@ -304,9 +304,12 @@ public class BookingService {
       booking.createdAt = Instant.now().toString();
       em.persist(booking);
       bookings.add(booking);
-      if (firstBooking == null) {
-        firstBooking = booking;
-      }
+      created.add(booking);
+    }
+    Domain.Booking firstBooking = created.get(0);
+    // validateBooking đã chặn mọi xung đột, nên phòng thường có thể được duyệt ngay.
+    if (AutoApprovalPolicy.shouldAutoApprove(em.find(Domain.Configuration.class, "app"), room)) {
+      return autoApprove(created, room);
     }
     Domain.Notification notification = storeNotification(
         "admin",
@@ -314,6 +317,34 @@ public class BookingService {
         actor.username + " yêu cầu đặt phòng " + room.name
             + (repeatWeekly ? " và " + occurrences + " lịch lặp lại." : "."));
     return new BookingResult(firstBooking, notification);
+  }
+
+  private BookingResult autoApprove(List<Domain.Booking> created, Domain.Room room) {
+    String reviewedAt = Instant.now().toString();
+    Domain.Booking first = created.get(0);
+    boolean pinRoom = "PIN_CODE".equals(room.lockType);
+    for (Domain.Booking booking : created) {
+      booking.status = "APPROVED";
+      booking.reviewedAt = reviewedAt;
+      booking.reviewedBy = AutoApprovalPolicy.SYSTEM_REVIEWER;
+      booking.autoApproved = true;
+      if (pinRoom) {
+        booking.userCanGeneratePin = true;
+      }
+    }
+    if (pinRoom) {
+      grantPin(first.requesterUsername, room.id, AutoApprovalPolicy.SYSTEM_REVIEWER);
+    }
+    String occurrences = created.size() > 1 ? " và " + (created.size() - 1) + " lịch lặp lại" : "";
+    Domain.Notification notification = storeNotification(
+        first.requesterUsername,
+        "Yêu cầu đã được tự động duyệt",
+        "Phòng " + room.name + ", ngày " + first.date + " lúc " + first.startTime + occurrences + ".");
+    storeNotification(
+        "admin",
+        "Đặt phòng được tự động duyệt",
+        first.requesterUsername + " đã đặt phòng " + room.name + occurrences + ".");
+    return new BookingResult(first, notification);
   }
 
   @Transactional
@@ -584,6 +615,7 @@ public class BookingService {
     current.pinGraceMinutes = input.pinGraceMinutes;
     current.noShowGraceMinutes = input.noShowGraceMinutes == null ? 15 : input.noShowGraceMinutes;
     current.notificationsEnabled = input.notificationsEnabled;
+    current.autoApprovalEnabled = Boolean.TRUE.equals(input.autoApprovalEnabled);
     em.merge(current);
     return current;
   }
@@ -1522,7 +1554,8 @@ public class BookingService {
     if (!"AVAILABLE".equals(status) && !"MAINTENANCE".equals(status)) {
       throw new IllegalArgumentException("Trạng thái phòng không hợp lệ.");
     }
-    return new RoomInput(name, floor, location, capacity, equipment, lockType, status);
+    return new RoomInput(name, floor, location, capacity, equipment, lockType, status,
+        Boolean.TRUE.equals(input.requiresApproval()));
   }
 
   private static void applyRoom(Domain.Room room, RoomInput input) {
@@ -1533,6 +1566,7 @@ public class BookingService {
     room.equipment = new java.util.ArrayList<>(input.equipment());
     room.lockType = input.lockType();
     room.status = input.status();
+    room.requiresApproval = input.requiresApproval();
   }
 
   private static LocalDateTime localDateTime(String date, String time) {
@@ -1546,7 +1580,8 @@ public class BookingService {
       Integer capacity,
       List<String> equipment,
       String lockType,
-      String status) {}
+      String status,
+      Boolean requiresApproval) {}
 
   public record MaintenanceInput(
       String roomId,

@@ -80,6 +80,8 @@ export type Booking = {
   createdAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
+  /** true khi yêu cầu được module auto_approval duyệt thay vì admin. */
+  autoApproved?: boolean;
   userCanGeneratePin?: boolean;
   temporaryPin?: TemporaryPin;
   keyPickupAppointment?: KeyPickupAppointment;

@@ -28,6 +28,7 @@ export function BookingInfo({ booking }: { booking: Booking }) {
       </Text>
       <Text style={styles.purpose}>{booking.purpose}</Text>
       <Text style={styles.requester}>Người đặt: {booking.requesterUsername}</Text>
+      {booking.autoApproved ? <Text style={styles.requester}>Tự động duyệt · phòng thường</Text> : null}
       {booking.noShowAt ? <Text style={styles.noShowLine}>Xác nhận vắng bởi {booking.noShowMarkedBy ?? 'quản trị viên'} · {new Date(booking.noShowAt).toLocaleString('vi-VN')}</Text> : null}
       {booking.keyPickupAppointment ? (
         <Text style={styles.accessLine}>Nhận khóa: {booking.keyPickupAppointment.date} {booking.keyPickupAppointment.time} · {booking.keyPickupAppointment.location}</Text>

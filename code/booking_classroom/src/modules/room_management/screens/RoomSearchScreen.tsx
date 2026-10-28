@@ -153,7 +153,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
     }
     setSaving(true);
     try {
-      await createBooking({
+      const created = await createBooking({
         requesterUsername: username,
         roomId: selected.id,
         date,
@@ -169,10 +169,11 @@ export function RoomSearchScreen({ username, onBack }: Props) {
       setRepeatWeeks(1);
       await refreshMap();
       setIsError(false);
+      const series = repeatWeekly ? ` lặp lại ${repeatWeeks} tuần` : '';
       setMessage(
-        repeatWeekly
-          ? `Đã gửi yêu cầu đặt phòng ${bookedRoomName} lặp lại ${repeatWeeks} tuần.`
-          : `Đã gửi yêu cầu đặt phòng ${bookedRoomName}.`,
+        created.autoApproved
+          ? `Đặt phòng ${bookedRoomName}${series} đã được tự động duyệt.`
+          : `Đã gửi yêu cầu đặt phòng ${bookedRoomName}${series}.`,
       );
     } catch (error) {
       setIsError(true);
@@ -292,6 +293,7 @@ export function RoomSearchScreen({ username, onBack }: Props) {
             <Text style={styles.selectedTitle}>{selected.name} · {statusLabel(selected.mapStatus)}</Text>
             <Text style={styles.selectedDetail}>{selected.capacity} chỗ · {selected.equipment.join(', ')}</Text>
             <Text style={styles.selectedDetail}>{selected.lockType === 'PIN_CODE' ? 'Khóa mã số online' : 'Khóa cơ / thẻ từ'}</Text>
+            {selected.requiresApproval ? <Text style={styles.selectedDetail}>Phòng đặc biệt · yêu cầu cần admin duyệt</Text> : null}
             <View style={styles.purposeField}>
               <Input
                 label="Mục đích sử dụng"

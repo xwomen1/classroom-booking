@@ -7,7 +7,8 @@ const CONFIGURATION_KEY = 'configuration.app';
 
 export async function getConfiguration(): Promise<AppConfiguration> {
   if (isRemoteApiEnabled()) {
-    return apiRequest<AppConfiguration>('/api/configuration');
+    // Server cũ có thể chưa trả các trường mới (ví dụ autoApprovalEnabled).
+    return { ...DEFAULT_CONFIGURATION, ...(await apiRequest<Partial<AppConfiguration>>('/api/configuration')) };
   }
   const stored = await readJson<Partial<AppConfiguration> | null>(CONFIGURATION_KEY, null);
   return { ...DEFAULT_CONFIGURATION, ...(stored ?? {}) };

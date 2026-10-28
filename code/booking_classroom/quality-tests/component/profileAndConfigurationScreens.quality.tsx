@@ -99,7 +99,7 @@ describe('ConfigurationScreen', () => {
     const screen = await render(<ConfigurationScreen adminUsername="admin" onBack={jest.fn()} />);
     await typeInto(findInputByLabel(screen.root, 'Yêu cầu đang hoạt động tối đa mỗi người'), '4');
     await ReactTestRenderer.act(async () => {
-      screen.root.findByType(Switch).props.onValueChange(false);
+      screen.root.findAllByType(Switch)[0].props.onValueChange(false);
     });
     await press(screen.root, 'Lưu quy định');
     expect(textContent(screen.root)).toContain('Đã lưu quy định đặt phòng.');

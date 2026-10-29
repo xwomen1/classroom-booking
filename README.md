@@ -6,8 +6,8 @@
 
 - `code/booking_classroom`: ứng dụng React Native Android.
 - `code/booking-server`: Java/Spring Boot API; mặc định dùng H2 local, profile `remote` mới bật H2 SSL từ xa.
-- `tunghv2`: chương trình giả lập SmartLock.
-- `tunghv3`: gateway HTTP–MQTT cũ được giữ để tham khảo; app hiện kết nối OneIoT trực tiếp.
+- `gia_lap_smartlock`: chương trình giả lập SmartLock.
+- `oneIot_smartlock`: gateway HTTP–MQTT cũ được giữ để tham khảo; app hiện kết nối OneIoT trực tiếp.
 - `docs/project`: đề xuất, workflow, hiện trạng triển khai, kế hoạch kiểm thử, hình và tài liệu nguồn.
 - `docs/reports`: báo cáo giữa kỳ, báo cáo cuối kỳ và bản PDF xuất.
 - `docs/ARCHITECTURE.md`: cấu trúc source hiện tại và hướng refactor.

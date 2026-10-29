@@ -13,7 +13,7 @@ Simulator độc lập cho SmartLock DLWA12. Chương trình không dùng source
 ## Chạy bằng Python
 
 ```powershell
-cd tunghv2
+cd gia_lap_smartlock
 python -m pip install -r requirements.txt
 .\run_simulator.ps1
 ```
@@ -42,7 +42,7 @@ Simulator hỗ trợ:
 ## Đóng gói thành EXE
 
 ```powershell
-cd tunghv2
+cd gia_lap_smartlock
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build_exe.ps1
 ```
 
@@ -51,7 +51,7 @@ Script sẽ tự cài các thư viện trong `requirements.txt`, tải bộ biê
 File phát hành:
 
 ```text
-tunghv2\dist\SmartLock_Simulator.exe
+gia_lap_smartlock\dist\SmartLock_Simulator.exe
 ```
 
 Không commit các thư mục `dist`, `.nuitka-cache`, `__pycache__` hoặc các thư mục build trung gian. Chúng đã được loại trừ trong `.gitignore`.

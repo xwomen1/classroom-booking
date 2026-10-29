@@ -80,10 +80,11 @@ export async function registerAccount({
   password,
   recoveryCode,
 }: RegisterInput): Promise<AuthenticatedUser> {
+  const normalizedRecoveryCode = recoveryCode?.trim() || undefined;
   if (isRemoteApiEnabled()) {
     const session = await apiRequest<{ token: string; username: string; role: UserRole }>('/api/auth/register', {
       method: 'POST',
-      body: { username, password, recoveryCode: recoveryCode || '000000' },
+      body: { username, password, recoveryCode: normalizedRecoveryCode || '000000' },
     });
     setApiToken(session.token);
     return { username: session.username, role: session.role };
@@ -97,7 +98,7 @@ export async function registerAccount({
   if (password.length < 4) {
     throw new Error('Mật khẩu cần ít nhất 4 ký tự.');
   }
-  if (recoveryCode !== undefined && recoveryCode.length < 4) {
+  if (normalizedRecoveryCode !== undefined && normalizedRecoveryCode.length < 4) {
     throw new Error('Mã khôi phục cần ít nhất 4 ký tự.');
   }
 
@@ -108,7 +109,7 @@ export async function registerAccount({
   const newAccount: AccountRecord = {
     username: normalizedUsername,
     password,
-    recoveryCode: recoveryCode || '000000',
+    recoveryCode: normalizedRecoveryCode || '000000',
     role: 'user',
     active: true,
     createdAt: new Date().toISOString(),

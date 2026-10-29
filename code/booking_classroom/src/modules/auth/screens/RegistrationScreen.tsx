@@ -44,7 +44,7 @@ export function RegistrationScreen({ onBack }: RegistrationScreenProps) {
       setMessage('Mật khẩu cần có ít nhất 4 ký tự.');
       return;
     }
-    if (recoveryCode && recoveryCode.length < 4) {
+    if (recoveryCode.trim() && recoveryCode.trim().length < 4) {
       setIsError(true);
       setMessage('Mã khôi phục cần có ít nhất 4 ký tự.');
       return;

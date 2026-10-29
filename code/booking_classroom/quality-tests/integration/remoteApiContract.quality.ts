@@ -147,6 +147,7 @@ const SERVICE_CALLS: Array<[string, () => Promise<unknown>]> = [
   ['getBookings', () => bookings.getBookings()],
   ['getRoomOccupancy', () => bookings.getRoomOccupancy()],
   ['createBooking', () => bookings.createBooking({ requesterUsername: 'user', roomId: 'room-a101', date: '2030-01-11', startTime: '09:00', endTime: '10:00', purpose: 'x' })],
+  ['reportRoomObservation', () => bookings.reportRoomObservation('b1', 'user', 'Thiếu bút viết bảng')],
   ['reviewBooking', () => bookings.reviewBooking('b1', 'APPROVED', 'admin')],
   ['reviewRecurringSeries', () => bookings.reviewRecurringSeries(SERIES_ID, 'REJECTED', 'admin')],
   ['updatePendingRecurringBookings', () => bookings.updatePendingRecurringBookings('b1', 'user', { startTime: '10:00', endTime: '11:00', purpose: 'x' })],
@@ -240,6 +241,16 @@ describe('session and payload behaviour', () => {
   test('createRoom validates locally before any request', async () => {
     await expect(rooms.createRoom({ ...ROOM_INPUT, floor: 9 }, 'admin')).rejects.toThrow('Tầng phải nằm trong khoảng 1 đến 8.');
     expect(requests).toHaveLength(0);
+  });
+
+  test('a room observation is sent separately from maintenance', async () => {
+    await bookings.reportRoomObservation('b1', 'user', ' Thiếu bút viết bảng ');
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({
+      method: 'POST',
+      path: '/api/bookings/b1/room-observation',
+      body: { note: 'Thiếu bút viết bảng' },
+    });
   });
 
   test('updateBooking refuses to write locally while remote sync is on', async () => {

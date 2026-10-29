@@ -100,6 +100,40 @@ export async function getBookingsForUser(username: string): Promise<Booking[]> {
     .sort((a, b) => `${b.date}${b.startTime}`.localeCompare(`${a.date}${a.startTime}`));
 }
 
+/** A room observation informs the administrator without opening a maintenance request. */
+export async function reportRoomObservation(
+  bookingId: string,
+  username: string,
+  note: string,
+  now = new Date(),
+): Promise<void> {
+  const description = note.trim();
+  if (!description) throw new Error('Vui lòng nhập nội dung ghi chú.');
+  if (description.length > 500) throw new Error('Ghi chú tối đa 500 ký tự.');
+  if (isRemoteApiEnabled()) {
+    await apiRequest(`/api/bookings/${encodeURIComponent(bookingId)}/room-observation`, {
+      method: 'POST', body: { note: description },
+    });
+    return;
+  }
+  await assertAccountRole(username, 'user');
+  const booking = await getBookingById(bookingId);
+  if (!booking || booking.requesterUsername !== username) {
+    throw new Error('Bạn không có quyền ghi chú cho lượt đặt phòng này.');
+  }
+  if (booking.status !== 'APPROVED' || now < toLocalDateTime(booking.date, booking.startTime)
+      || now > toLocalDateTime(booking.date, booking.endTime)) {
+    throw new Error('Chỉ gửi ghi chú khi bạn đang sử dụng phòng đã được duyệt.');
+  }
+  const room = await getRoomById(booking.roomId);
+  await addNotification(
+    'admin', 'Có ghi chú về phòng',
+    `${username} ghi chú về phòng ${room?.name ?? booking.roomId} ` +
+      `(${booking.date} ${booking.startTime}–${booking.endTime}): ${description}`,
+    'attention', true,
+  );
+}
+
 export async function getBookingById(id: string): Promise<Booking | undefined> {
   return (await getBookings()).find(booking => booking.id === id);
 }

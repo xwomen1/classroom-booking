@@ -21,6 +21,7 @@ import {
   cancelFutureRecurringBookings,
   getBookingsForUser,
   proposeKeyPickup,
+  reportRoomObservation,
   setPickupDelegate,
   toLocalDateTime,
   updatePendingRecurringBookings,
@@ -48,11 +49,17 @@ const seriesStyles = StyleSheet.create({
   saveText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
 });
 
+const observationStyles = StyleSheet.create({
+  box: { backgroundColor: '#EEF4FF', borderColor: '#B9CEF5', borderRadius: 9, borderWidth: 1, marginTop: 12, padding: 11 },
+  button: { alignItems: 'center', backgroundColor: '#2F6FED', borderRadius: 8, paddingVertical: 10 },
+});
+
 export function MyBookingsScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [bookings, setBookings] = useState<Booking[]>([]); const [rooms, setRooms] = useState<Room[]>([]); const [revealedPinId, setRevealedPinId] = useState<string | null>(null); const [message, setMessage] = useState(''); const [delegates, setDelegates] = useState<Record<string, DelegateDraft>>({});
   const [permittedRoomIds, setPermittedRoomIds] = useState<string[]>([]);
   const [pickupDrafts, setPickupDrafts] = useState<Record<string, PickupDraft>>({});
   const [maintenanceReasons, setMaintenanceReasons] = useState<Record<string, string>>({});
+  const [roomObservations, setRoomObservations] = useState<Record<string, string>>({});
   const [seriesDrafts, setSeriesDrafts] = useState<Record<string, SeriesEditDraft>>({});
   const [editingSeriesId, setEditingSeriesId] = useState<string | null>(null);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
@@ -84,6 +91,15 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
       permittedRoomIds.includes(booking.roomId) && (!hasPin || waitingForDelivery);
   });
   const action = async (operation: () => Promise<unknown>, success: string) => { try { await operation(); setMessage(success); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : 'Không thể thực hiện thao tác.'); } };
+  const sendRoomObservation = async (bookingId: string) => {
+    try {
+      await reportRoomObservation(bookingId, username, roomObservations[bookingId] ?? '');
+      setRoomObservations(current => ({ ...current, [bookingId]: '' }));
+      setMessage('Đã gửi ghi chú về phòng tới quản trị viên.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Không thể gửi ghi chú.');
+    }
+  };
   const checkOneIoT = async () => {
     setOneIotWorking(true);
     try {
@@ -272,6 +288,12 @@ export function MyBookingsScreen({ username, onBack }: { username: string; onBac
           <Text style={styles.boxTitle}>{booking.checkInConfirmedBy ? 'Check-in xác nhận bởi Admin' : 'Ghi nhận từ SmartLock'}</Text>
           {booking.checkedInAt ? <Text style={styles.detail}>Check in: {new Date(booking.checkedInAt).toLocaleString('vi-VN')}</Text> : null}
           {booking.checkedOutAt ? <Text style={styles.detail}>Check out: {new Date(booking.checkedOutAt).toLocaleString('vi-VN')}</Text> : null}
+        </View> : null}
+        {currentlyInUse ? <View style={observationStyles.box}>
+          <Text style={styles.boxTitle}>Ghi chú về phòng</Text>
+          <Text style={styles.helperText}>Báo thiếu đồ dùng hoặc điều cần lưu ý cho quản trị viên. Mục này không tạo yêu cầu bảo trì.</Text>
+          <TextInput accessibilityLabel="Nội dung ghi chú về phòng" testID={`room-observation-${booking.id}`} multiline maxLength={500} placeholder="Ví dụ: Thiếu bút viết bảng" placeholderTextColor="#7D8795" style={[styles.input, styles.reasonInput]} value={roomObservations[booking.id] ?? ''} onChangeText={value => setRoomObservations(current => ({ ...current, [booking.id]: value }))} />
+          <Pressable style={observationStyles.button} onPress={() => sendRoomObservation(booking.id)}><Text style={styles.whiteText}>Gửi ghi chú</Text></Pressable>
         </View> : null}
         {currentlyInUse ? <View style={styles.maintenanceBox}>
           <Text style={styles.boxTitle}>Phòng đang có vấn đề?</Text>

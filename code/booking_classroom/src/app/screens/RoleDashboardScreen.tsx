@@ -25,7 +25,7 @@ import {
   getUnreadCount,
   NotificationScreen,
 } from '../../modules/notifications';
-import { presentPriorityNotification, consumeNotificationDestination, subscribePriorityBannerOpen } from '../../modules/notifications/services/priorityBanner';
+import { presentPriorityNotification, consumeNotificationDestination, setActiveNotificationUsername, subscribePriorityBannerOpen } from '../../modules/notifications/services/priorityBanner';
 import { ProfileScreen } from '../../modules/profile';
 import { RoomManagementScreen, RoomSearchScreen } from '../../modules/room_management';
 import { SmartLockManagementScreen } from '../../modules/smart_lock';
@@ -99,6 +99,11 @@ export function RoleDashboardScreen({
 
   useEffect(refreshUnreadCount, [refreshUnreadCount]);
   useEffect(refreshPendingBookingCount, [refreshPendingBookingCount]);
+
+  useEffect(() => {
+    setActiveNotificationUsername(session.username);
+    return () => setActiveNotificationUsername(null);
+  }, [session.username]);
 
   useEffect(() => {
     let active = true;

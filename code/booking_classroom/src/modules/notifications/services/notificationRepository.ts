@@ -3,7 +3,7 @@ import { readJson, writeJson } from '../../../core/storage/jsonStorage';
 import type { NotificationItem } from '../model/notificationItem';
 import type { NotificationTone } from '../model/notificationItem';
 import { getConfiguration } from '../../configuration/services/configurationRepository';
-import { presentPriorityNotification } from './priorityBanner';
+import { isActiveNotificationRecipient, presentPriorityNotification } from './priorityBanner';
 import { getNotificationTone } from './notificationTone';
 
 const NOTIFICATION_KEY_PREFIX = 'notifications.';
@@ -42,6 +42,7 @@ export async function addNotification(
   title: string,
   message: string,
   tone?: NotificationTone,
+  alwaysSave = false,
 ): Promise<void> {
   const resolvedTone = getNotificationTone({ title, message, tone });
   if (isRemoteApiEnabled()) {
@@ -49,12 +50,12 @@ export async function addNotification(
       method: 'POST',
       body: { username, title, message },
     });
-    if (created) {
+    if (created && isActiveNotificationRecipient(username)) {
       await presentPriorityNotification(title, message, getNotificationTone(created));
     }
     return;
   }
-  if (!(await getConfiguration()).notificationsEnabled) return;
+  if (!alwaysSave && !(await getConfiguration()).notificationsEnabled) return;
   const notifications = await getNotifications(username);
   const item: NotificationItem = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -65,10 +66,12 @@ export async function addNotification(
     tone: resolvedTone,
   };
   await writeJson(keyFor(username), [item, ...notifications]);
-  try {
-    await presentPriorityNotification(title, message, resolvedTone);
-  } catch {
-    // The in-app list is already saved. A banner failure must not roll back the action.
+  if (isActiveNotificationRecipient(username)) {
+    try {
+      await presentPriorityNotification(title, message, resolvedTone);
+    } catch {
+      // The in-app list is already saved. A banner failure must not roll back the action.
+    }
   }
 }
 

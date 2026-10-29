@@ -68,10 +68,10 @@ describe('LoginScreen', () => {
     await unmount(screen);
   });
 
-  test('shows demo credentials', async () => {
+  test('does not expose demo credentials on the login screen', async () => {
     const screen = await render(<LoginScreen onLogin={jest.fn()} />);
-    expect(textContent(screen.root)).toContain('Quản trị viên: admin / 1');
-    expect(textContent(screen.root)).toContain('Giảng viên: user / 2');
+    expect(textContent(screen.root)).not.toContain('Quản trị viên: admin / 1');
+    expect(textContent(screen.root)).not.toContain('Giảng viên: user / 2');
     await unmount(screen);
   });
 });
@@ -99,10 +99,7 @@ describe('RegistrationScreen', () => {
     await unmount(screen);
   });
 
-  // BUG đã biết: ô "Mã khôi phục" ghi là không bắt buộc, nhưng màn hình gửi ''
-  // xuống registerAccount, và hàm này chỉ bỏ qua kiểm tra khi giá trị là undefined.
-  // Khi sửa xong, đổi `test.failing` thành `test`.
-  test.failing('registers without the optional recovery code', async () => {
+  test('registers without the optional recovery code', async () => {
     const screen = await fill({
       'register-username': 'norecovery',
       'register-password': 'abcd',

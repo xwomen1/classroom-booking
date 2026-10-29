@@ -17,6 +17,15 @@ type BannerListener = (banner: PriorityBanner) => void;
 
 const listeners = new Set<BannerListener>();
 const openListeners = new Set<BannerListener>();
+let activeNotificationUsername: string | null = null;
+
+export function setActiveNotificationUsername(username: string | null): void {
+  activeNotificationUsername = username;
+}
+
+export function isActiveNotificationRecipient(username: string): boolean {
+  return activeNotificationUsername === username;
+}
 
 export function subscribePriorityBanners(listener: BannerListener) {
   listeners.add(listener);

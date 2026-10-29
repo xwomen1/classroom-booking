@@ -8,6 +8,7 @@ import {
   getBookingById,
   proposeKeyPickup,
   recordSmartLockAccessEvent,
+  reportRoomObservation,
   reviewBooking,
   reviewRecurringSeries,
   scheduleKeyPickup,
@@ -20,6 +21,7 @@ import { hasRoomPinPermission } from '../../src/modules/access_control';
 import { registerAccount } from '../../src/modules/auth';
 import { createMaintenance } from '../../src/modules/schedule_maintenance';
 import { getNotifications } from '../../src/modules/notifications';
+import { getMaintenanceRequests } from '../../src/modules/schedule_maintenance';
 import {
   FIXED_NOW,
   freezeTime,
@@ -44,6 +46,30 @@ beforeEach(async () => {
 
 afterEach(() => {
   jest.useRealTimers();
+});
+
+describe('room observations', () => {
+  test('sends a minor room note to admin without creating maintenance', async () => {
+    await seedConfiguration({ notificationsEnabled: false });
+    await seedBookings([makeBooking({ id: 'b1', date: TODAY, startTime: '07:00', endTime: '09:00', status: 'APPROVED' })]);
+    await reportRoomObservation('b1', 'user', ' Thiếu bút viết bảng ');
+    expect(await getMaintenanceRequests()).toHaveLength(0);
+    expect((await getNotifications('admin'))[0]).toMatchObject({
+      title: 'Có ghi chú về phòng',
+      tone: 'attention',
+      message: expect.stringContaining('Thiếu bút viết bảng'),
+    });
+  });
+
+  test('requires content, owner and an approved booking in its usage window', async () => {
+    await seedBookings([makeBooking({ id: 'b1', date: TODAY, startTime: '07:00', endTime: '09:00', status: 'APPROVED' })]);
+    await expect(reportRoomObservation('b1', 'user', ' ')).rejects.toThrow('Vui lòng nhập nội dung ghi chú.');
+    await expect(reportRoomObservation('b1', 'admin', 'Thiếu bút')).rejects.toThrow('Tài khoản không hoạt động hoặc không có quyền thực hiện thao tác này.');
+    await registerAccount({ username: 'another', password: 'abcd' });
+    await expect(reportRoomObservation('b1', 'another', 'Thiếu bút')).rejects.toThrow('Bạn không có quyền ghi chú cho lượt đặt phòng này.');
+    await expect(reportRoomObservation('b1', 'user', 'Thiếu bút', new Date(2030, 0, 10, 10)))
+      .rejects.toThrow('Chỉ gửi ghi chú khi bạn đang sử dụng phòng đã được duyệt.');
+  });
 });
 
 describe('reviewBooking', () => {

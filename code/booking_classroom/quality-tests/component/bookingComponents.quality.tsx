@@ -9,11 +9,14 @@ import {
 } from '../../src/modules/booking/components/BookingTimePicker';
 import { MyBookingsScreen } from '../../src/modules/booking/screens/MyBookingsScreen';
 import { getBookingById } from '../../src/modules/booking';
+import { getNotifications } from '../../src/modules/notifications';
+import { getMaintenanceRequests } from '../../src/modules/schedule_maintenance';
 import { grantRoomPinPermission } from '../../src/modules/access_control';
 import { assignSmartLockToRoom } from '../../src/modules/smart_lock';
 import { PasswordInput } from '../../src/shared';
 import {
   dayOffset,
+  findInputByTestId,
   findPressable,
   makeBooking,
   press,
@@ -21,6 +24,7 @@ import {
   resetStorage,
   seedBookings,
   textContent,
+  typeInto,
   unmount,
 } from '../support/testUtils';
 
@@ -151,6 +155,20 @@ describe('PasswordInput', () => {
 });
 
 describe('MyBookingsScreen', () => {
+  test('sends a minor room observation without requesting maintenance', async () => {
+    await seedBookings([makeBooking({
+      id: 'current', date: dayOffset(0), startTime: '00:00', endTime: '23:59', status: 'APPROVED',
+    })]);
+    const screen = await render(<MyBookingsScreen username="user" onBack={jest.fn()} />);
+    expect(textContent(screen.root)).toContain('Mục này không tạo yêu cầu bảo trì.');
+    await typeInto(findInputByTestId(screen.root, 'room-observation-current'), 'Thiếu bút viết bảng');
+    await press(screen.root, 'Gửi ghi chú');
+    expect(textContent(screen.root)).toContain('Đã gửi ghi chú về phòng tới quản trị viên.');
+    expect((await getNotifications('admin'))[0].message).toContain('Thiếu bút viết bảng');
+    expect(await getMaintenanceRequests()).toHaveLength(0);
+    await unmount(screen);
+  });
+
   test('lists the user\'s active bookings with the right action labels', async () => {
     await seedBookings([
       makeBooking({ id: 'p', date: dayOffset(2), purpose: 'Seminar AI' }),

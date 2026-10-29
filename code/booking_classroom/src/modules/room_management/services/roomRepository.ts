@@ -6,6 +6,7 @@ import { roomHasAllEquipment, roomMeetsMinCapacity } from '../model/roomFilters'
 import type { LockType, Room } from '../model/room';
 
 const ROOMS_KEY = 'rooms.records';
+const DELETED_DEMO_ROOMS_KEY = 'rooms.deletedDemoIds';
 
 function inferFloor(room: Omit<Room, 'floor'> & { floor?: number }): number {
   if (room.floor && room.floor >= 1 && room.floor <= 8) return room.floor;
@@ -20,9 +21,11 @@ export async function getRooms(): Promise<Room[]> {
   if (stored) {
     const normalized = stored.map(room => ({ ...room, floor: inferFloor(room) }));
     const ids = new Set(normalized.map(room => room.id));
+    const deletedDemoIds = new Set(await readJson<string[]>(DELETED_DEMO_ROOMS_KEY, []));
     const merged = [
       ...normalized,
-      ...DEMO_ROOMS.filter(room => !ids.has(room.id)).map(room => ({ ...room, equipment: [...room.equipment] })),
+      ...DEMO_ROOMS.filter(room => !ids.has(room.id) && !deletedDemoIds.has(room.id))
+        .map(room => ({ ...room, equipment: [...room.equipment] })),
     ];
     if (merged.length !== stored.length || stored.some(room => room.floor === undefined)) {
       await writeJson(ROOMS_KEY, merged);
@@ -116,6 +119,12 @@ export async function deleteRoom(id: string, adminUsername: string): Promise<voi
   const bookings = await readJson<Array<{ roomId: string; status: string }>>('booking.records', []);
   if (bookings.some(item => item.roomId === id && ['PENDING', 'APPROVED'].includes(item.status))) {
     throw new Error('Phòng còn yêu cầu đang hoạt động nên chưa thể xóa.');
+  }
+  if (DEMO_ROOMS.some(room => room.id === id)) {
+    const deletedDemoIds = await readJson<string[]>(DELETED_DEMO_ROOMS_KEY, []);
+    if (!deletedDemoIds.includes(id)) {
+      await writeJson(DELETED_DEMO_ROOMS_KEY, [...deletedDemoIds, id]);
+    }
   }
   await writeJson(ROOMS_KEY, rooms.filter(room => room.id !== id));
 }

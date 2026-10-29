@@ -16,6 +16,7 @@ function containsAny(text: string, phrases: string[]): boolean {
  */
 export function getNotificationTone(notification: NotificationCopy): NotificationTone {
   if (notification.tone) return notification.tone;
+  if (notification.title.toLocaleLowerCase('vi-VN').includes('có ghi chú về phòng')) return 'attention';
   const text = normalizedCopy(notification);
 
   if (containsAny(text, [
@@ -50,6 +51,7 @@ export function getNotificationTone(notification: NotificationCopy): Notificatio
 
   if (containsAny(text, [
     'có yêu cầu',
+    'có ghi chú về phòng',
     'có đề xuất',
     'đề xuất thời gian nhận khóa khác',
     'đổi phòng',

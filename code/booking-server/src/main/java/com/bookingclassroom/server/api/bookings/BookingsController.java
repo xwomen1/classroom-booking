@@ -1,6 +1,7 @@
 package com.bookingclassroom.server.api.bookings;
 
 import com.bookingclassroom.server.BookingService;
+import com.bookingclassroom.server.Domain;
 import com.bookingclassroom.server.security.RequestActor;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -38,6 +39,14 @@ public class BookingsController {
       @RequestBody BookingService.BookingInput input,
       HttpServletRequest request) {
     return bookingService.createBooking(RequestActor.account(request), input);
+  }
+
+  @PostMapping("/bookings/{id}/room-observation")
+  public Domain.Notification reportRoomObservation(
+      @PathVariable String id,
+      @RequestBody Map<String, String> body,
+      HttpServletRequest request) {
+    return bookingService.reportRoomObservation(RequestActor.account(request), id, body.get("note"));
   }
 
   @PostMapping("/bookings/{id}/review")

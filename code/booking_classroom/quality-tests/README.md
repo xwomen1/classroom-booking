@@ -23,7 +23,7 @@ npx jest --config quality-tests/jest.config.js --coverage                   # k�
 | `support/testUtils.ts` | Đóng băng thời gian, tạo booking mẫu, render/bấm/nhập cho kiểm thử giao diện. |
 | `unit/` | Service và model: luật đặt phòng, vòng đời booking, tài khoản, cấu hình, phòng, bảo trì, thông báo, mã PIN, SmartLock, `apiRequest`. |
 | `component/` | Màn hình đăng nhập, đăng ký, đổi/quên mật khẩu, hồ sơ, quy định, quản lý tài khoản, lịch của tôi, `BookingTimePicker`, `PasswordInput`. |
-| `integration/` | `oneIoTNativeBridge`: oneIoTClient ↔ native module `OneIoTMqtt` (mock). `remoteApiContract`: mọi request của app ở chế độ remote khớp một `@XxxMapping` trong `booking-server/.../ApiController.java` và ngược lại. `endToEndWorkflows`: luồng nhiều module từ đặt phòng tới check-in/check-out. |
+| `integration/` | `oneIoTNativeBridge`: oneIoTClient ↔ native module `OneIoTMqtt` (mock). `remoteApiContract`: mọi request của app ở chế độ remote khớp một `@XxxMapping` trong các controller `booking-server/.../server/api/*/…Controller.java` và ngược lại. `endToEndWorkflows`: luồng nhiều module từ đặt phòng tới check-in/check-out. |
 | `BAO_CAO_KIEM_THU.md` | Báo cáo kết quả kiểm thử. |
 
 ## Quy ước
@@ -33,9 +33,9 @@ npx jest --config quality-tests/jest.config.js --coverage                   # k�
 - `isRemoteApiEnabled()` luôn là `false` khi `NODE_ENV=test`. Test hợp đồng API tạm đổi `NODE_ENV` và thay `fetch` bằng server giả.
 - `testTimeout` là 30 giây vì lần chạy đầu (chưa có cache) Jest phải transform các module React Native.
 
-## Lỗi đã biết (đánh dấu `test.failing`)
+## Lỗi đã sửa (từng đánh dấu `test.failing`)
 
-Các test này mô tả hành vi đúng và hiện đang thất bại do lỗi trong code. Khi sửa lỗi, đổi `test.failing` thành `test`.
+Hiện không còn test `test.failing`. Hai lỗi dưới đây đã được sửa; test tương ứng đã chuyển thành `test` để bảo vệ hành vi đúng.
 
 1. **Phòng demo đã xóa xuất hiện lại** (`unit/roomRepository.quality.ts`): `getRooms()` gộp lại mọi `DEMO_ROOMS` còn thiếu trong storage.
 2. **Không thể đăng ký khi bỏ trống mã khôi phục** (`component/authScreens.quality.tsx`): màn hình gửi `''`, còn `registerAccount` chỉ bỏ qua kiểm tra khi giá trị là `undefined`.

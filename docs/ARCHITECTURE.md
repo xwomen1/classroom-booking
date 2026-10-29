@@ -22,11 +22,11 @@ Tài liệu này mô tả cấu trúc đang có trên `main` và đề xuất h�
 │   │   ├── midterm/mid_LTUD/    # Source và PDF báo cáo giữa kỳ
 │   │   └── exports/             # PDF xuất rời
 │   └── ARCHITECTURE.md          # Bản đồ kiến trúc source
-├── tunghv2/                     # Mô phỏng SmartLock
-└── tunghv3/                     # Gateway HTTP–MQTT cũ, để tham khảo
+├── gia_lap_smartlock/           # Mô phỏng SmartLock
+└── oneIot_smartlock/            # Gateway HTTP–MQTT cũ, để tham khảo
 ```
 
-`code/` là nơi chứa source ứng dụng; `docs/` gom các tài liệu để thư mục gốc không trộn source với báo cáo. Các thư mục `tunghv2/` và `tunghv3/` vẫn độc lập vì có hướng dẫn build và README riêng.
+`code/` là nơi chứa source ứng dụng; `docs/` gom các tài liệu để thư mục gốc không trộn source với báo cáo. Các thư mục `gia_lap_smartlock/` và `oneIot_smartlock/` vẫn độc lập vì có hướng dẫn build và README riêng.
 
 ## Frontend di động
 

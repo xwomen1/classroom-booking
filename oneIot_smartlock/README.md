@@ -1,7 +1,9 @@
 # SmartLock gateway cho Booking Classroom
 
+Đây là gateway HTTP–MQTT của giai đoạn trước; app RoomHub hiện giao tiếp OneIoT trực tiếp qua module Android native và không gọi gateway này.
+
 Gateway này đưa phần phát lệnh của `tools/smartlock_test_tool.py` vào luồng sử
-dụng của app. App gọi HTTP tới gateway; gateway mã hóa mật khẩu và phát trait
+dụng của app ở phiên bản cũ. Khi được gọi qua HTTP, gateway mã hóa mật khẩu và phát trait
 `traitCreateTmpPasswordLock` lên OneIoT cho một SmartLock duy nhất.
 
 ## Chuẩn bị
@@ -10,7 +12,7 @@ dụng của app. App gọi HTTP tới gateway; gateway mã hóa mật khẩu v�
 2. Cài thư viện và chạy:
 
 ```powershell
-cd tunghv3
+cd oneIot_smartlock
 python -m pip install -r requirements.txt
 .\run_gateway.ps1
 ```
@@ -22,11 +24,11 @@ Trong màn hình **Quản lý khóa**, nhập địa chỉ IP của máy tính, 
 http://192.168.1.10:8135
 ```
 
-## API dùng bởi app
+## API từng dùng bởi app
 
 - `GET /api/lock/status`: trạng thái gateway và OneIoT.
 - `POST /api/lock/temp-password`: tạo mật khẩu tạm thời trên khóa.
 
 Gateway chỉ nhận lệnh cho khóa được khai báo trong `gateway_config.py`. Việc khóa
-đang gắn với phòng nào được quản lý tại app; app chỉ gọi gateway khi phòng của
+đang gắn với phòng nào được quản lý tại app; ở phiên bản cũ, app chỉ gọi gateway khi phòng của
 lượt đặt trùng với phòng đang gắn khóa.

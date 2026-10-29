@@ -268,7 +268,11 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
   const firstRoom = await getRoomById(createdBookings[0].roomId);
   if (firstRoom && await resolveApprovalMode(firstRoom) === 'AUTO') {
     const approval = autoApprovalFields();
-    const approved = createdBookings.map(booking => ({ ...booking, ...approval }));
+    const approved = createdBookings.map(booking => ({
+      ...booking,
+      ...approval,
+      userCanGeneratePin: firstRoom.lockType === 'PIN_CODE',
+    }));
     await writeJson(BOOKINGS_KEY, [...bookings, ...approved]);
     await completeAutoApproval(approved, firstRoom);
     return approved[0];

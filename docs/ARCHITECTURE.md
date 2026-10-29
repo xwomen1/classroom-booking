@@ -1,6 +1,6 @@
 # Kiến trúc mã nguồn RoomHub
 
-Tài liệu này mô tả cấu trúc đang có trên `main` và đề xuất hướng tách tiếp. Phần “hiện trạng” phản ánh mã nguồn hiện tại; cấu trúc backend theo module bên dưới là mục tiêu refactor, chưa phải trạng thái đã hoàn thành.
+Tài liệu này đối chiếu mã nguồn ngày 29/10/2026 sau khi đưa `feature/auto-approval` vào nhánh `tunghv-final-task`. Phần “hiện trạng” mô tả cấu trúc đã có; “hướng cấu trúc đích” là đề xuất, chưa phải phần đã hoàn thành. Kiểm tra lại Git trước khi dùng tài liệu cho nhánh khác.
 
 ## Bản đồ repository
 
@@ -30,7 +30,7 @@ Tài liệu này mô tả cấu trúc đang có trên `main` và đề xuất h�
 
 ## Frontend di động
 
-`code/booking_classroom` là ứng dụng React Native/TypeScript. `App.tsx` thiết lập vòng đời cấp ứng dụng; `src/app` ghép các màn hình theo vai trò. `src/modules` chia theo nghiệp vụ: xác thực, tài khoản, phòng, đặt phòng, bảo trì, quyền truy cập, khóa thông minh, thông báo, hồ sơ và cấu hình. Mỗi module hiện có thể chứa `screens`, `components`, `services` và `model`.
+`code/booking_classroom` là ứng dụng React Native/TypeScript. `App.tsx` thiết lập vòng đời cấp ứng dụng; `src/app` ghép các màn hình theo vai trò. `src/modules` có 11 module: xác thực, tài khoản, phòng, đặt phòng, tự động duyệt, bảo trì, quyền truy cập, khóa thông minh, thông báo, hồ sơ và cấu hình. Mỗi module hiện có thể chứa `screens`, `components`, `services` và `model`. Quy tắc chọn duyệt tự động ở `auto_approval/model/approvalPolicy.ts`; luồng tạo booking local gọi service của module này, còn backend dùng `AutoApprovalPolicy.java`.
 
 `src/core` giữ hạ tầng dùng chung như HTTP client, Async Storage, cấu hình chạy, kiểu dùng chung và tiện ích thời gian. `src/shared` chứa component giao diện dùng lại. Test hiện có ở `__tests__`; bộ kiểm thử chất lượng bổ sung nằm riêng tại `quality-tests` và có cấu hình Jest riêng.
 
@@ -75,13 +75,13 @@ com.bookingclassroom.server
 
 Mỗi feature chỉ có các lớp cần thiết, thường là controller/DTO, service nghiệp vụ và repository/entity. Quy tắc nghiệp vụ không nằm trong controller; transaction đặt ở use case ghi dữ liệu. Giao tiếp giữa feature qua service công khai, không truy cập repository nội bộ của nhau. Chia entity từ `Domain` theo feature khi đã tách nơi sử dụng và quan hệ JPA rõ.
 
-## Thứ tự refactor và tiêu chí hoàn thành
+## Việc đã làm và thứ tự refactor tiếp theo
 
-1. Giữ nguyên API và hành vi; lập danh sách endpoint, entity, transaction và phụ thuộc chéo trước khi di chuyển.
-2. Tách controller theo nhóm endpoint và DTO khỏi `BookingService`; kiểm tra hợp đồng request/response.
+1. Đã tách API thành sáu controller theo nghiệp vụ, giữ `BookingService` và `Domain` để tránh đổi giao dịch/dữ liệu cùng lúc. Test hợp đồng REST và Maven/H2 đã được chạy sau merge.
+2. Trước khi tách sâu hơn, lập danh sách endpoint, entity, transaction và phụ thuộc chéo của feature được chọn; giữ nguyên hành vi đã kiểm chứng.
 3. Chọn một feature có ranh giới rõ, tách service/repository/entity rồi mới áp dụng mẫu đó cho nhóm tiếp theo.
 4. Trên app, thay import sâu giữa module bằng export công khai; tách màn hình hoặc repository lớn theo luồng độc lập, không đổi quy tắc nghiệp vụ đồng thời với di chuyển tệp.
-5. Sau mỗi lát cắt, giữ test hiện tại chạy được, bổ sung kiểm tra hồi quy cho hợp đồng bị ảnh hưởng và cập nhật tài liệu module.
+5. Sau mỗi lát cắt, chạy test liên quan, kiểm tra hợp đồng bị ảnh hưởng và cập nhật tài liệu module.
 
 Refactor được xem là ổn khi mỗi lớp có một trách nhiệm dễ nêu, không còn phụ thuộc vòng, quy tắc giống nhau chỉ có một nơi định nghĩa, API không đổi ngoài chủ đích, và các test liên quan xác nhận hành vi trước/sau tương đương.
 

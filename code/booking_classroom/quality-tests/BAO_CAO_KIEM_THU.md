@@ -1,6 +1,24 @@
-# Báo cáo kiểm thử RoomHub – nhánh feature/auto-approval
+# Báo cáo kiểm thử RoomHub
 
 Người thực hiện: DungFS · Ngày: 25/10/2026 · Cập nhật: 29/10/2026
+
+## Kiểm tra sau khi đưa nhánh tự động duyệt vào tunghv-final-task
+
+Ngày 29/10/2026, bộ quality test chạy lại đạt **17/17 bộ, 398/398 ca**. Bộ Jest ứng dụng đạt **8/8 bộ, 50/50 ca**; trong đó 11 ca thuộc module tự động duyệt. Backend/H2 đạt **2/2 ca tích hợp** sau khi cách ly dữ liệu giữa các ca. Đã sửa việc client cũ không gửi trường duyệt tự động nhưng vô tình tắt công tắc hoặc bỏ dấu phòng đặc biệt; ca tích hợp hiện kiểm tra hai tình huống này. TypeScript và ESLint đạt. Các số đo độ phủ bên dưới là kết quả lịch sử của lần đo riêng, không phải phép đo mới sau merge. Chưa xác nhận server công khai hoặc khóa thật.
+
+## Cập nhật sau refactor ngày 28/10/2026
+
+Trên nhánh `tunghv-final-task` tại commit `6d1379e`, bộ quality test đã chạy lại: **17/17 bộ, 398/398 ca đạt**. Test hợp đồng REST hiện đối chiếu với sáu controller theo nghiệp vụ tại `booking-server/src/main/java/com/bookingclassroom/server/api/`, gồm xác thực, phòng, đặt phòng, bảo trì, quyền truy cập và thông báo. Endpoint ghi chú phòng vẫn được giữ tại `api/bookings/BookingsController.java`. Bộ Jest app chạy riêng đạt **7/7 bộ, 39/39 ca**; Maven/H2 integration test đạt **1/1 ca**. Lần chạy đồng thời hai bộ Jest ban đầu làm 2 ca UI vượt giới hạn thời gian 5 giây; chạy riêng bộ app thì đạt. Không sửa logic ứng dụng trong lượt cập nhật tài liệu này.
+
+Các bảng và tên tệp trong phần “Kết quả ban đầu ngày 25/10/2026” là số liệu lịch sử của nhánh test lúc đó. `ApiController.java` được nhắc ở phần lịch sử đã được tách thành sáu controller; các số 392 ca và độ phủ 68,9% chưa được đo lại sau refactor.
+
+## Cập nhật ngày 27/10/2026
+
+Hai lỗi được ghi nhận ở bản gốc đã được tái hiện và sửa. Phòng mẫu đã xóa nay được đánh dấu để không bị khởi tạo lại; mã khôi phục để trống khi đăng ký được xử lý là trường tùy chọn. Hai ca `test.failing` đã chuyển thành test bình thường. Màn hình đăng nhập không còn hiện tài khoản mẫu, và giảng viên có thể gửi ghi chú về phòng cho quản trị viên mà không tạo yêu cầu bảo trì.
+
+Chạy lại toàn bộ bộ kiểm thử sau khi bổ sung các ca cho chức năng mới: **17/17 bộ, 397/397 ca đạt**. Kết quả 392 ca và độ phủ 68,9% ở phần dưới là số liệu của lần đo ban đầu ngày 25/10/2026; độ phủ chưa được đo lại sau khi sửa mã nguồn.
+
+## Kết quả ban đầu ngày 25/10/2026
 
 ## Tổng quan
 

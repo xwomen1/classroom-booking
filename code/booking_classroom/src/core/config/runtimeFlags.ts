@@ -1,8 +1,9 @@
 /**
  * CÔNG TẮC CHẾ ĐỘ DỮ LIỆU CỦA APP.
  *
- * false: chạy hoàn toàn local bằng Async Storage (chế độ hiện tại).
- * true:  bật đồng bộ qua booking-server tại REMOTE_API_BASE_URL.
+ * false: dùng dữ liệu local trong Async Storage, không cần booking-server.
+ * true:  dùng REST API của booking-server tại REMOTE_API_BASE_URL.
+ * Đổi cờ không tự đồng bộ dữ liệu giữa hai nơi lưu trữ.
  *
  * Điện thoại gọi server Java qua đường public. Máy chạy Java phải đang mở
  * và Cloudflare Tunnel phải trỏ về cổng 8080.

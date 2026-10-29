@@ -43,19 +43,19 @@ Cũng có thể tạo `application-local.properties` ở thư mục chạy serve
 
 ## Bật đồng bộ trong ứng dụng
 
-Server và app có hai công tắc độc lập. Sau khi server sẵn sàng, sửa `../booking_classroom/src/core/config/runtimeFlags.ts`:
+Server và app có cấu hình độc lập. Source ứng dụng tại `../booking_classroom/src/core/config/runtimeFlags.ts` hiện đã để:
 
 ```ts
 export const ENABLE_REMOTE_SYNC = true;
 ```
 
-Khi app chạy trên điện thoại thật đang nối ADB, chuyển cổng server trên máy tính tới điện thoại trước khi mở app:
+`REMOTE_API_BASE_URL` trong source hiện là một URL tunnel thử nghiệm; kiểm tra server còn hoạt động và đặt lại URL cho môi trường đang chạy. Nếu đổi URL sang `http://127.0.0.1:8080` để gọi server trên máy tính qua điện thoại đang nối ADB, chuyển tiếp cổng trước khi mở app:
 
 ```powershell
 adb reverse tcp:8080 tcp:8080
 ```
 
-`REMOTE_API_BASE_URL` mặc định là `http://127.0.0.1:8080`. Nếu dùng server public, thay giá trị này bằng URL HTTPS ổn định của server. Giữ `ENABLE_REMOTE_SYNC = false` để app chạy hoàn toàn local.
+Để app chạy hoàn toàn local, đổi cờ thành `false` trong bản build. Hai nhánh local và REST không tự đồng bộ dữ liệu cho nhau khi đổi cờ; test H2 trong RAM cũng không thay thế kiểm thử server công khai hoặc nhiều điện thoại.
 
 ## Kiểm thử tích hợp
 
@@ -63,4 +63,4 @@ adb reverse tcp:8080 tcp:8080
 mvn test
 ```
 
-Test dùng H2 trong RAM và kiểm tra đăng nhập, hồ sơ, đặt phòng lặp, duyệt chuỗi, tạo/cập nhật PIN và giới hạn dữ liệu booking theo từng tài khoản.
+Test dùng H2 trong RAM và kiểm tra đăng nhập, hồ sơ, đặt phòng lặp, duyệt chuỗi, tạo/cập nhật PIN, giới hạn dữ liệu booking theo từng tài khoản và duyệt tự động. Trường cấu hình hoặc loại phòng mới nếu bị client cũ bỏ qua trong yêu cầu cập nhật sẽ giữ giá trị hiện có. Mỗi ca tích hợp khởi tạo lại H2 để không dùng dữ liệu của ca trước.

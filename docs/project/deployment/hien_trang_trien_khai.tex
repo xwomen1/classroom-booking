@@ -18,12 +18,12 @@
 \begin{center}
   {\LARGE\bfseries\color{hustred} HIỆN TRẠNG TRIỂN KHAI BOOKING APP}\par
   \vspace{0.1cm}
-  {\small Cập nhật: 04/10/2026}
+  {\small Đối chiếu source và kiểm thử: 29/10/2026}
 \end{center}
 
 \textbf{Nguyên tắc:} chỉ ghi chức năng đã có trong source và đã qua kiểm tra tự động; phần cần token hoặc khóa thật được ghi rõ là chưa kiểm thử đầu cuối.
 
-\textbf{Hiện trạng: BẢN LOCAL ỔN ĐỊNH; BACKEND ĐỒNG BỘ ĐÃ ĐƯỢC KIỂM THỬ VỚI H2 GIẢ LẬP.}
+\textbf{Hiện trạng: LUỒNG LOCAL ĐÃ ĐƯỢC THỬ TRÊN ĐIỆN THOẠI; API ĐÃ QUA KIỂM THỬ TÍCH HỢP VỚI H2 TRONG RAM.}
 
 \begin{itemize}[leftmargin=1.6em,itemsep=2pt,topsep=2pt]
   \item Ứng dụng Android được xây dựng bằng React Native và TypeScript; mã nguồn nằm trong thư mục ứng dụng di động của repository. Phiên bản hiện tại trao đổi dữ liệu với backend; chế độ lưu cục bộ vẫn có thể dùng riêng trên thiết bị.
@@ -31,21 +31,25 @@
   \item User tìm và đặt phòng theo tầng, ngày/giờ, sức chứa, thiết bị và loại khóa. Hệ thống kiểm tra thời hạn đặt, trùng phòng, trùng lịch User, bảo trì và giới hạn booking. Nếu Admin cho phép đặt cùng ngày, khoảng đang diễn ra vẫn được tạo và duyệt khi chưa qua giờ kết thúc.
   \item Hỗ trợ đặt lặp hàng tuần; User có thể sửa các lượt đang chờ duyệt hoặc hủy lượt tương lai, Admin có thể duyệt/từ chối cả chuỗi.
   \item Admin quản lý tài khoản, phòng, booking, lịch và cấu hình; có thể duyệt/từ chối hoặc đổi sang phòng đáp ứng các điều kiện cần thiết.
+  \item Admin có thể bật duyệt tự động cho phòng thường. Công tắc mặc định tắt. Khi bật, yêu cầu hợp lệ ở phòng thường được duyệt ngay; phòng đánh dấu đặc biệt vẫn chờ Admin. Quy tắc này có ở cả local và backend, cùng thông báo và quyền tạo mã theo phòng sau khi duyệt.
   \item Admin xác nhận check-in thủ công cho phòng khóa cơ/thẻ từ và ghi nhận vắng mặt sau thời gian ân hạn cấu hình khi booking chưa có bằng chứng check-in; trạng thái vắng mặt thu hồi quyền truy cập liên quan.
   \item Quản lý phòng và bảo trì dùng chung một màn hình tám tầng. Khi chọn phòng, Admin có thể sửa, xóa, lên lịch/hủy lịch bảo trì và xem lịch sử dụng đã duyệt của phòng. Yêu cầu bảo trì từ User vẫn tự mở, tô vàng tầng/phòng liên quan và cho phép Admin tiếp nhận hoặc từ chối.
+  \item User đang sử dụng phòng có thể gửi ghi chú về thiếu đồ dùng hoặc điều cần lưu ý. Admin nhận thông báo; ghi chú không tạo yêu cầu bảo trì, không đổi trạng thái phòng.
   \item Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa trước. Admin chấp nhận hoặc gửi thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại cho đến khi hai bên thống nhất.
-  \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền. Mã gồm đúng 7 chữ số, được lưu và hiển thị local khi offline, sau đó tự gửi khi có kết nối OneIoT.
+  \item Với khóa số, quyền tạo mật khẩu được cấp theo đúng cặp User--phòng sau khi booking được duyệt; Admin có thể tạo hộ hoặc thu hồi quyền. Mã gồm đúng 7 chữ số; ở chế độ local, mã được lưu trên thiết bị và hiển thị cả khi chưa nối OneIoT, rồi gửi khi có kết nối hợp lệ. Ở chế độ REST, việc tạo/lưu mã vẫn cần booking-server.
   \item Admin có thể gắn một SmartLock vào phòng khóa số. Ứng dụng kết nối trực tiếp với OneIoT qua MQTT TLS để gửi lệnh tạo mã tạm thời theo thời gian đặt phòng; ứng dụng không chờ phản hồi từ khóa.
-  \item App đã đăng ký topic OneM2M theo Tools và phân tích bản tin SmartLock để ghi nhận check-in/check-out vào booking đúng phòng, đúng khoảng thời gian. Đã kiểm tra kết nối OneIoT và phát một mã đang chờ; chưa xác nhận trực tiếp việc khóa thật áp dụng mã.
+  \item App đã đăng ký topic OneM2M theo Tools và phân tích bản tin SmartLock để ghi nhận check-in/check-out vào booking đúng phòng, đúng khoảng thời gian. Việc phát một mã đang chờ đã từng được kiểm tra ở lượt trước; sau refactor chưa thử lại với OneIoT hoặc khóa thật, nên chưa xác nhận khóa đã áp dụng mã.
   \item Token OneIoT chỉ giữ trong RAM; không lưu vào Async Storage hoặc repository. Kết nối tự ngắt khi đăng xuất, app chuyển nền hoặc bị đóng.
-  \item Khi bật đồng bộ, Spring Boot API quản lý tài khoản, hồ sơ, phòng, cấu hình, booking, bảo trì, quyền PIN, SmartLock và thông báo. Booking của User được lọc theo tài khoản; thao tác tạo booking được khóa giao dịch để tránh ghi trùng khi có nhiều yêu cầu đồng thời.
+  \item Khi bật chế độ REST, Spring Boot API quản lý tài khoản, hồ sơ, phòng, cấu hình, booking, bảo trì, quyền PIN, SmartLock và thông báo. API đã chia thành sáu controller theo nghiệp vụ; \texttt{BookingService} vẫn giữ phần lớn quy tắc và \texttt{Domain} giữ các thực thể. Booking của User được lọc theo tài khoản; thao tác tạo booking được khóa giao dịch để tránh ghi trùng khi có nhiều yêu cầu đồng thời. Chuyển từ local sang REST không tự đưa dữ liệu cũ lên server.
   \item Kiểm thử tích hợp backend với cơ sở dữ liệu H2 trong bộ nhớ bao phủ đăng nhập, hồ sơ, đặt phòng lặp, duyệt chuỗi, gắn SmartLock, tạo/cập nhật PIN và phân tách dữ liệu giữa các tài khoản.
-  \item Kiểm tra source đạt: Jest 36/36 ca, ESLint, TypeScript và Maven integration test.
+  \item Ngày 29/10/2026, sau khi nhận nhánh tự động duyệt và sửa tương thích cho client cũ, kiểm tra source đạt: Jest app 50/50 ca trong 8 bộ, quality suite 398/398 ca trong 17 bộ, TypeScript, ESLint và Maven/H2 integration test 2/2 ca. Bài test backend khởi tạo lại H2 giữa các ca để không lẫn dữ liệu.
   \item Tệp cài đặt Android, thư viện cài đặt cục bộ, bộ nhớ đệm và thư mục build không được đưa lên Git. Thành viên tải mã nguồn và tự tạo bản Debug hoặc Release theo README.
 \end{itemize}
 
-\textbf{Kiểm tra thiết bị:} bản Release mới đã được build và cài trên Samsung M21. Đã tạo yêu cầu đặt phòng A101 trong ngày sau giờ bắt đầu, duyệt khi khoảng sử dụng vẫn đang diễn ra, tạo mã khi ngoại tuyến rồi kết nối OneIoT để gửi lệnh đang chờ. Bản Release chạy độc lập, không cần công cụ phát triển hoặc cấu hình chuyển tiếp cổng qua USB.
+\textbf{Kiểm tra thiết bị ngày 28/10/2026:} bản Release local đã được build từ bản sao mã nguồn với cờ REST tắt và cài lên điện thoại Android thật. Đã đăng nhập hai vai trò, tạo và duyệt lượt A101 cùng ngày, phân biệt banner theo người nhận, gửi ghi chú phòng và kiểm tra Admin nhận thông báo mà không tạo yêu cầu bảo trì, xem mã tạm đủ bảy chữ số khi chưa nối OneIoT, rồi ghi nhận vắng mặt sau thời gian ân hạn. Cờ trong source của nhánh vẫn bật REST; cấu hình local chỉ dùng trong bản build thử.
 
-\textbf{Chưa hoàn thành:} chưa kiểm thử đầu cuối bằng server public và nhiều điện thoại thật; chưa xác nhận trực tiếp SmartLock thật đã nhận, lưu và sử dụng được mật khẩu.
+\textbf{Kiểm tra thiết bị ngày 29/10/2026:} cài bản Release local sau khi nhận module tự động duyệt. Admin bật công tắc và đánh dấu A102 là phòng đặc biệt. User đặt A101 ngày 30/10, 08:00--09:00: app tự duyệt và cho thấy quyền tạo mã; đặt A102 ngày 31/10 cùng giờ: app giữ chờ duyệt, Admin nhìn thấy yêu cầu. Sau thử nghiệm, Admin từ chối A102, đưa phòng về loại thường, tắt công tắc; User hủy A101. Hai lượt thử còn trong lịch sử, không còn hoạt động. Không nối OneIoT trong lượt này.
+
+\textbf{Chưa xác nhận:} chưa kiểm thử đầu cuối với server công khai và nhiều điện thoại thật; chưa thử lại kết nối OneIoT sau refactor; chưa xác nhận SmartLock thật đã nhận, lưu và sử dụng được mật khẩu. Không có đồng bộ tự động giữa dữ liệu local và server khi đổi cờ.
 
 \end{document}

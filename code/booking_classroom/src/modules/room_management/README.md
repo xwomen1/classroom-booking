@@ -10,6 +10,7 @@
 - Khai báo loại khóa của phòng:
   - Khóa cơ/thẻ từ.
   - Khóa mã số có thể quản lý online.
+- Đánh dấu phòng đặc biệt cần Admin duyệt thủ công khi chức năng duyệt tự động đang bật.
 - Màn hình Admin dùng chung tám thanh tầng cho quản lý phòng và bảo trì.
 - Khi chọn một phòng, Admin có thể sửa, xóa, lên lịch/hủy lịch bảo trì và xem lịch sử dụng đã duyệt của riêng phòng đó.
 - Tầng và phòng có yêu cầu bảo trì đang chờ được đánh dấu; Admin có thể tiếp nhận hoặc từ chối ngay trên cùng màn hình.

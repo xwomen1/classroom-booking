@@ -1,6 +1,6 @@
 # booking_classroom
 
-Ứng dụng React Native đặt phòng học/phòng họp. Bản hiện tại chạy toàn bộ nghiệp vụ trên một thiết bị bằng Async Storage; kết nối OneIoT chỉ dùng cho giao tiếp SmartLock.
+Ứng dụng React Native đặt phòng học/phòng họp. Mã nguồn có hai nhánh dữ liệu: Async Storage trên một thiết bị và REST API qua booking-server. Cờ cấu hình quyết định nhánh nào chạy; OneIoT là kết nối riêng cho SmartLock.
 
 ## Chức năng đã triển khai
 
@@ -10,12 +10,14 @@
 - Kiểm tra trùng phòng, trùng lịch User, thời gian bảo trì, thời hạn đặt trước và giới hạn booking.
 - Khi Admin đặt số ngày tối thiểu bằng `0`, app cho phép tạo và duyệt một booking cùng ngày đã bắt đầu nhưng chưa kết thúc.
 - Admin duyệt/từ chối, đổi sang phòng đáp ứng tối thiểu loại khóa, sức chứa, thiết bị và thời gian.
+- Admin có thể bật tự động duyệt cho phòng thường và đánh dấu từng phòng cần duyệt thủ công. Công tắc mặc định tắt; khi bật, booking hợp lệ ở phòng thường được duyệt ngay, còn phòng đặc biệt vẫn chờ Admin. Phòng khóa số được cấp quyền tạo mã theo phòng sau khi duyệt.
 - Admin xác nhận check-in thủ công cho phòng khóa cơ/thẻ từ và ghi nhận `NO_SHOW` sau số phút ân hạn cấu hình nếu booking chưa có bằng chứng check-in; trạng thái này giải phóng lượt đặt và thu hồi quyền truy cập liên quan.
 - Lịch đặt phòng là màn chỉ đọc; thao tác hủy, truy cập và nhận khóa nằm trong Quản lý đặt phòng.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do. Admin xử lý trên màn hình quản lý phòng và bảo trì dùng chung: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch/hủy lịch bảo trì hoặc xem lịch sử dụng.
+- User đang sử dụng phòng có thể gửi ghi chú về thiếu đồ dùng hoặc điều cần lưu ý. Admin nhận thông báo; ghi chú không tạo yêu cầu bảo trì và không chặn phòng.
 - Với khóa cơ/thẻ từ, User đề xuất thời gian nhận trước. Admin chấp nhận hoặc đề xuất thời gian/địa điểm khác; User tiếp tục chấp nhận hoặc đề xuất lại đến khi thống nhất.
 - Với khóa số, booking đã duyệt cấp quyền tạo mã theo đúng cặp User–phòng. Admin có thể tạo mã hộ hoặc thu hồi quyền.
-- Admin gắn một SmartLock vào một phòng khóa số. Admin hoặc User có quyền có thể tạo mã ngay cả khi chưa kết nối; mã được lưu local và hiển thị ở trạng thái chờ gửi.
+- Admin gắn một SmartLock vào một phòng khóa số. Admin hoặc User có quyền có thể tạo mã ngay cả khi chưa kết nối OneIoT; mã được lưu theo nguồn dữ liệu đang chọn và hiển thị ở trạng thái chờ gửi.
 - Sau khi dán token và kết nối OneIoT trong phiên, app tự gửi các mã còn chờ của phòng đang gắn khóa. Module Android MQTT TLS dùng Tools Device ID làm danh tính kết nối, gửi `traitCreateTmpPasswordLock` với ID riêng và thời gian hiệu lực lấy từ booking, rồi lắng nghe bản tin SmartLock để ghi nhận check-in/check-out.
 
 Token OneIoT chỉ tồn tại trong RAM của từng phiên đăng nhập. App coi lệnh đã gửi sau khi broker MQTT nhận bản tin và không chờ phản hồi từ SmartLock; app ngắt MQTT khi đăng xuất, chuyển nền hoặc đóng. Token không được lưu trong Async Storage hay repository.
@@ -25,11 +27,13 @@ Token OneIoT chỉ tồn tại trong RAM của từng phiên đăng nhập. App 
 Công tắc nằm tại `src/core/config/runtimeFlags.ts`:
 
 ```ts
-export const ENABLE_REMOTE_SYNC = false;
+export const ENABLE_REMOTE_SYNC = true;
 ```
 
 - `false`: toàn bộ nghiệp vụ và đăng nhập chạy local, không cần booking server.
-- `true`: bật nhánh REST API và gọi `REMOTE_API_BASE_URL`. URL Cloudflare mới từ nhánh `syncdata` đã được giữ sẵn trong file cấu hình.
+- `true`: dùng REST API tại `REMOTE_API_BASE_URL`; URL tunnel đang ghi trong source là địa chỉ thử nghiệm, có thể hết hạn.
+
+Source của nhánh hiện để `true`. Muốn build bản local độc lập, đổi thành `false` trong bản build hoặc bản sao tạm rồi kiểm tra APK vừa tạo. Đổi cờ không tự chuyển dữ liệu Async Storage lên server hoặc kéo dữ liệu server xuống máy.
 
 Kết nối OneIoT độc lập với công tắc này. `../../oneIot_smartlock` là gateway tham khảo cũ và app không gọi tới gateway đó.
 

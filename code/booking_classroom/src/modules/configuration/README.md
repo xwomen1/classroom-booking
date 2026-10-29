@@ -7,6 +7,7 @@
 - Cấu hình khoảng thời gian được phép đặt phòng.
 - Cấu hình quy định hủy phòng.
 - Cấu hình thông báo.
+- Bật/tắt duyệt tự động cho phòng thường; mặc định tắt. Phòng được đánh dấu đặc biệt vẫn chờ Admin.
 - Quản lý các tham số nghiệp vụ thay vì ghi cố định trong giao diện.
 
 ## Giá trị nghiệp vụ ban đầu
@@ -17,4 +18,4 @@
 
 Các module khác đọc cấu hình này nhưng không tự thay đổi quy tắc.
 
-**Hiện trạng:** Admin đã chỉnh được khoảng ngày đặt, số booking tối đa, hạn hủy/đổi phòng, khoảng đệm mã số và bật/tắt tạo thông báo.
+**Hiện trạng:** Admin đã chỉnh được khoảng ngày đặt, số booking tối đa, hạn hủy/đổi phòng, khoảng đệm mã số, tạo thông báo và duyệt tự động. Cả local và REST lưu công tắc này.

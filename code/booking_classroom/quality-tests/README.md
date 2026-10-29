@@ -23,7 +23,7 @@ npx jest --config quality-tests/jest.config.js --coverage                   # k�
 | `support/testUtils.ts` | Đóng băng thời gian, tạo booking mẫu, render/bấm/nhập cho kiểm thử giao diện. |
 | `unit/` | Service và model: luật đặt phòng, vòng đời booking, tài khoản, cấu hình, phòng, bảo trì, thông báo, mã PIN, SmartLock, `apiRequest`. |
 | `component/` | Màn hình đăng nhập, đăng ký, đổi/quên mật khẩu, hồ sơ, quy định, quản lý tài khoản, lịch của tôi, `BookingTimePicker`, `PasswordInput`. |
-| `integration/` | `oneIoTNativeBridge`: oneIoTClient ↔ native module `OneIoTMqtt` (mock). `remoteApiContract`: mọi request của app ở chế độ remote khớp một `@XxxMapping` trong các controller `booking-server/.../server/api/*/…Controller.java` và ngược lại. `endToEndWorkflows`: luồng nhiều module từ đặt phòng tới check-in/check-out. |
+| `integration/` | `oneIoTNativeBridge`: kết nối OneIoT tới native module `OneIoTMqtt` bằng mock. `remoteApiContract`: đối chiếu request của app với sáu controller Java ở `booking-server/src/main/java/com/bookingclassroom/server/api/`. `endToEndWorkflows`: luồng nhiều module từ đặt phòng tới check-in/check-out. |
 | `BAO_CAO_KIEM_THU.md` | Báo cáo kết quả kiểm thử. |
 
 ## Quy ước
@@ -33,9 +33,6 @@ npx jest --config quality-tests/jest.config.js --coverage                   # k�
 - `isRemoteApiEnabled()` luôn là `false` khi `NODE_ENV=test`. Test hợp đồng API tạm đổi `NODE_ENV` và thay `fetch` bằng server giả.
 - `testTimeout` là 30 giây vì lần chạy đầu (chưa có cache) Jest phải transform các module React Native.
 
-## Lỗi đã sửa (từng đánh dấu `test.failing`)
+## Hai lỗi đã sửa
 
-Hiện không còn test `test.failing`. Hai lỗi dưới đây đã được sửa; test tương ứng đã chuyển thành `test` để bảo vệ hành vi đúng.
-
-1. **Phòng demo đã xóa xuất hiện lại** (`unit/roomRepository.quality.ts`): `getRooms()` gộp lại mọi `DEMO_ROOMS` còn thiếu trong storage.
-2. **Không thể đăng ký khi bỏ trống mã khôi phục** (`component/authScreens.quality.tsx`): màn hình gửi `''`, còn `registerAccount` chỉ bỏ qua kiểm tra khi giá trị là `undefined`.
+Ngày 27/10/2026, đã xác nhận và sửa hai lỗi: phòng mẫu xuất hiện lại sau khi xóa (`unit/roomRepository.quality.ts`) và đăng ký thất bại khi bỏ trống mã khôi phục (`component/authScreens.quality.tsx`). Hai ca từng dùng `test.failing` nay là test bình thường. Sau refactor ngày 28/10, bộ kiểm thử có 17 tệp và 398 ca đạt khi chạy lại. Các ca dùng mock/H2 không xác nhận server công khai hoặc khóa thật.

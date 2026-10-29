@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseEntity;
       "spring.jpa.hibernate.ddl-auto=create-drop",
       "spring.jpa.show-sql=false"
     })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RemoteSyncIntegrationTest {
   @LocalServerPort int port;
   @Autowired TestRestTemplate http;
@@ -102,6 +104,18 @@ class RemoteSyncIntegrationTest {
     saveAutoApproval(adminToken, true);
     try {
       assertThat(get("/api/configuration", userToken).path("autoApprovalEnabled").asBoolean()).isTrue();
+
+      // Client phiên bản cũ không gửi hai trường mới; trạng thái đã cấu hình phải được giữ lại.
+      request(HttpMethod.PUT, "/api/configuration", adminToken, Map.of(
+          "minAdvanceDays", 1, "maxAdvanceDays", 3, "maxActiveBookingsPerUser", 2,
+          "cancellationCutoffMinutes", 30, "roomChangeCutoffMinutes", 30, "pinGraceMinutes", 10,
+          "noShowGraceMinutes", 15, "notificationsEnabled", true));
+      assertThat(get("/api/configuration", adminToken).path("autoApprovalEnabled").asBoolean()).isTrue();
+      Map<String, Object> legacyRoomUpdate = new java.util.HashMap<>(roomBody(special, true));
+      legacyRoomUpdate.remove("requiresApproval");
+      JsonNode preservedSpecial = request(HttpMethod.PUT, "/api/rooms/room-floor-2-1",
+          adminToken, legacyRoomUpdate);
+      assertThat(preservedSpecial.path("requiresApproval").asBoolean()).isTrue();
 
       JsonNode normal = request(HttpMethod.POST, "/api/bookings", userToken, Map.of(
           "roomId", "room-floor-3-2", "date", date, "startTime", "07:00", "endTime", "08:00",

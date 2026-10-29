@@ -619,7 +619,9 @@ public class BookingService {
     current.pinGraceMinutes = input.pinGraceMinutes;
     current.noShowGraceMinutes = input.noShowGraceMinutes == null ? 15 : input.noShowGraceMinutes;
     current.notificationsEnabled = input.notificationsEnabled;
-    current.autoApprovalEnabled = Boolean.TRUE.equals(input.autoApprovalEnabled);
+    if (input.autoApprovalEnabled != null) {
+      current.autoApprovalEnabled = input.autoApprovalEnabled;
+    }
     em.merge(current);
     return current;
   }
@@ -1586,7 +1588,7 @@ public class BookingService {
       throw new IllegalArgumentException("Trạng thái phòng không hợp lệ.");
     }
     return new RoomInput(name, floor, location, capacity, equipment, lockType, status,
-        Boolean.TRUE.equals(input.requiresApproval()));
+        input.requiresApproval());
   }
 
   private static void applyRoom(Domain.Room room, RoomInput input) {
@@ -1597,7 +1599,9 @@ public class BookingService {
     room.equipment = new java.util.ArrayList<>(input.equipment());
     room.lockType = input.lockType();
     room.status = input.status();
-    room.requiresApproval = input.requiresApproval();
+    if (input.requiresApproval() != null) {
+      room.requiresApproval = input.requiresApproval();
+    }
   }
 
   private static LocalDateTime localDateTime(String date, String time) {

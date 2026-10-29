@@ -92,6 +92,7 @@ describe('createBooking với module tự động duyệt', () => {
       autoApproved: true,
       reviewedBy: AUTO_APPROVER,
       reviewedAt: NOW.toISOString(),
+      userCanGeneratePin: true,
     });
     expect((await getBookings())[0].status).toBe('APPROVED');
     expect(await hasRoomPinPermission('user', PIN_ROOM)).toBe(true);
@@ -101,7 +102,9 @@ describe('createBooking với module tự động duyệt', () => {
 
   test('normal key room is approved without granting a PIN permission', async () => {
     await enableAutoApproval();
-    await expect(createBooking(request({ roomId: KEY_ROOM }))).resolves.toMatchObject({ status: 'APPROVED' });
+    await expect(createBooking(request({ roomId: KEY_ROOM }))).resolves.toMatchObject({
+      status: 'APPROVED', userCanGeneratePin: false,
+    });
     expect(await hasRoomPinPermission('user', KEY_ROOM)).toBe(false);
   });
 

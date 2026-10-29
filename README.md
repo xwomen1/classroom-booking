@@ -44,6 +44,7 @@ Tài khoản demo:
 - Tìm và đặt phòng theo tầng, ngày giờ, sức chứa, thiết bị và loại khóa.
 - Có thể đặt lặp hàng tuần, theo dõi từng tuần, sửa các lượt đang chờ duyệt hoặc hủy các lượt tương lai trong chuỗi.
 - Admin duyệt/từ chối, đổi phòng phù hợp và quản lý tài khoản. Quản lý phòng và bảo trì dùng chung một màn hình: chọn tầng, chọn phòng rồi sửa, xóa, lên lịch bảo trì hoặc xem lịch sử dụng.
+- Admin có thể bật duyệt tự động cho phòng thường; phòng được đánh dấu cần duyệt vẫn chờ Admin. Công tắc này mặc định tắt. Đặt phòng vẫn phải qua các quy tắc về thời gian, xung đột và giới hạn trước khi được duyệt.
 - Admin quản lý điểm danh: xác nhận có mặt cho phòng dùng khóa cơ/thẻ từ và ghi nhận vắng mặt sau thời gian ân hạn khi chưa có check-in hợp lệ.
 - User đang sử dụng phòng có thể gửi yêu cầu bảo trì kèm lý do; Admin nhận thông báo, thấy tầng/phòng được đánh dấu vàng và xử lý yêu cầu.
 - Với khóa cơ/thẻ từ, User đề xuất giờ nhận khóa; Admin chấp nhận hoặc đề xuất giờ khác; hai bên trao đổi đến khi thống nhất.

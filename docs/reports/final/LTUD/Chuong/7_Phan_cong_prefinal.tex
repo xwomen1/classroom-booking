@@ -26,31 +26,116 @@ Cùng quy tắc duyệt được viết lại ở \path{code/booking-server/src/
 \section{Bảng phân công}
 \label{section:assignment-table}
 
-\begin{table}[H]
+Hình~\ref{fig:design-decomp} chia ứng dụng thành năm phân hệ và mười một module. Hình~\ref{fig:design-modules} liệt kê tệp \texttt{model}, \texttt{services} và \texttt{screens} của từng module. Bảng~\ref{tab:phan-cong-prefinal} đi tiếp một mức: mỗi dòng là một hạng mục một người có thể mở, giải thích và sửa khi bị hỏi. Sơ đồ đi kèm là hình trong báo cáo, không phải số tab của file draw.io.
+
+\begin{figure}[H]
 \centering
+\includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{Hinhve/design/07_functional_decomposition.png}
+\caption{Phân rã chức năng thành mười một module}
+\label{fig:design-decomp}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.74\textheight,keepaspectratio]{Hinhve/design/21_chi_tiet_module_app.png}
+\caption{Tệp chính của từng module ứng dụng}
+\label{fig:design-modules}
+\end{figure}
+
+\begin{landscape}
+\begingroup
 \footnotesize
-\renewcommand{\arraystretch}{1.25}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}p{4.3cm} X}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{
+  >{\raggedright\arraybackslash}p{2.7cm}
+  >{\raggedright\arraybackslash}p{3.5cm}
+  >{\raggedright\arraybackslash}p{8.4cm}
+  >{\raggedright\arraybackslash}p{5.4cm}
+}
+\caption{Phân công chi tiết mã nguồn cho buổi pre-final}
+\label{tab:phan-cong-prefinal}\\
 \toprule
-\textbf{Thành viên} & \textbf{Điểm vào khi bị hỏi} & \textbf{Có thể tùy biến} \\
+\textbf{Thành viên} & \textbf{Hạng mục} & \textbf{Tệp và hàm cần mở} & \textbf{Tùy biến khi bị hỏi} \\
 \midrule
-Đỗ Thùy Linh \newline 20252478M &
-Controller trong \path{api/}, \texttt{sameDayPeriodsOverlap}, lọc phòng &
-Một mapping REST, điều kiện giao khoảng thời gian, điều kiện lọc phòng \\
-Hoàng Văn Tùng \newline 20252389M &
-Màn hình module, \texttt{temporaryPinService}, \path{gia_lap_smartlock/} &
-Một màn hình, độ dài hoặc hiệu lực PIN, kịch bản mô phỏng khóa \\
-Nguyễn Việt Dũng \newline 20252690M &
-\texttt{getApprovalMode}, \texttt{shouldAutoApprove}, \path{quality-tests/} &
-Bật tắt tự duyệt, đánh dấu phòng đặc biệt, một ca kiểm thử chất lượng \\
-Nguyễn Đình Phúc \newline 20251012M &
-\texttt{buildRecurring}\allowbreak\texttt{BookingInputs}, \texttt{confirmBooking}\allowbreak\texttt{NoShow}, \path{design/} &
-Trần số tuần lặp, số phút ân hạn vắng mặt, một sơ đồ trình tự \\
+\endfirsthead
+\caption[]{Phân công chi tiết mã nguồn cho buổi pre-final (tiếp)}\\
+\toprule
+\textbf{Thành viên} & \textbf{Hạng mục} & \textbf{Tệp và hàm cần mở} & \textbf{Tùy biến khi bị hỏi} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\small tiếp trang sau}\\
+\endfoot
 \bottomrule
-\end{tabularx}
-\caption{Phân công mã nguồn cho buổi pre-final}
-\label{tab:phan-cong-prefinal}
-\end{table}
+\endlastfoot
+Đỗ Thùy Linh \newline 20252478M &
+Xác thực và tài khoản &
+\texttt{AccountsController}: \texttt{POST /auth/login}, \texttt{/register}, đổi và đặt lại mật khẩu, CRUD \texttt{/accounts}, hồ sơ \texttt{/profiles} &
+Đổi thông báo lỗi của một đường đăng nhập hoặc đăng ký \\
+& Phòng và lọc &
+\texttt{RoomsController} \texttt{GET/POST/PUT/DELETE /rooms}; \texttt{RoomSearchScreen} gọi repository phòng &
+Thêm hoặc bỏ một điều kiện lọc trên màn hình tìm phòng \\
+& Chiếm chỗ và cấu hình &
+\texttt{GET /room-occupancy} trên \texttt{BookingsController}; \texttt{GET/PUT /configuration} trên \texttt{RoomsController} &
+Đổi cách trả mức chiếm chỗ hoặc một trường cấu hình phía máy chủ \\
+& Giao khoảng thời gian &
+\texttt{sameDayPeriodsOverlap} trong \path{src/core/time/intervals.ts}. Cùng ngày và \texttt{start < end} của khoảng kia &
+Đổi điều kiện giao nhau; booking và bảo trì cùng chịu thay đổi này \\
+& Thông báo phía máy chủ &
+\texttt{NotificationsController}: đọc danh sách, đánh dấu đã đọc, tạo thông báo. Hình~\ref{fig:design-server} &
+Thêm một thông báo thử từ controller rồi xem trên ứng dụng \\
+Hoàng Văn Tùng \newline 20252389M &
+Khung và điều hướng &
+\texttt{App.tsx}, \texttt{RoleDashboardScreen}, biến \texttt{activeScreen}. Hình~\ref{fig:design-flow-user}, Hình~\ref{fig:design-flow-admin} &
+Đổi màn hình được mở ngay sau khi đăng nhập đúng vai trò \\
+& Màn hình xác thực &
+\texttt{LoginScreen}, \texttt{RegistrationScreen}, \texttt{accountRepository} &
+Đổi một kiểm tra trên form hoặc câu thông báo lỗi \\
+& Tìm và xem phòng &
+\texttt{RoomSearchScreen}, \texttt{RoomManagementScreen}, \texttt{roomRepository} &
+Đổi màu hoặc nhãn trạng thái trống, đã đặt, bảo trì \\
+& Đặt phòng nền &
+\texttt{createBooking}, \texttt{validateBooking}, \texttt{MyBookingsScreen}. Nhánh \texttt{apiRequest} hoặc ghi cục bộ &
+Đổi một thông báo khi yêu cầu vi phạm luật đặt phòng \\
+& Mã PIN và quyền &
+\texttt{temporaryPinService}, \texttt{saveTemporaryPin}, \texttt{AccessController}. Hình~\ref{fig:design-pin}, Hình~\ref{fig:design-seq-pin} &
+Đổi độ dài mã hoặc khoảng \texttt{pinGrace} rồi tạo lại PIN \\
+& Khóa và mô phỏng &
+Module \texttt{smart\_lock}, \path{gia_lap_smartlock/smartlock_simulator.py}. Hình~\ref{fig:design-deploy} &
+Đổi một bản tin của trình giả lập và đối chiếu sự kiện ứng dụng nhận được \\
+& Hồ sơ, bảo trì, tài khoản quản trị &
+Module \texttt{profile}, \texttt{schedule\_maintenance}, \texttt{account\_management}, màn hình cấu hình &
+Sửa một trường hồ sơ hoặc một thao tác lịch bảo trì \\
+Nguyễn Việt Dũng \newline 20252690M &
+Luật tự duyệt trên ứng dụng &
+\texttt{getApprovalMode}, \texttt{isSpecialRoom} trong \path{auto_approval/model/approvalPolicy.ts} &
+Tắt \texttt{autoApprovalEnabled}: phòng thường phải về \texttt{PENDING} \\
+& Gắn vào lúc tạo yêu cầu &
+\texttt{resolveApprovalMode}, \texttt{autoApprovalFields}, \texttt{completeAutoApproval}. Gọi sau \texttt{validateBooking}. Hình~\ref{fig:design-activity}, Hình~\ref{fig:design-seq-booking} &
+Đặt \texttt{requiresApproval} cho một phòng thường và chỉ nhánh \texttt{MANUAL} \\
+& Luật tự duyệt trên máy chủ &
+\texttt{AutoApprovalPolicy.shouldAutoApprove}. Cùng ba trường hợp với ứng dụng &
+Làm hai phía lệch nhau để thấy lỗi, rồi sửa lại cho cùng kết quả \\
+& Bộ kiểm thử chất lượng &
+\path{quality-tests/unit/bookingLifecycle.quality.ts}, \path{bookingRules.quality.ts}, \path{integration/remoteApiContract.quality.ts}, \path{endToEndWorkflows.quality.ts} &
+Thêm một assertion cho nhánh \texttt{AUTO} hoặc \texttt{MANUAL} rồi chạy đúng tệp đó \\
+Nguyễn Đình Phúc \newline 20251012M &
+Lịch lặp theo tuần &
+\texttt{buildRecurringBookingInputs}, \texttt{reviewRecurringSeries}, \texttt{updatePendingRecurringBookings}, \texttt{cancelFutureRecurringBookings}. Server: \texttt{/booking-series/\{id\}/review}, \texttt{/pending}, \texttt{/cancel} &
+Đổi trần tám tuần, hoặc gửi \texttt{repeatWeeks} không hợp lệ và chỉ câu lỗi \\
+& Vắng mặt &
+\texttt{confirmBookingNoShow}, \texttt{noShowGraceMinutes}, \texttt{POST /bookings/\{id\}/no-show}. Hình~\ref{fig:design-noshow}, Hình~\ref{fig:design-state} &
+Đổi số phút ân hạn, thử ghi nhận trước mốc và sau mốc \\
+& Màn hình quản trị &
+\texttt{AdminBookingScreen}, \texttt{NotificationScreen}. Hình~\ref{fig:design-flow-admin} &
+Đổi nhãn nút duyệt hoặc ghi nhận vắng mặt, rồi thao tác trên điện thoại \\
+& Bộ sơ đồ thiết kế &
+\path{design/DIAGRAMS.md}, \path{design/figures/}, \path{design/RoomHub_design.drawio} &
+Chỉ đúng hình của luồng bị hỏi và sửa một nhãn trên sơ đồ cho khớp mã \\
+\end{longtable}
+\endgroup
+\end{landscape}
 
 \section{Đỗ Thùy Linh -- API và trao đổi dữ liệu}
 \label{section:assignment-linh}
@@ -93,7 +178,7 @@ Lịch lặp được sinh trong \texttt{buildRecurringBookingInputs}. Buổi đ
 
 Vắng mặt đi qua \texttt{confirmBookingNoShow}. Hàm chỉ nhận booking \texttt{APPROVED}, từ chối nếu đã có check-in, và chỉ cho ghi nhận sau \texttt{noShowGraceMinutes} kể từ giờ bắt đầu. Khi ghi nhận, trạng thái thành \texttt{NO\_SHOW} và mã PIN đang gắn bị thu hồi. Màn hình quản trị và thông báo duyệt được chỉnh tại \texttt{AdminBookingScreen} và \texttt{NotificationScreen}.
 
-Bộ hình dùng để chỉ đúng luồng khi nói nằm trong \path{design/DIAGRAMS.md} và \path{design/figures/}. Trình tự tạo yêu cầu, admin duyệt, tạo PIN và check-in khóa là các hình 15 và 16. Sơ đồ trạng thái booking và mã PIN là hình 18.
+Khi nói, mở Hình~\ref{fig:design-activity} cho lúc tạo yêu cầu, Hình~\ref{fig:design-noshow} cho nhận khóa và vắng mặt, Hình~\ref{fig:design-state} cho các trạng thái lưu trong mã. Nguồn vẽ là \path{design/RoomHub_design.drawio}; lời mô tả từng tab nằm trong \path{design/DIAGRAMS.md}.
 
 Khi bị hỏi về lịch lặp, đổi trần tám tuần trong \texttt{buildRecurringBookingInputs} hoặc gửi \texttt{repeatWeeks} không hợp lệ và chỉ thông báo lỗi. Khi bị hỏi về vắng mặt, đổi \texttt{noShowGraceMinutes} trên màn hình cấu hình rồi thử ghi nhận trước và sau mốc đó.
 

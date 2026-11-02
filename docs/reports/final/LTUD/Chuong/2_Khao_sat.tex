@@ -112,6 +112,42 @@ Vòng đời yêu cầu được mô tả ở Hình~\ref{fig:trangthai}. Bản t
     \label{fig:trangthai}
 \end{figure}
 
+\subsection{Sơ đồ thiết kế đã đối chiếu với mã nguồn}
+\label{subsection:2.2.5}
+Bộ sơ đồ trong \path{design/RoomHub_design.drawio} được vẽ lại sau khi mã tự duyệt, lịch lặp và vắng mặt đã nằm trên cùng một nhánh. Các hình dưới đây là bản dùng khi trình bày luồng hiện tại. Hình~\ref{fig:design-activity} là hoạt động bốn làn của \texttt{POST /api/bookings}: server kiểm tra thời gian, cửa sổ đặt trước, trùng lịch, bảo trì và giới hạn số lượt trước khi rẽ nhánh. Công tắc tự duyệt bật và phòng không có \texttt{requiresApproval} thì lưu \texttt{APPROVED} với người duyệt \texttt{system}; ngược lại lưu \texttt{PENDING}. Với lịch lặp tuần, một buổi vi phạm làm cả chuỗi bị từ chối.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/03_activity_dat_phong_duyet.png}
+    \caption{Hoạt động đặt phòng và duyệt trên bản thiết kế đã đối chiếu mã nguồn}
+    \label{fig:design-activity}
+\end{figure}
+
+Hình~\ref{fig:design-pin} mô tả khóa số: ứng dụng sinh mã bảy chữ số, server cấp \texttt{passwordId} và lưu PIN, rồi ứng dụng gửi MQTT khi phiên OneIoT đang nối. Hình~\ref{fig:design-noshow} tách ba việc còn lại: thỏa thuận nhận khóa cơ, ghi nhận \texttt{NO\_SHOW} sau \texttt{noShowGraceMinutes}, và báo sự cố để lên lịch bảo trì.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/04a_activity_khoa_so_pin.png}
+    \caption{Hoạt động tạo mã PIN tạm và gửi tới khóa}
+    \label{fig:design-pin}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/04b_activity_khoa_co_vang_mat_bao_tri.png}
+    \caption{Hoạt động nhận khóa cơ, vắng mặt và bảo trì}
+    \label{fig:design-noshow}
+\end{figure}
+
+Trạng thái lưu trữ tương ứng nằm ở Hình~\ref{fig:design-state}. Lượt đặt có thể vào thẳng \texttt{APPROVED} khi tự duyệt. Từ \texttt{APPROVED} có thể sang \texttt{CANCELLED} hoặc \texttt{NO\_SHOW}; check-in và check-out nằm bên trong trạng thái đã duyệt. Đổi phòng không đổi trạng thái.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/18a_state_booking.png}
+    \caption{Trạng thái lượt đặt phòng trên bản thiết kế hiện tại}
+    \label{fig:design-state}
+\end{figure}
+
 \section{Đặc tả chức năng}
 \label{section:2.3}
 Mục này đặc tả năm use case quan trọng nhất. Các use case còn lại gồm hủy đặt phòng, hẹn lịch nhận khóa và ủy quyền, quản lý lịch bảo trì, cấu hình nghiệp vụ và quản lý SmartLock được đặc tả tại Phụ lục~\ref{appendix:usecase}. Trước hết, Bảng~\ref{tab:br} liệt kê các quy tắc nghiệp vụ mà hệ thống đã hiện thực; các quy tắc được đánh mã để tham chiếu trong đặc tả và kiểm thử.

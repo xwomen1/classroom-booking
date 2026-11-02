@@ -25,6 +25,22 @@ RoomHub trong phạm vi báo cáo gồm ứng dụng Android, dịch vụ Java, 
 \label{fig:kientruc}
 \end{figure}
 
+Hình~\ref{fig:design-arch} và Hình~\ref{fig:design-c4} lấy từ bộ thiết kế \path{design/}, đủ các tầng đang có trong mã: ứng dụng React Native, cầu Kotlin, AsyncStorage, sáu controller, \texttt{BookingService}, H2 và đường MQTT tới OneIoT. Ứng dụng nối thẳng broker; máy chủ chỉ cấp \texttt{passwordId} và lưu trạng thái PIN do ứng dụng báo lên.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/08_system_architecture.png}
+\caption{Kiến trúc hệ thống theo bộ sơ đồ thiết kế}
+\label{fig:design-arch}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/10_c4_l2_container.png}
+\caption{Các container của RoomHub}
+\label{fig:design-c4}
+\end{figure}
+
 Bên trong mỗi thành phần, nhóm áp dụng kiến trúc phân tầng để tách xử lý giao tiếp, nghiệp vụ và dữ liệu \cite{martin2017clean}. Ở dịch vụ Java, bộ lọc xác thực kiểm tra phiên, tầng giao tiếp tiếp nhận yêu cầu, tầng nghiệp vụ áp dụng các quy tắc đặt phòng, còn tầng dữ liệu quản lý thực thể qua JPA \cite{fowler2002peaa}. Tầng giao tiếp chuyển yêu cầu hợp lệ cho tầng nghiệp vụ; bộ xử lý lỗi tập trung chuyển ngoại lệ thành phản hồi HTTP. Cách phân chia này giúp kiểm thử các quy tắc mà không cần gắn chúng vào mã xử lý HTTP.
 
 Ở ứng dụng di động, mỗi module nghiệp vụ có giao diện, dịch vụ và mô hình dữ liệu. Tầng lõi cung cấp lưu trữ cục bộ, máy khách API và cờ cấu hình. Giao diện gọi tầng dịch vụ; tầng này chọn nguồn dữ liệu theo chế độ chạy. Chi tiết được trình bày tại mục~\ref{section:5.3}.
@@ -37,6 +53,22 @@ Hình~\ref{fig:goi} là biểu đồ gói của ứng dụng di động. Phần 
     \includegraphics[width=0.95\textwidth]{Hinhve/goi.pdf}
     \caption{Biểu đồ gói của ứng dụng di động RoomHub}
     \label{fig:goi}
+\end{figure}
+
+Hình~\ref{fig:design-app} là thành phần mức module của ứng dụng: \texttt{booking} đứng giữa và gọi các module phòng, bảo trì, tự duyệt, quyền và khóa. Hình~\ref{fig:design-server} là phía máy chủ: \texttt{SessionAuthFilter} đứng trước sáu controller, mọi controller gọi chung \texttt{BookingService}. Hai hình này là bản đồ khi một thành viên chỉ đúng tệp mình phụ trách.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.74\textheight,keepaspectratio]{Hinhve/design/11a_c4_l3_component_app.png}
+    \caption{Thành phần các module của ứng dụng di động}
+    \label{fig:design-app}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.74\textheight,keepaspectratio]{Hinhve/design/12_c4_l3_component_server.png}
+    \caption{Thành phần dịch vụ Java sau khi tách controller}
+    \label{fig:design-server}
 \end{figure}
 
 Giữa đặt phòng và quản lý quyền tạo mã vẫn tồn tại phụ thuộc hai chiều: duyệt yêu cầu có thể cấp quyền, còn tạo mã cần đối chiếu yêu cầu đã duyệt. Bản hiện tại giới hạn phụ thuộc này ở tầng dữ liệu thay vì để hai phần giao diện gọi lẫn nhau. Đây là điểm cần tiếp tục đơn giản hóa khi mở rộng hệ thống. Bảng~\ref{tab:module} tóm tắt nhiệm vụ của từng module.
@@ -71,7 +103,21 @@ Bộ lọc phiên và bộ tiếp nhận API cùng gọi tầng nghiệp vụ; t
 \subsection{Thiết kế giao diện}
 Giao diện được thiết kế cho điện thoại Android theo chiều dọc. Màu đỏ nhấn các thao tác chính, màu xanh và xám phân biệt trạng thái phòng; thông báo thành công dùng màu tích cực, lỗi dùng màu cảnh báo. Thành phần đầu trang, nút quay lại, chuông thông báo và menu tài khoản được dùng nhất quán giữa các màn hình. Người dùng chọn ngày giờ bằng điều khiển cảm ứng và nhận phản hồi ngay khi gửi thao tác.
 
-Sau khi đăng nhập, ứng dụng mở bảng điều khiển tương ứng vai trò. Chuông thông báo và menu tài khoản nằm ở vùng đầu trang; các chức năng nghiệp vụ được nhóm thành thẻ để tránh danh sách dài. Hình~\ref{fig:dashboard} dùng ảnh chụp từ bản ứng dụng hiện tại.
+Sau khi đăng nhập, ứng dụng mở bảng điều khiển tương ứng vai trò. Chuông thông báo và menu tài khoản nằm ở vùng đầu trang; các chức năng nghiệp vụ được nhóm thành thẻ để tránh danh sách dài. Ứng dụng không dùng thư viện điều hướng: \texttt{RoleDashboardScreen} chọn màn hình bằng biến \texttt{activeScreen}. Hình~\ref{fig:design-flow-user} và Hình~\ref{fig:design-flow-admin} là luồng màn hình của hai vai trò. Hình~\ref{fig:dashboard} dùng ảnh chụp từ bản ứng dụng hiện tại.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/05a_user_flow_nguoi_dung.png}
+    \caption{Luồng màn hình của người dùng}
+    \label{fig:design-flow-user}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/05b_user_flow_quan_tri_vien.png}
+    \caption{Luồng màn hình của quản trị viên}
+    \label{fig:design-flow-admin}
+\end{figure}
 
 \begin{figure}[H]
     \centering
@@ -147,6 +193,22 @@ Hình~\ref{fig:td_pin} mô tả quan hệ giữa duyệt yêu cầu và cấp m�
     \label{fig:td_pin}
 \end{figure}
 
+Hình~\ref{fig:design-seq-booking} là trình tự tạo yêu cầu trên mã đã gộp. Sau \texttt{validateBooking}, khối rẽ nhánh hoặc lưu \texttt{APPROVED} kèm quyền PIN, hoặc lưu \texttt{PENDING} và báo quản trị viên. Hình~\ref{fig:design-seq-pin} là trình tự tạo PIN: kiểm tra quyền, sinh bảy chữ số, xin \texttt{passwordId}, rồi chỉ \texttt{PUBLISH} MQTT khi OneIoT đã kết nối.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/15b_sequence_tao_yeu_cau_dat_phong.png}
+    \caption{Trình tự tạo yêu cầu đặt phòng, gồm nhánh tự duyệt và nhánh chờ duyệt}
+    \label{fig:design-seq-booking}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/16a_sequence_tao_pin_tam.png}
+    \caption{Trình tự tạo mã PIN tạm và gửi tới khóa}
+    \label{fig:design-seq-pin}
+\end{figure}
+
 \subsection{Thiết kế cơ sở dữ liệu}
 Mã nguồn Java hiện khai báo 11 lớp thực thể JPA. Hình~\ref{fig:erd} mô tả tám nhóm dữ liệu lõi của luồng đặt phòng; dữ liệu hồ sơ, khóa đang quản lý và yêu cầu bảo trì được bổ sung sau nên không xuất hiện trong sơ đồ rút gọn. Tài khoản liên kết với phiên đăng nhập, thông báo, yêu cầu đặt phòng và quyền tạo mã; phòng liên kết với yêu cầu, lịch bảo trì và quyền theo phòng. Quyền tạo mã là quan hệ giữa người dùng và phòng, có trạng thái cấp hoặc thu hồi.
 
@@ -155,6 +217,15 @@ Mã nguồn Java hiện khai báo 11 lớp thực thể JPA. Hình~\ref{fig:erd}
     \includegraphics[width=\textwidth]{Hinhve/erd.pdf}
     \caption{Quan hệ giữa các nhóm dữ liệu lõi của RoomHub}
     \label{fig:erd}
+\end{figure}
+
+Hình~\ref{fig:design-erd} đủ 11 bảng sinh từ \texttt{Domain.java}. Chuỗi đặt lặp không có bảng riêng; các lượt gom bằng \texttt{recurring\_series\_id}. PIN tạm, thỏa thuận nhận khóa và sự kiện ra vào nằm trong \texttt{bookings}. Hồ sơ, khóa đang quản lý và yêu cầu bảo trì có bảng riêng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.74\textheight,keepaspectratio]{Hinhve/design/17_er_diagram.png}
+    \caption{Sơ đồ thực thể đủ 11 bảng của bản hiện tại}
+    \label{fig:design-erd}
 \end{figure}
 
 Danh sách thiết bị của phòng hiện được lưu gộp thành chuỗi, giúp lược đồ thử nghiệm gọn hơn nhưng chưa hỗ trợ tốt việc quản lý số lượng và tình trạng từng thiết bị. Khi triển khai các quy tắc quản lý thiết bị chi tiết, dữ liệu này cần được tách thành các bảng quan hệ riêng. Bảng~\ref{tab:bookings} tóm tắt dữ liệu chính của một yêu cầu đặt phòng.
@@ -343,6 +414,15 @@ TC-17 & Đăng nhập theo hai vai trò; thử mật khẩu sai và đăng ký t
 Ở lần kiểm tra mã nguồn gần nhất, bảy bộ Jest của ứng dụng đạt 39/39 ca. Kho mã nguồn dịch vụ Java có kiểm thử tích hợp cho nhánh dữ liệu từ xa. Biên bản thiết bị lưu cùng ứng dụng ghi nhận bản Release khởi động và điều hướng theo vai trò ở chế độ cục bộ. Các kịch bản trong bảng là mẫu kiểm tra nghiệp vụ; việc nhận mã tại khóa thật và đồng bộ trên hạ tầng triển khai thực tế chưa được xác nhận bởi các kết quả này.
 
 \section{Triển khai}
+Hình~\ref{fig:design-deploy} đặt ba nơi chạy: điện thoại giữ APK, module MQTT và AsyncStorage; máy chủ chạy \texttt{booking-server.jar} cùng tệp H2; OneIoT nối khóa thật hoặc trình giả lập. Đường hầm công khai trên hình chỉ phục vụ thử nghiệm.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{Hinhve/design/14_deployment_diagram.png}
+\caption{Sơ đồ triển khai điện thoại, máy chủ và khóa}
+\label{fig:design-deploy}
+\end{figure}
+
 Bản phát hành Android có thể chạy độc lập với công cụ phát triển. Ở cấu hình hiện tại, ứng dụng cần mạng, dịch vụ Java và cơ sở dữ liệu phía máy chủ đang hoạt động. Dữ liệu nghiệp vụ được trao đổi qua REST API và lưu ở máy chủ. Đường kết nối công khai dùng cho thử nghiệm có thể thay đổi hoặc ngừng hoạt động, nên chưa bảo đảm tính sẵn sàng khi vận hành thực tế. Khi trình diễn không có máy chủ, có thể chọn chế độ lưu cục bộ; dữ liệu khi đó chỉ nằm trên thiết bị. Phần khóa số kết nối OneIoT trực tiếp từ ứng dụng sau khi người dùng xác thực trong phiên.
 
 Biên bản trong kho ứng dụng xác nhận đã cài và mở bản Release trên điện thoại Android ở chế độ cục bộ, không phụ thuộc Metro. Người khác clone kho mã nguồn cần cài công cụ Android và tự build APK theo hướng dẫn tại Phụ lục~\ref{appendix:api}; tệp APK và cache build không được đưa vào Git.

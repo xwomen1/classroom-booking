@@ -1,0 +1,33 @@
+\documentclass[border=7pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  khung/.style={draw=navy,thick,rounded corners=3pt,align=center,
+    font=\small,minimum height=1.1cm,text width=3.5cm,fill=lblue},
+  dl/.style={khung,fill=lgreen},
+  mui/.style={->,thick,navy},
+  nhan/.style={font=\scriptsize,fill=white,inner sep=2pt}]
+\node[khung] (filter) at (0,0) {\textbf{Bộ lọc phiên}\\Xác thực người gọi};
+\node[khung] (api) at (4.5,0) {\textbf{Tầng giao tiếp API}\\Nhận yêu cầu, trả kết quả};
+\node[khung] (error) at (9,0) {\textbf{Bộ xử lý lỗi}\\Chuyển lỗi thành phản hồi};
+\node[khung,fill=lyel,text width=4.2cm] (service) at (4.5,-2.6)
+  {\textbf{Dịch vụ đặt phòng}\\Kiểm tra quyền, lịch và quy tắc};
+\node[khung,fill=lgray,text width=4.2cm] (jpa) at (4.5,-5.1)
+  {\textbf{Tầng lưu trữ JPA}\\Đọc và ghi dữ liệu trong giao dịch};
+\node[dl] (account) at (-0.2,-7.7) {\textbf{Tài khoản}\\Vai trò và phiên};
+\node[dl] (room) at (4.5,-7.7) {\textbf{Phòng}\\Loại khóa, thiết bị, bảo trì};
+\node[dl] (booking) at (9.2,-7.7) {\textbf{Yêu cầu đặt phòng}\\Lịch sử xử lý và mã tạm thời};
+\node[dl] (permission) at (4.5,-10.0)
+  {\textbf{Quyền tạo mã}\\Gắn người dùng với phòng};
+\draw[mui] (filter) -- (api);
+\draw[mui] (api) -- node[nhan,right]{Gọi nghiệp vụ} (service);
+\draw[mui] (api) -- (error);
+\draw[mui] (service) -- node[nhan,right]{Truy cập dữ liệu} (jpa);
+\draw[mui] (jpa.south west) -- (account.north);
+\draw[mui] (jpa) -- (room);
+\draw[mui] (jpa.south east) -- (booking.north);
+\draw[mui] (jpa.south) -- (permission.north);
+\draw[mui,dashed] (booking.south west) -- node[nhan,below]{Quyền theo phòng} (permission.east);
+\end{tikzpicture}
+\end{document}

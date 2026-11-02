@@ -1,0 +1,28 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  flowbox/.style={draw=navy,thick,rounded corners=3pt,fill=lblue,
+               text width=4.2cm,minimum height=0.95cm,align=center,font=\small},
+  outcome/.style={flowbox,fill=lgreen},
+  arrow/.style={->,thick,navy},
+  note/.style={font=\scriptsize,fill=white,inner sep=2pt}]
+\node[flowbox] (review) at (0,0) {Quản trị viên duyệt yêu cầu phòng khóa số};
+\node[flowbox] (permission) at (0,-1.7) {Cấp quyền tạo mã theo người dùng và phòng};
+\node[flowbox] (create) at (0,-3.4) {Người đặt hoặc quản trị viên\\tạo mã PIN tạm thời\\gồm bảy chữ số};
+\node[flowbox] (save) at (0,-5.1) {Lưu mã và khoảng hiệu lực theo lịch đặt phòng};
+\node[flowbox] (check) at (0,-6.8) {Kiểm tra phiên OneIoT và phòng đang gắn khóa};
+\node[outcome] (pending) at (-3.5,-9.2) {Chưa kết nối: mã chờ gửi trong ứng dụng};
+\node[outcome] (broker) at (3.5,-9.2) {Đã kết nối: mã hóa và phát bản tin MQTT};
+\node[outcome] (lock) at (3.5,-11.2) {Khóa thật xử lý bản tin; cần kiểm chứng riêng};
+\draw[arrow] (review)--(permission);
+\draw[arrow] (permission)--(create);
+\draw[arrow] (create)--(save);
+\draw[arrow] (save)--(check);
+\draw[arrow] (check.south west) -- node[note,left]{chưa kết nối} (pending.north);
+\draw[arrow] (check.south east) -- node[note,right]{có kết nối} (broker.north);
+\draw[arrow] (pending.east) -- node[note,above]{kết nối lại}(broker.west);
+\draw[arrow] (broker)--(lock);
+\end{tikzpicture}
+\end{document}

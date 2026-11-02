@@ -1,0 +1,88 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+Chương~\ref{chapter:Experiment} đã trình bày thiết kế và kết quả xây dựng. Chương này phân tích ba giải pháp trong mã nguồn hiện tại: kiểm tra xung đột lịch khi ghi dữ liệu, cấp quyền và tạo mã tạm thời cho từng phòng, cùng cách tổ chức ứng dụng để dùng dữ liệu cục bộ hoặc dịch vụ Java. Mỗi giải pháp được trình bày theo vấn đề, cách thực hiện và phạm vi kết quả đã kiểm chứng.
+
+\section{Chống trùng lịch bằng phép giao khoảng thời gian và khóa bi quan}
+\label{section:5.1}
+
+\subsection{Vấn đề}
+Hai yêu cầu đặt phòng có thể cùng hợp lệ khi được kiểm tra riêng, nhưng xung đột nếu được ghi đồng thời. Cần xét cả các khoảng thời gian chạm biên: phiên 08:00--09:00 và phiên 09:00--10:00 không chiếm phòng cùng lúc. Khi nhiều người đặt cùng một phòng, việc kiểm tra rồi mới ghi còn tạo ra nguy cơ hai giao dịch cùng thấy phòng trống. Trạng thái phòng cũng có thể thay đổi trong thời gian chờ quản trị viên duyệt.
+
+\subsection{Giải pháp}
+\paragraph{Khoảng thời gian nửa mở.} Mỗi phiên sử dụng có ngày $d$ và khoảng giờ $[s,e)$, với $s<e$. Hai phiên trùng nhau khi
+\begin{equation}\label{eq:overlap}
+\mathrm{overlap}([s_1,e_1),[s_2,e_2))
+\iff (d_1=d_2)\land(s_1<e_2)\land(s_2<e_1).
+\end{equation}
+Điều kiện dùng bất đẳng thức chặt nên hai phiên chỉ chạm biên được chấp nhận. Cùng phép kiểm tra được áp dụng cho yêu cầu đang hoạt động, lịch cá nhân và khoảng bảo trì \cite{allen1983interval}. Ngày và giờ được chuẩn hóa trước khi so sánh để tránh nhầm thứ tự thời gian.
+
+\paragraph{Kiểm tra trong giao dịch.} Dịch vụ Java dùng giao dịch và khóa bi quan ở thao tác tạo yêu cầu. Trước khi đọc lịch, dịch vụ khóa bản ghi cấu hình dùng chung và bản ghi phòng được chọn. Bản ghi phòng tồn tại độc lập với danh sách yêu cầu nên không phụ thuộc việc bảng yêu cầu đã có dữ liệu hay chưa. Ở thao tác duyệt, dịch vụ khóa yêu cầu đích rồi kiểm tra lại trạng thái và lịch phòng. Thuật toán~\ref{alg:taobooking} tóm tắt thứ tự xử lý.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\caption{Tạo yêu cầu đặt phòng trong một giao dịch}
+\label{alg:taobooking}
+\KwIn{người đặt $a$, phòng $r$, ngày $d$, giờ bắt đầu $s$, giờ kết thúc $e$}
+\KwOut{yêu cầu chờ duyệt hoặc thông báo lý do từ chối}
+kiểm tra vai trò và quyền tạo yêu cầu\;
+bắt đầu giao dịch; khóa bản ghi cấu hình và phòng $r$\;
+kiểm tra phòng khả dụng, định dạng thời gian và cửa sổ đặt trước\;
+đọc lịch bảo trì và các yêu cầu còn hiệu lực\;
+\If{có bảo trì hoặc có khoảng giao trên cùng phòng}{từ chối\;}
+\If{người đặt có khoảng giờ trùng hoặc vượt giới hạn yêu cầu}{từ chối\;}
+lưu yêu cầu chờ duyệt và tạo thông báo; xác nhận giao dịch\;
+\end{algorithm}
+
+Khóa cấu hình giúp các thao tác tạo được xếp thứ tự khi cùng dùng dịch vụ; khóa phòng xác định tài nguyên chịu xung đột. Tính đúng đắn trên một hệ quản trị cơ sở dữ liệu khác cần được kiểm tra bằng bài thử đồng thời, vì hành vi khóa phụ thuộc cấu hình giao dịch và cơ sở dữ liệu \cite{bernstein2009transaction}.
+
+\subsection{Kết quả đạt được}
+Bộ kiểm thử ứng dụng bao gồm trường hợp trùng phòng, chạm biên, bảo trì và cửa sổ đặt trước. Mã Java hiện đã có khóa trước thao tác tạo và duyệt. Đây là cơ sở kiểm soát xung đột ở dịch vụ máy chủ, nhưng báo cáo chưa coi kiểm thử cục bộ là bằng chứng cho tải đồng thời trên máy chủ triển khai thật. Bài thử nhiều yêu cầu cùng phòng cần được chạy riêng khi có hạ tầng phù hợp.
+
+\section{Cấp quyền tạo mã PIN theo phòng và tích hợp khóa thông minh}
+\label{section:5.2}
+
+\subsection{Vấn đề}
+Phòng khóa số cần cấp quyền cho đúng người đang có yêu cầu được duyệt. Nếu cấp quyền toàn hệ thống cho người dùng, họ có thể tạo mã tại phòng không liên quan. Ngoài ra, kết nối OneIoT có thể chưa sẵn sàng khi người dùng tạo mã; ứng dụng cần lưu trạng thái chờ gửi và tránh đánh đồng việc phát bản tin với việc khóa đã thực thi.
+
+\subsection{Giải pháp}
+\paragraph{Quyền theo phòng.} Khi duyệt yêu cầu phòng khóa số, hệ thống cấp quyền cho cặp người dùng và phòng. Quản trị viên có thể thu hồi quyền này mà không thay đổi vai trò tài khoản. Khi tạo mã, ứng dụng kiểm tra yêu cầu đã duyệt, người tạo là chủ yêu cầu hoặc quản trị viên, quyền theo phòng còn hiệu lực đối với người dùng, và phòng khớp khóa đang được gắn. Mỗi yêu cầu chỉ có một mã chưa bị thu hồi trong một thời điểm.
+
+\paragraph{Khoảng hiệu lực.} Với lịch sử dụng $[s,e)$ và khoảng đệm $g$ trong cấu hình, mã được gắn khoảng hiệu lực
+\begin{equation}\label{eq:pin}
+[t_{\mathrm{from}},t_{\mathrm{until}}]=[s-g,e+g].
+\end{equation}
+Giá trị mặc định của $g$ là 10 phút. Màn hình suy ra trạng thái chờ hiệu lực, đang hiệu lực, hết hạn hoặc đã thu hồi từ thời gian hiện tại và dữ liệu yêu cầu. Hệ thống không khẳng định khóa vật lý đã tự xóa mã nếu chưa có phản hồi hoặc thử nghiệm trên khóa thật.
+
+\paragraph{Tạo và gửi mã.} Ứng dụng sinh mã bảy chữ số, cấp một vị trí mật khẩu trên khóa rồi lưu mã cùng khoảng hiệu lực trước khi thử gửi. Nếu phiên OneIoT đang kết nối, thành phần Android mã hóa dữ liệu theo định dạng khóa và phát bản tin MQTT. Nếu chưa kết nối hoặc gửi lỗi, mã vẫn hiển thị trong ứng dụng ở trạng thái chờ; khi kết nối lại, ứng dụng thử gửi các mã còn hiệu lực, chưa thu hồi và đúng phòng gắn khóa. Thông tin xác thực OneIoT được nhập cho phiên kết nối và không nằm trong mã nguồn.
+
+Việc mã được lưu trong ứng dụng và được đánh dấu đã phát lên broker là hai mốc khác nhau. Trạng thái đã gửi cần được phân biệt với phản hồi thực tế của khóa. Gateway Python trong kho mã nguồn là công cụ thử nghiệm giao thức; đường gửi hiện dùng trong ứng dụng là module Android.
+
+\subsection{Kết quả đạt được}
+Kiểm thử ứng dụng đã bao phủ mã bảy chữ số, quyền theo phòng, thu hồi quyền, phòng gắn khóa và trường hợp tạo mã khi chưa kết nối rồi gửi sau khi kết nối. Mã đã lưu có thể được xem trong ứng dụng; việc áp dụng trên khóa thật chưa được xác nhận chỉ bằng những kiểm thử này. Khi triển khai lâu dài cần bảo vệ tốt hơn dữ liệu mã và token, đồng thời xử lý phản hồi, gửi lại và trùng lặp bản tin.
+
+\section{Kiến trúc module hai chế độ dữ liệu}
+\label{section:5.3}
+
+\subsection{Vấn đề}
+Nhóm cần demo nghiệp vụ trên một điện thoại khi chưa có máy chủ, nhưng cũng cần nhánh gọi dịch vụ Java cho kịch bản nhiều thiết bị. Nếu hai chế độ dùng hai giao diện và hai bộ mã hoàn toàn riêng, việc bảo trì và đối chiếu quy tắc sẽ khó hơn. Khi dùng máy chủ, lỗi kết nối hoặc khác biệt giữa mô hình dữ liệu cục bộ và API cũng dễ làm gián đoạn luồng.
+
+\subsection{Giải pháp}
+Ứng dụng chia mã theo module, mỗi module có giao diện và tầng truy cập nghiệp vụ. Một cấu hình tập trung quyết định thao tác dùng dữ liệu cục bộ hay gọi dịch vụ Java. Giao diện sử dụng cùng một nhóm thao tác nghiệp vụ; ở chế độ máy chủ, tầng truy cập gửi thông tin phiên, nhận dữ liệu và chuyển lỗi của máy chủ thành thông báo cho người dùng.
+
+Bảng~\ref{tab:mapping} đối chiếu các thao tác chính giữa ứng dụng và dịch vụ Java. Mỗi thao tác cần được kiểm tra tương ứng ở hai chế độ; báo cáo không giả định chỉ cần tên hàm giống nhau thì quy tắc đã hoàn toàn tương đương.
+
+\begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.2}
+\caption{Ánh xạ thao tác giữa ứng dụng và dịch vụ Java}\label{tab:mapping}
+\begin{tabularx}{\textwidth}{|p{3.4cm}|X|X|}\hline
+\textbf{Nhóm thao tác} & \textbf{Chế độ cục bộ} & \textbf{Chế độ máy chủ} \\ \hline
+Xác thực & Đọc tài khoản trên thiết bị & Tạo phiên và xác thực tại dịch vụ Java \\ \hline
+Tạo và xử lý yêu cầu & Kiểm tra quy tắc trong kho dữ liệu cục bộ & Gọi REST; dịch vụ Java kiểm tra lại trong giao dịch \\ \hline
+Quyền tạo mã & Lưu quyền theo người dùng và phòng trên thiết bị & Lưu quyền trong cơ sở dữ liệu máy chủ \\ \hline
+Tạo mã tạm thời & Lưu mã vào dữ liệu cục bộ & Lưu mã qua API; gửi OneIoT từ ứng dụng \\ \hline
+\end{tabularx}\end{table}
+
+\subsection{Kết quả đạt được}
+Hệ thống đã có dịch vụ Java, các quy tắc nghiệp vụ, cơ sở dữ liệu H2 và luồng trao đổi dữ liệu với ứng dụng. Cấu hình hiện tại chọn chế độ dùng máy chủ; nhiều thiết bị cùng truy cập một máy chủ đang hoạt động có thể đọc và ghi vào kho dữ liệu chung. Chế độ cục bộ lưu riêng trên từng thiết bị, không tự chuyển hoặc hợp nhất thay đổi với máy chủ khi mất mạng. Đường kết nối công khai hiện chỉ phục vụ thử nghiệm, nên chưa bảo đảm tính sẵn sàng khi vận hành thực tế. Bộ kiểm thử ứng dụng bao phủ nhiều quy tắc ở chế độ cục bộ và dịch vụ Java có kiểm thử tích hợp; việc chia sẻ dữ liệu giữa nhiều thiết bị vẫn cần được xác nhận đầu cuối trên hạ tầng đang chạy.
+
+\end{document}

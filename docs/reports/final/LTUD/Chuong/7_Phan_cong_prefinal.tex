@@ -1,0 +1,100 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+\section{Cách dùng chương này khi trình bày}
+\label{section:assignment-use}
+
+Buổi pre-final yêu cầu từng thành viên đi vào mã nguồn phần mình đóng góp. Khi giảng viên hỏi, người đó debug hoặc đổi một hành vi ngay tại phần đó, đủ để chứng minh nắm luồng chứ không chỉ đọc lại giao diện. Chương này lập từ nhánh \texttt{main} sau khi các nhánh tự duyệt, lịch lặp, vắng mặt và bộ sơ đồ đã được gộp. Một tệp chỉ được ghi cho người có commit chức năng tương ứng. Chỗ nhiều người cùng sửa được tách theo ranh giới hàm, không gộp thành một mục chung chung.
+
+Luồng người dùng vẫn đi từ màn hình React Native tới repository của module, rồi tới API hoặc bộ nhớ cục bộ. Phía máy chủ, yêu cầu HTTP vào controller theo nhóm nghiệp vụ, sau đó vào \texttt{BookingService}. Quy tắc duyệt và quy tắc trùng lịch không nằm trên màn hình.
+
+\section{Luồng đặt phòng trên bản đã merge}
+\label{section:assignment-flow}
+
+Điểm vào phía ứng dụng là \texttt{createBooking} trong \path{code/booking_classroom/src/modules/booking/services/bookingRepository.ts}.
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item Nếu đang chạy chế độ máy chủ, hàm gửi \texttt{POST /api/bookings}. \texttt{BookingsController} nhận yêu cầu và \texttt{BookingService} áp dụng cùng quy tắc tự duyệt với ứng dụng.
+  \item Nếu chạy cục bộ, hàm đọc cờ lặp tuần. \texttt{repeatWeeks} phải là số nguyên từ 1 đến 8. \texttt{buildRecurringBookingInputs} sinh từng buổi cách nhau bảy ngày và gán chung một \texttt{recurringSeriesId}.
+  \item Từng buổi được \texttt{validateBooking} kiểm tra vai trò, trùng lịch, bảo trì và các giới hạn đặt phòng trước khi ghi.
+  \item Sau khi hợp lệ, \texttt{resolveApprovalMode} hỏi module \texttt{auto\_approval}. Công tắc \texttt{autoApprovalEnabled} tắt, hoặc phòng có \texttt{requiresApproval}, thì kết quả là \texttt{MANUAL}. Phòng còn lại là \texttt{AUTO}.
+  \item Nhánh \texttt{AUTO} gọi \texttt{autoApprovalFields} và \texttt{completeAutoApproval}, ghi người duyệt là \texttt{system}. Nhánh \texttt{MANUAL} lưu trạng thái \texttt{PENDING} và báo cho quản trị viên.
+\end{enumerate}
+
+Cùng quy tắc duyệt được viết lại ở \path{code/booking-server/src/main/java/com/bookingclassroom/server/AutoApprovalPolicy.java}: \texttt{shouldAutoApprove} trả về sai khi công tắc tắt hoặc phòng đặc biệt. Vì vậy đổi chính sách chỉ an toàn khi sửa cả hai nơi.
+
+\section{Bảng phân công}
+\label{section:assignment-table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}p{4.3cm} X}
+\toprule
+\textbf{Thành viên} & \textbf{Điểm vào khi bị hỏi} & \textbf{Có thể tùy biến} \\
+\midrule
+Đỗ Thùy Linh \newline 20252478M &
+Controller trong \path{api/}, \texttt{sameDayPeriodsOverlap}, lọc phòng &
+Một mapping REST, điều kiện giao khoảng thời gian, điều kiện lọc phòng \\
+Hoàng Văn Tùng \newline 20252389M &
+Màn hình module, \texttt{temporaryPinService}, \path{gia_lap_smartlock/} &
+Một màn hình, độ dài hoặc hiệu lực PIN, kịch bản mô phỏng khóa \\
+Nguyễn Việt Dũng \newline 20252690M &
+\texttt{getApprovalMode}, \texttt{shouldAutoApprove}, \path{quality-tests/} &
+Bật tắt tự duyệt, đánh dấu phòng đặc biệt, một ca kiểm thử chất lượng \\
+Nguyễn Đình Phúc \newline 20251012M &
+\texttt{buildRecurring}\allowbreak\texttt{BookingInputs}, \texttt{confirmBooking}\allowbreak\texttt{NoShow}, \path{design/} &
+Trần số tuần lặp, số phút ân hạn vắng mặt, một sơ đồ trình tự \\
+\bottomrule
+\end{tabularx}
+\caption{Phân công mã nguồn cho buổi pre-final}
+\label{tab:phan-cong-prefinal}
+\end{table}
+
+\section{Đỗ Thùy Linh -- API và trao đổi dữ liệu}
+\label{section:assignment-linh}
+
+Phần máy chủ được tách thành sáu controller, mỗi controller giữ một nhóm endpoint và ủy quyền nghiệp vụ cho \texttt{BookingService}:
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \texttt{AccountsController}: đăng nhập, đăng ký, mật khẩu, tài khoản và hồ sơ.
+  \item \texttt{RoomsController}: phòng và cấu hình, gồm \texttt{GET /rooms}. Mức chiếm chỗ theo lịch nằm ở \texttt{GET /room-occupancy} của \texttt{BookingsController}.
+  \item \texttt{BookingsController}: tạo, duyệt, hủy, đổi phòng, chuỗi lặp, PIN, nhận khóa, check-in và vắng mặt.
+  \item \texttt{MaintenanceController}, \texttt{AccessController}, \texttt{NotificationsController}: bảo trì, quyền khóa và thông báo.
+\end{itemize}
+
+Phía ứng dụng, quy tắc hai khoảng thời gian cùng ngày có giao nhau nằm tại \texttt{sameDayPeriodsOverlap} trong \path{code/booking_classroom/src/core/time/intervals.ts}. Hàm trả về đúng khi cùng ngày và \texttt{firstStart < secondEnd} đồng thời \texttt{firstEnd > secondStart}. Booking và bảo trì dùng chung chỗ này, nên sửa điều kiện tại đây là sửa một luật, không sửa rải rác trên màn hình.
+
+Khi bị hỏi về lọc phòng hoặc đồng bộ sức chứa, đi từ \texttt{RoomSearchScreen} tới repository phòng, rồi tới \texttt{GET /rooms} và \texttt{GET /room-occupancy}. Logo ứng dụng và một phần thông báo cũng thuộc phần việc này; màn hình thông báo còn được chỉnh tiếp ở mục lịch duyệt của Nguyễn Đình Phúc.
+
+\section{Hoàng Văn Tùng -- ứng dụng di động và khóa}
+\label{section:assignment-tung}
+
+Phần lớn mã React Native nằm ở các module \texttt{auth}, \texttt{account\_management}, \texttt{room\_management}, \texttt{booking}, \texttt{access\_control}, \texttt{smart\_lock}, \texttt{schedule\_maintenance}, \texttt{profile}, \texttt{configuration} và \texttt{notifications}. \texttt{App.tsx} cùng \path{src/app/screens/RoleDashboardScreen.tsx} ghép các màn hình theo vai trò. Repository của từng module tự chọn API hoặc lưu cục bộ theo cờ chạy.
+
+Luồng khóa đi từ quyền theo phòng trong \texttt{access\_control}, qua \texttt{temporaryPinService} và \texttt{saveTemporaryPin}, tới gửi MQTT khi phiên OneIoT đang kết nối. Mã tạm thời có bảy chữ số. Gửi bản tin thành công chưa chứng minh khóa vật lý đã áp mã. Chương trình mô phỏng để kiểm tra bản tin nằm ở \path{gia_lap_smartlock/smartlock_simulator.py}; \path{oneIot_smartlock/} là gateway tham khảo, không phải đường chạy chính của ứng dụng.
+
+Khi trình bày, chọn một màn hình mình viết, chỉ hàm repository mà màn hình gọi, rồi chỉ nhánh local hoặc nhánh \texttt{apiRequest}. Nếu được yêu cầu đổi hành vi, sửa đúng hàm đó, ví dụ điều kiện tạo PIN hoặc một nhãn trên màn hình, rồi chạy lại trên máy đang mở Metro.
+
+\section{Nguyễn Việt Dũng -- tự duyệt và kiểm thử}
+\label{section:assignment-dung}
+
+Quy tắc thuần nằm ở \texttt{getApprovalMode} và \texttt{isSpecialRoom} trong \path{code/booking_classroom/src/modules/auto_approval/model/approvalPolicy.ts}. \texttt{autoApprovalService.ts} cung cấp \texttt{resolveApprovalMode}, \texttt{autoApprovalFields} và \texttt{completeAutoApproval}. \texttt{createBooking} chỉ gọi các hàm này sau \texttt{validateBooking}. Phòng thường được duyệt ngay vì xung đột lịch đã bị chặn ở bước trước, không phải vì bỏ qua kiểm tra.
+
+Máy chủ lặp lại quyết định trong \texttt{AutoApprovalPolicy.\allowbreak shouldAutoApprove}. Hai bản phải cùng kết quả với cùng cấu hình và cùng cờ \texttt{requiresApproval}. Bộ kiểm thử chất lượng nằm ở \path{code/booking_classroom/quality-tests/}: ca đơn vị cho vòng đời booking và luật đặt phòng, ca hợp đồng REST, ca end-to-end, cùng các ca màn hình đăng nhập, đặt phòng và tài khoản. Báo cáo kết quả kiểm thử nằm cạnh bộ test, trong \path{quality-tests/BAO_CAO_KIEM_THU.md}.
+
+Khi bị hỏi, tắt \texttt{autoApprovalEnabled} và tạo yêu cầu phòng thường: trạng thái phải về \texttt{PENDING}. Bật lại công tắc nhưng đặt phòng có \texttt{requiresApproval}: vẫn \texttt{PENDING}. Phòng thường với công tắc bật: \texttt{APPROVED} và \texttt{reviewedBy} là \texttt{system}. Một cách khác là chạy ca \path{quality-tests/unit/bookingLifecycle.quality.ts} rồi chỉ assertion tương ứng.
+
+\section{Nguyễn Đình Phúc -- lịch lặp, vắng mặt và sơ đồ}
+\label{section:assignment-phuc}
+
+Lịch lặp được sinh trong \texttt{buildRecurringBookingInputs}. Buổi đầu chịu đủ cửa sổ đặt trước và giới hạn số lượt của người dùng; các buổi sau trong cùng chuỗi bỏ hai kiểm tra đó, vẫn kiểm tra trùng lịch và bảo trì. Quản trị xử lý cả chuỗi qua \texttt{reviewRecurringSeries}, \texttt{updatePendingRecurringBookings} và \texttt{cancelFutureRecurringBookings}. Phía máy chủ, các đường tương ứng là \texttt{/booking-series/\{seriesId\}/review}, \texttt{/pending} và \texttt{/cancel}. Trường chuỗi được thêm trên cả model ứng dụng và \texttt{Domain} của máy chủ.
+
+Vắng mặt đi qua \texttt{confirmBookingNoShow}. Hàm chỉ nhận booking \texttt{APPROVED}, từ chối nếu đã có check-in, và chỉ cho ghi nhận sau \texttt{noShowGraceMinutes} kể từ giờ bắt đầu. Khi ghi nhận, trạng thái thành \texttt{NO\_SHOW} và mã PIN đang gắn bị thu hồi. Màn hình quản trị và thông báo duyệt được chỉnh tại \texttt{AdminBookingScreen} và \texttt{NotificationScreen}.
+
+Bộ hình dùng để chỉ đúng luồng khi nói nằm trong \path{design/DIAGRAMS.md} và \path{design/figures/}. Trình tự tạo yêu cầu, admin duyệt, tạo PIN và check-in khóa là các hình 15 và 16. Sơ đồ trạng thái booking và mã PIN là hình 18.
+
+Khi bị hỏi về lịch lặp, đổi trần tám tuần trong \texttt{buildRecurringBookingInputs} hoặc gửi \texttt{repeatWeeks} không hợp lệ và chỉ thông báo lỗi. Khi bị hỏi về vắng mặt, đổi \texttt{noShowGraceMinutes} trên màn hình cấu hình rồi thử ghi nhận trước và sau mốc đó.
+
+\end{document}

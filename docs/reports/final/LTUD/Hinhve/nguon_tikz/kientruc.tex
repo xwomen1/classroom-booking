@@ -1,0 +1,41 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\tikzset{
+ layer/.style={draw=navy,thick,rounded corners=3pt,fill=#1,minimum width=5.2cm,minimum height=1.05cm,align=center,font=\footnotesize},
+ grp/.style={draw=#1,very thick,rounded corners=6pt,inner sep=8pt},
+ gl/.style={font=\small\bfseries,text=#1,anchor=south west},
+}
+\begin{document}
+\begin{tikzpicture}[>=Stealth]
+ % Mobile
+ \node[layer=lblue] (m1) at (0,0) {\textbf{Tầng giao diện} (screens/, components/)\\LoginScreen, RoomSearchScreen, AdminBookingScreen...};
+ \node[layer=lblue] (m2) at (0,-1.6) {\textbf{Tầng nghiệp vụ} (services/)\\bookingRepository, temporaryPinService...};
+ \node[layer=lblue] (m3) at (0,-3.2) {\textbf{Tầng lõi} (core/)\\jsonStorage, api/client, runtimeFlags};
+ \node[layer=lgray] (m4) at (0,-4.8) {Async Storage (dữ liệu local)\\+ Native module Kotlin (thông báo)};
+ \draw[->,thick] (m1)--(m2); \draw[->,thick] (m2)--(m3); \draw[->,thick] (m3)--(m4);
+ \node[grp=navy,fit=(m1)(m4)] (G1) {};
+ \node[gl=navy] at (G1.north west) {Ứng dụng di động (React Native 0.86 + TypeScript)};
+
+ % Server
+ \node[layer=lyel] (s1) at (9.6,0) {\textbf{SessionAuthFilter}\\kiểm tra Bearer token};
+ \node[layer=lyel] (s2) at (9.6,-1.6) {\textbf{ApiController} (@RestController)\\REST/JSON \texttt{/api/**}};
+ \node[layer=lyel] (s3) at (9.6,-3.2) {\textbf{BookingService} (@Service, @Transactional)\\quy tắc nghiệp vụ, khóa bi quan};
+ \node[layer=lgray] (s4) at (9.6,-4.8) {JPA / Hibernate \textrightarrow{} H2 (file)\\bảng accounts, rooms, bookings...};
+ \draw[->,thick] (s1)--(s2); \draw[->,thick] (s2)--(s3); \draw[->,thick] (s3)--(s4);
+ \node[grp=hust,fit=(s1)(s4)] (G2) {};
+ \node[gl=hust] at (G2.north west) {Booking server (Java 17 + Spring Boot 3.4)};
+
+ % Gateway
+ \node[layer=lgreen,minimum width=4.4cm] (g1) at (4.1,-7.6) {\textbf{SmartLock gateway} (Python)\\HTTP :8135, mã hóa AES-CTR};
+ \node[layer=lgreen,minimum width=3.6cm] (g2) at (9.4,-7.6) {\textbf{OneIoT broker}\\MQTT over TLS :2111};
+ \node[layer=lgreen,minimum width=3.0cm] (g3) at (13.4,-7.6) {\textbf{SmartLock}\\DLWA12};
+ \draw[<->,thick] (g1) -- node[font=\scriptsize,above]{MQTT} (g2);
+ \draw[<->,thick] (g2) -- node[font=\scriptsize,above]{trait} (g3);
+
+ \draw[<->,thick,dashed,hust] (m3.east) -- ++(1.0,0) |- (s1.west);
+ \node[font=\scriptsize,text=hust,align=center,fill=white,inner sep=1pt] at (4.8,-1.6) {REST/JSON\\+ Bearer token\\(khi bật\\ENABLE\_REMOTE\\\_SYNC)};
+ \draw[->,thick,green!40!black] (G1.south) |- node[font=\scriptsize,pos=0.75,above]{POST /api/lock/temp-password} (g1.west);
+ \actor{u}{(-4.6,-1.2)}{Người dùng}
+ \draw[->,thick] (u-r) -- (G1.west|-u-r);
+\end{tikzpicture}
+\end{document}

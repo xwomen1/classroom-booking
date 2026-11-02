@@ -1,0 +1,25 @@
+\documentclass[border=7pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}[
+  cs/.style={draw=navy,thick,rounded corners=3pt,fill=lblue,
+    align=center,font=\small,text width=3.1cm,minimum height=1.2cm},
+  lk/.style={thick,navy},
+  bc/.style={font=\scriptsize,text=hust,fill=white,inner sep=1pt}]
+\node[cs] (acc) at (0,0) {\textbf{Tài khoản}\\Người đặt và quản trị viên};
+\node[cs] (booking) at (5,0) {\textbf{Yêu cầu đặt phòng}\\Thời gian và kết quả duyệt};
+\node[cs] (room) at (10,0) {\textbf{Phòng}\\Sức chứa và loại khóa};
+\node[cs] (session) at (0,-2.7) {\textbf{Phiên đăng nhập}\\Xác thực truy cập};
+\node[cs] (permission) at (5,-2.7) {\textbf{Quyền tạo mã}\\Người dùng và phòng};
+\node[cs] (maintenance) at (10,-2.7) {\textbf{Lịch bảo trì}\\Khoảng thời gian, lý do};
+\node[cs] (notification) at (0,-5.4) {\textbf{Thông báo}\\Người nhận, nội dung};
+\node[cs] (config) at (10,-5.4) {\textbf{Cấu hình}\\Quy tắc sử dụng phòng};
+\draw[lk] (acc) -- node[bc,above]{1 -- nhiều} (booking);
+\draw[lk] (booking) -- node[bc,above]{nhiều -- 1} (room);
+\draw[lk] (acc) -- node[bc,left]{1 -- nhiều} (session);
+\draw[lk] (acc.south east) -- node[bc,above]{1 -- nhiều} (permission.north west);
+\draw[lk] (permission.north east) -- node[bc,above]{nhiều -- 1} (room.south west);
+\draw[lk] (room) -- node[bc,right]{1 -- nhiều} (maintenance);
+\draw[lk] (acc.south west) to[out=225,in=135] (notification.north west);
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,37 @@
+\documentclass[border=6pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  state/.style={draw=navy,thick,rounded corners=4pt,fill=lblue,
+                text width=2.8cm,minimum height=0.9cm,align=center,font=\small},
+  note/.style={font=\scriptsize,fill=white,inner sep=2pt},
+  flow/.style={->,thick,navy}]
+\node[font=\small\bfseries,text=navy,anchor=west] at (-6.4,1.4)
+  {Trạng thái yêu cầu đặt phòng};
+\node[state] (p) at (-4.5,0) {Chờ duyệt};
+\node[state,fill=lgreen] (a) at (0,0) {Đã duyệt};
+\node[state,fill=lyel,dashed] (used) at (4.5,0) {Đã sử dụng\\\scriptsize Suy ra theo thời gian};
+\node[state,fill=lred] (r) at (-4.5,-2.6) {Từ chối};
+\node[state,fill=lgray] (c) at (0,-2.6) {Đã hủy};
+\node[state,fill=lred] (n) at (4.5,-2.6) {Vắng mặt};
+\draw[flow] (-6.4,0)--(p);
+\draw[flow] (p)--node[note,above]{Duyệt}(a);
+\draw[flow] (a)--node[note,above]{Hết giờ}(used);
+\draw[flow] (p)--node[note,left]{Từ chối}(r);
+\draw[flow] (a)--node[note,right]{hủy đúng hạn}(c);
+\draw[flow] (a.south east)--node[note,sloped,above]{quá hạn nhận phòng}(n.north west);
+\draw[flow] (p.south east)--node[note,sloped,below]{rút yêu cầu}(c.north west);
+\node[font=\small\bfseries,text=navy,anchor=west] at (-6.4,-4.4)
+  {Trạng thái hiển thị của mã tạm thời};
+\node[state] (pp) at (-4.5,-5.8) {Chưa hiệu lực};
+\node[state,fill=lgreen] (pa) at (0,-5.8) {Đang hiệu lực};
+\node[state,fill=lgray] (pe) at (4.5,-5.8) {Hết hạn};
+\node[state,fill=lred] (pr) at (0,-8.2) {Đã thu hồi};
+\draw[flow] (-6.4,-5.8)--(pp);
+\draw[flow] (pp)--node[note,above]{bắt đầu hiệu lực}(pa);
+\draw[flow] (pa)--node[note,above]{hết hiệu lực}(pe);
+\draw[flow] (pa)--node[note,right]{hủy / đổi phòng}(pr);
+\draw[flow] (pp.south east)--node[note,sloped,below]{hủy / đổi phòng}(pr.north west);
+\end{tikzpicture}
+\end{document}

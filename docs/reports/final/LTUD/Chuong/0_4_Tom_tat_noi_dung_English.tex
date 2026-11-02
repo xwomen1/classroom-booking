@@ -1,0 +1,48 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+\begin{center}\bfseries\large ABSTRACT\end{center}
+\vspace{0.5cm}
+RoomHub supports instructors in finding and booking classrooms or meeting rooms, while administrators review requests and manage schedules. The project uses a spreadsheet-based scheduling process as a reference scenario and implements room search, booking, approval, notification and access-permission workflows. Test data model an eight-storey building, with Building C7 at Hanoi University of Science and Technology serving as a contextual reference. The floor plan and room records are created by the team; they do not represent the building's actual layout or a campus-wide deployment.
+
+This pre-final report is prepared for course ET4710, Mobile Application Programming. The system comprises an Android application built with React Native and TypeScript, a Java 17/Spring Boot service exposing REST APIs, and an H2 database accessed through JPA. The current configuration selects server mode, in which the application exchanges data through the API. On-device storage remains available as a separate mode; changes made while offline are not automatically reconciled with server data. The public tunnel is intended for testing and does not establish production availability.
+
+For rooms equipped with a smart lock, an administrator or an authorised user may create a seven-digit temporary PIN. The application records the PIN and its validity interval before attempting delivery. Once a OneIoT session is connected, the application publishes the corresponding MQTT message; publication does not prove that the physical lock has applied the PIN. The source contains the server service, database access and application-to-server flow, but data sharing across multiple devices still requires end-to-end verification on a running deployment. A release build has been checked independently on an Android device in local mode.
+
+\newpage
+
+\begin{center}
+    \Large{\textbf{PHÂN CÔNG NHIỆM VỤ}}\\
+\end{center}
+
+\vspace{0.8cm}
+
+Bảng dưới đây là phân công dùng khi pre-final. Mỗi người phân tích đúng phần mã của mình, và khi được hỏi thì debug hoặc đổi hành vi tại các điểm nêu ở Chương~\ref{chapter:Assignment}. Bảng bám lịch sử Git trên nhánh \texttt{main} sau khi đã gộp tự duyệt phòng thường, lịch lặp, vắng mặt và bộ sơ đồ thiết kế.
+
+\vspace{0.3cm}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.25}
+
+\begin{tabularx}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.6cm}
+    >{\raggedright\arraybackslash}X
+}
+\toprule
+\textbf{Thành viên} & \textbf{Phần mã phụ trách trên bản đã merge} \\
+\midrule
+Đỗ Thùy Linh &
+API Java theo nhóm nghiệp vụ, trao đổi ứng dụng--máy chủ, lọc phòng và quy tắc giao khoảng thời gian dùng chung. \\
+Hoàng Văn Tùng &
+Khung ứng dụng Android, các module màn hình và nghiệp vụ chính, mã PIN theo phòng, OneIoT và mô phỏng SmartLock. \\
+Nguyễn Việt Dũng &
+Tự duyệt phòng thường, chính sách duyệt khớp giữa ứng dụng và máy chủ, bộ kiểm thử chất lượng. \\
+Nguyễn Đình Phúc &
+Đặt phòng lặp theo tuần, ghi nhận vắng mặt, thông báo phía quản trị và bộ sơ đồ thiết kế. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}

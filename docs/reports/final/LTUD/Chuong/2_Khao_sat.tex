@@ -1,282 +1,165 @@
-\documentclass[../DoAn.tex]{subfiles}
-\begin{document}
+\section{Bối cảnh khảo sát và mô hình nghiệp vụ}
+\subsection{Quy trình tham chiếu và phạm vi dữ liệu}
+Phương pháp khảo sát là phân tích quy trình nghiệp vụ tham chiếu của nhóm \cite{quytrinh2026}, từ đó xác định tác nhân, trường hợp sử dụng, trạng thái và quyền thao tác. Dữ liệu phòng do nhóm xây dựng để mô hình hóa tình huống; đây là khảo sát quy trình và phân tích yêu cầu, không phải nghiên cứu thống kê người dùng.
 
-Chương~\ref{chapter:Introduction} đã giới thiệu bài toán. Chương này đối chiếu tài liệu quy trình nghiệp vụ do nhóm xây dựng với kịch bản sử dụng và các nhóm công cụ quản lý lịch phổ biến, sau đó xác định tác nhân, use case và quy tắc cần triển khai. Các nhận định về nhu cầu được dùng làm giả thiết thiết kế, chưa phải kết quả khảo sát định lượng tại một đơn vị cụ thể.
+Hai vai trò tài khoản là \code{user} và \code{admin}; OneIoT là hệ thống khóa bên ngoài. Dữ liệu tám tầng/bảy phòng mỗi tầng phục vụ kiểm tra giao diện và lọc phòng.
 
-\section{Khảo sát hiện trạng}
-\label{section:2.1}
+\subsection{Phương thức tiếp cận phòng trong bản triển khai}
+Mỗi phòng có một loại khóa \code{PHYSICAL_KEY} hoặc \code{PIN_CODE} (Bảng~\ref{tab:access-modes}); người đặt không tự đổi phương thức khóa cho một lượt.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.24\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.43\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.33\textwidth-2\tabcolsep\relax}}
+\caption{Hai phương thức tiếp cận được model hỗ trợ}\label{tab:access-modes}\\
+\toprule \textbf{Loại khóa} & \textbf{Luồng sau khi duyệt} & \textbf{Đặc điểm vận hành}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{Hai phương thức tiếp cận (tiếp)}\\
+\toprule \textbf{Loại khóa} & \textbf{Luồng sau khi duyệt} & \textbf{Đặc điểm vận hành}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Khóa cơ/thẻ & User đề xuất giờ nhận; admin chấp nhận hoặc đề xuất lại; có thể khai báo người nhận hộ. Admin xác nhận có mặt trong giờ sử dụng. & Lịch hẹn và ủy quyền hỗ trợ bàn giao chìa; việc trả chìa được thực hiện theo quy trình quản lý phòng.\\\addlinespace[1.5pt]
+Khóa số & Phòng được gắn SmartLock; người có quyền tạo PIN theo booking và thời hạn; mã chờ hoặc được gửi qua OneIoT. & Ứng dụng lưu PIN, gửi lệnh qua OneIoT và tiếp nhận sự kiện sử dụng khóa theo phiên kết nối.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\subsection{Khảo sát người dùng và quy trình hiện hành}
-Nhóm chọn quy trình ghi yêu cầu đặt phòng trên bảng tính làm tình huống tham chiếu. Bảng tính có thể lưu đăng ký, nhưng nếu không có công cụ kiểm tra đi kèm, người phụ trách phải tự đối chiếu các khoảng thời gian trùng nhau và điều kiện của từng phòng. Vì vậy, người mượn khó biết ngay phòng nào còn trống, còn người quản lý phải rà lại lịch trước khi duyệt. Đây là kịch bản nghiệp vụ dùng để thiết kế hệ thống, không phải kết quả khảo sát định lượng về một đơn vị cụ thể.
-
-Phạm vi đề tài là đặt phòng học, phòng họp: giảng viên tra cứu theo thời gian, sức chứa, trang thiết bị và vị trí; cán bộ quản trị xét duyệt yêu cầu và quản lý lịch. Nhóm dùng mô hình tòa nhà tám tầng, lấy tòa C7 làm bối cảnh tham chiếu; sơ đồ và danh mục phòng là dữ liệu thử nghiệm, chưa phải mô hình triển khai trên toàn trường. Các yêu cầu được cụ thể hóa qua tài liệu quy trình, trường hợp sử dụng, quy tắc nghiệp vụ và kiểm thử.
-
-Nguồn nghiệp vụ chính là tài liệu \emph{Quy trình nghiệp vụ RoomHub} do nhóm xây dựng \cite{quytrinh2026}. Tài liệu mô tả các bước từ tra cứu, gửi yêu cầu, phê duyệt, tiếp cận phòng tới hoàn tất. Hai phương thức tiếp cận được xét là nhận khóa cơ hoặc thẻ từ và tạo mã tạm thời cho khóa số quản lý trực tuyến. Bảng~\ref{tab:loaiphong} tóm tắt các trường hợp minh họa trong quy trình.
-
-\begin{table}[H]
-\centering\small
-\renewcommand{\arraystretch}{1.2}
-\caption{Các cấu hình phòng trong kịch bản nghiệp vụ}
-\label{tab:loaiphong}
-\begin{tabularx}{\textwidth}{|p{1.6cm}|p{4.2cm}|X|}
-\hline
-\textbf{Loại} & \textbf{Phương thức} & \textbf{Quy trình tiếp cận} \\ \hline
-Loại A & Chỉ dùng mã số & Nhân viên cơ sở vật chất đặt mã tại khóa trước giờ sử dụng và thay đổi sau khi kết thúc. \\ \hline
-Loại B & Chỉ dùng thẻ từ & Người dùng nhận thẻ tại điểm bàn giao, sử dụng và trả thẻ sau khi kết thúc. \\ \hline
-Loại C & Có cả mã số và thẻ; phiên sử dụng chọn mã & Áp dụng quy trình cấp mã, không mặc nhiên bàn giao thẻ. \\ \hline
-Loại D & Có cả mã số và thẻ; phiên sử dụng chọn thẻ & Áp dụng quy trình nhận và trả thẻ, không mặc nhiên cấp mã. \\ \hline
-\end{tabularx}
-\end{table}
-
-Trong phần mô phỏng khóa số, nhóm dùng cấu hình SmartLock kết nối nền tảng OneIoT. Ứng dụng khái quát phương thức tiếp cận thành khóa cơ/thẻ từ và khóa mã số trực tuyến. Mỗi yêu cầu dùng một phương thức theo loại khóa của phòng; quyền tạo mã được gắn với đúng phòng sau khi yêu cầu được duyệt.
-
-\subsection{Khảo sát các giải pháp tương tự}
-Để định vị giải pháp, nhóm đối chiếu RoomHub với các nhóm công cụ thường dùng để ghi lịch và đặt chỗ. Bảng~\ref{tab:sosanh} là so sánh định tính theo khả năng thiết kế, không phải phép đo hay đánh giá toàn bộ sản phẩm trên thị trường.
-
-\begin{table}[H]
-\centering\small
-\renewcommand{\arraystretch}{1.2}
-\caption{So sánh các nhóm giải pháp quản lý đặt phòng}
-\label{tab:sosanh}
-\begin{tabularx}{\textwidth}{|p{3.6cm}|X|X|X|X|}
-\hline
-\textbf{Tiêu chí} & \textbf{Sổ ghi / bảng tính} & \textbf{Lịch tài nguyên trực tuyến} & \textbf{Phần mềm đặt chỗ thương mại} & \textbf{RoomHub} \\ \hline
-Trạng thái phòng theo khung giờ & Thủ công & Có & Có & Có \\ \hline
-Sơ đồ tầng, vị trí phòng & Không & Không & Thường có & Có (chữ U, 8 tầng) \\ \hline
-Lọc sức chứa, thiết bị & Không & Hạn chế & Có & Có \\ \hline
-Quy tắc riêng (hạn đặt trước, giới hạn yêu cầu, bảo trì) & Không & Hạn chế & Có, cấu hình theo gói & Có, quản trị viên chỉnh trong ứng dụng \\ \hline
-Quy trình phê duyệt & Thủ công & Tự động chấp nhận hoặc từ chối & Có & Có, kèm đổi phòng \\ \hline
-Cấp quyền tiếp cận theo loại khóa & Không & Không & Qua tích hợp riêng & Hẹn nhận khóa / mã PIN tạm thời \\ \hline
-Chi phí, khả năng tùy biến & Công sức quản lý thủ công & Phụ thuộc gói dịch vụ & Phụ thuộc nhà cung cấp & Tự phát triển \\ \hline
-\end{tabularx}
-\end{table}
-
-Từ phân tích trên, nhóm ưu tiên sơ đồ tầng có trạng thái theo thời gian, thao tác đặt phòng ngay sau khi chọn phòng, kiểm tra quy tắc trước khi lưu, quy trình duyệt và đổi phòng có điều kiện, quyền tiếp cận theo loại khóa, cùng khả năng chỉnh tham số nghiệp vụ trong ứng dụng.
-
-\section{Tổng quan chức năng}
-\label{section:2.2}
-Mục này tóm tắt chức năng của hệ thống ở mức tổng quan; đặc tả chi tiết được trình bày trong mục~\ref{section:2.3}.
-
-\subsection{Biểu đồ use case tổng quát}
-\label{subsection:2.2.1}
-Hệ thống có hai vai trò người dùng chính: giảng viên gửi và theo dõi yêu cầu, cán bộ quản lý duyệt và cấu hình. OneIoT và khóa thông minh là hệ thống ngoài trong nhánh cấp mã. Hình~\ref{fig:uc_tongquat} thể hiện use case ở mức khái niệm; phần truyền bản tin hiện được ứng dụng Android thực hiện trực tiếp. Vai trò được xác định từ tài khoản đăng nhập.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{Hinhve/uc_tongquat.pdf}
-    \caption{Biểu đồ use case tổng quát của hệ thống RoomHub}
-    \label{fig:uc_tongquat}
+\section{Tác nhân, kịch bản sử dụng và luồng nghiệp vụ}
+\subsection{Phạm vi của từng tác nhân}
+Hình~\ref{fig:uc-overview} mô tả chức năng chung: user quản lý lượt của mình, admin xử lý yêu cầu/tài nguyên. Repository local hoặc filter/service server tiếp tục kiểm quyền sau UI.
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth,height=.40\textheight,keepaspectratio]{Hinhve/design/02a_use_case_tong_quat.pdf}
+\caption{Các use case chung và hai vai trò của RoomHub}\label{fig:uc-overview}
 \end{figure}
 
-Các use case dùng chung gồm đăng nhập, đăng ký, khôi phục mật khẩu, xem thông báo và cập nhật hồ sơ. Người dùng có các chức năng tìm và đặt phòng, xem lịch theo trạng thái, quản lý yêu cầu của mình, ủy quyền người nhận khóa hộ và tạo mã PIN tạm thời khi được cấp quyền. Quản trị viên quản lý tài khoản, phòng, yêu cầu, lịch, cấu hình và khóa; thao tác duyệt, từ chối hoặc đổi phòng là phần trung tâm của quy trình.
-
-\subsection{Biểu đồ use case phân rã ``Tìm và đặt phòng''}
-\label{subsection:2.2.2}
-Use case ``Tìm và đặt phòng'' được phân rã như Hình~\ref{fig:uc_datphong}. Người dùng bắt buộc chọn khung thời gian, chọn tầng, xem trạng thái phòng trên sơ đồ, chọn phòng và gửi yêu cầu; việc lọc theo sức chứa, thiết bị và loại khóa là tùy chọn. Khi gửi, hệ thống luôn thực hiện use case ``Kiểm tra quy tắc nghiệp vụ'' với các quy tắc trong Bảng~\ref{tab:br}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{Hinhve/uc_datphong.pdf}
-    \caption{Biểu đồ use case phân rã ``Tìm và đặt phòng''}
-    \label{fig:uc_datphong}
+Hình~\ref{fig:uc-user} tách tác vụ user. Mọi yêu cầu đặt đều được kiểm quy tắc trước nhánh tự duyệt, không do user tự cấp quyền.
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth,height=.50\textheight,keepaspectratio]{Hinhve/design/02b_use_case_nguoi_dung.pdf}
+\caption{Use case của người dùng và tương tác với hệ thống khóa}\label{fig:uc-user}
 \end{figure}
 
-\subsection{Biểu đồ use case phân rã ``Duyệt / từ chối / đổi phòng''}
-\label{subsection:2.2.3}
-Hình~\ref{fig:uc_quanly} phân rã use case quản lý yêu cầu đặt phòng của quản trị viên. Quản trị viên xem các yêu cầu chờ, sau đó có thể duyệt, từ chối, đổi sang phòng phù hợp, hẹn lịch nhận khóa cơ hoặc thẻ, tạo mã PIN hoặc thu hồi quyền tự tạo mã. Khi duyệt yêu cầu tại phòng khóa số, hệ thống cấp quyền tự tạo mã cho đúng người đặt và phòng đó; quyền này không thay đổi vai trò tài khoản.
+Hình~\ref{fig:uc-admin} mô tả tác vụ admin; cấp/thu hồi quyền PIN theo cặp user--phòng không đổi vai trò tài khoản.
+\begin{figure}[!htbp]\centering
+\includegraphics[width=\textwidth,height=.49\textheight,keepaspectratio]{Hinhve/design/02c_use_case_quan_tri_vien.pdf}
+\caption{Use case quản trị tài nguyên và xử lý yêu cầu}\label{fig:uc-admin}
+\end{figure}
+\FloatBarrier
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{Hinhve/uc_quanly.pdf}
-    \caption{Biểu đồ use case phân rã ``Duyệt / từ chối / đổi phòng''}
-    \label{fig:uc_quanly}
+\subsection{Ba kịch bản nghiệp vụ tiêu biểu}
+Ba tuyến nghiệp vụ là: đặt/duyệt phòng PIN (UC02, UC03, UC05); nhận chìa, ủy quyền và điểm danh/no-show (UC07, UC12); ghi chú và xử lý bảo trì trong giờ dùng (UC08, UC13). Điều kiện và ngoại lệ được đặc tả tại mục~\ref{sec:use-case-spec}.
+
+\subsection{Đặt phòng, tự duyệt và cấp quyền tiếp cận}
+Hình~\ref{fig:activity} thể hiện nhánh REST: UI gửi API, server kiểm điều kiện trước khi quyết định tự duyệt hoặc chuyển admin. Nhánh local thực hiện cùng nhóm quy tắc qua repository thay cho HTTP. Với chuỗi tuần, mọi buổi đều được kiểm xung đột trước khi chốt lưu.
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{Hinhve/design/03_activity_dat_phong_duyet.pdf}
+\caption{Luồng tạo yêu cầu và quyết định duyệt trong nhánh REST}\label{fig:activity}
 \end{figure}
 
-\subsection{Quy trình nghiệp vụ}
-\label{subsection:2.2.4}
-Quy trình đặt phòng kết hợp thao tác của hai vai trò như Hình~\ref{fig:hoatdong}. Người dùng chọn thời gian và phòng, nhập mục đích rồi gửi yêu cầu. Sau khi duyệt, phòng khóa số có thể tạo mã tạm thời; ứng dụng lưu mã trước và gửi bản tin qua OneIoT khi có kết nối. Với khóa cơ hoặc thẻ từ, hai bên thống nhất thời điểm nhận khóa và có thể ủy quyền người nhận hộ. Biểu đồ phản ánh luồng nghiệp vụ tổng quát; trạng thái phát bản tin không đồng nghĩa khóa đã nhận mã.
+Hình~\ref{fig:activity-pin} tách sinh/lưu PIN và gửi lệnh tới khóa. PIN có bảy chữ số; thời hạn lấy từ booking và khoảng đệm cấu hình. Thuộc tính \code{lockDeliveredAt} lưu thời điểm broker nhận lệnh gửi mã. Luồng app--OneIoT--SmartLock đã được nhóm chạy thực tế để sử dụng mã và thao tác khóa.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.84\textheight,keepaspectratio]{Hinhve/hoatdong.pdf}
-    \caption{Biểu đồ hoạt động của quy trình đặt phòng và cấp quyền tiếp cận}
-    \label{fig:hoatdong}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=.56\textheight,keepaspectratio]{Hinhve/design/04a_activity_khoa_so_pin.pdf}
+\caption{Luồng tạo PIN, chờ gửi và giao tiếp OneIoT}\label{fig:activity-pin}
 \end{figure}
 
-Vòng đời yêu cầu được mô tả ở Hình~\ref{fig:trangthai}. Bản triển khai lưu các trạng thái chờ duyệt, đã duyệt, từ chối, đã hủy và vắng mặt; thông tin check-in/check-out cùng phương thức tiếp cận được quản lý bằng các trường hoặc đối tượng liên quan. Trạng thái mã tạm thời hiển thị theo thời gian và dấu thu hồi. Hình là sơ đồ khái niệm, nên không đồng nhất mọi bước sử dụng phòng với một trạng thái lưu trữ riêng.
+Hình~\ref{fig:activity-key} giữ riêng lịch nhận khóa, có mặt/vắng mặt và xử lý bảo trì. Lịch hẹn phải ở tương lai và trước giờ sử dụng; check-in thủ công chỉ được ghi trong giờ dùng. Có mặt muộn vẫn có thể được xác nhận nếu booking đang hợp lệ và chưa bị admin đóng bằng no-show.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{Hinhve/trangthai.pdf}
-\caption{Biểu đồ trạng thái yêu cầu đặt phòng và mã PIN tạm thời}
-    \label{fig:trangthai}
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=.56\textheight,keepaspectratio]{Hinhve/design/04b_activity_khoa_co_vang_mat_bao_tri.pdf}
+\caption{Thỏa thuận nhận khóa, xác nhận có mặt và xử lý bảo trì}\label{fig:activity-key}
 \end{figure}
 
-\subsection{Sơ đồ thiết kế đã đối chiếu với mã nguồn}
-\label{subsection:2.2.5}
-Bộ sơ đồ trong \path{design/RoomHub_design.drawio} được vẽ lại sau khi mã tự duyệt, lịch lặp và vắng mặt đã nằm trên cùng một nhánh. Các hình dưới đây là bản dùng khi trình bày luồng hiện tại. Hình~\ref{fig:design-activity} là hoạt động bốn làn của \texttt{POST /api/bookings}: server kiểm tra thời gian, cửa sổ đặt trước, trùng lịch, bảo trì và giới hạn số lượt trước khi rẽ nhánh. Công tắc tự duyệt bật và phòng không có \texttt{requiresApproval} thì lưu \texttt{APPROVED} với người duyệt \texttt{system}; ngược lại lưu \texttt{PENDING}. Với lịch lặp tuần, một buổi vi phạm làm cả chuỗi bị từ chối.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/03_activity_dat_phong_duyet.png}
-    \caption{Hoạt động đặt phòng và duyệt trên bản thiết kế đã đối chiếu mã nguồn}
-    \label{fig:design-activity}
+\subsection{Vòng đời trạng thái đặt phòng}
+Trạng thái lưu là \code{PENDING}, \code{APPROVED}, \code{REJECTED}, \code{CANCELLED} và \code{NO_SHOW}. Tự duyệt cho phép tạo thẳng \code{APPROVED}. Check-in/check-out là các trường/sự kiện bên trong một lượt đã duyệt; đổi phòng không tự đổi trạng thái. Khi hết giờ, UI phân nhóm lượt đã dùng theo thời gian, không ghi thêm trạng thái \code{COMPLETED} vào model. Hình~\ref{fig:booking-state} thể hiện các trạng thái lưu và sự kiện sử dụng của lượt đặt.
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth,height=.40\textheight,keepaspectratio]{Hinhve/design/18a_state_booking.pdf}
+\caption{Vòng đời booking và các mốc sử dụng liên quan}\label{fig:booking-state}
 \end{figure}
+\FloatBarrier
 
-Hình~\ref{fig:design-pin} mô tả khóa số: ứng dụng sinh mã bảy chữ số, server cấp \texttt{passwordId} và lưu PIN, rồi ứng dụng gửi MQTT khi phiên OneIoT đang nối. Hình~\ref{fig:design-noshow} tách ba việc còn lại: thỏa thuận nhận khóa cơ, ghi nhận \texttt{NO\_SHOW} sau \texttt{noShowGraceMinutes}, và báo sự cố để lên lịch bảo trì.
+\section{Yêu cầu chức năng}
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.14\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.47\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.39\textwidth-2\tabcolsep\relax}}
+\caption{Yêu cầu chức năng và minh chứng kiểm thử}\label{tab:fr}\\
+\toprule \textbf{ID / ưu tiên} & \textbf{Yêu cầu và luồng chính} & \textbf{Minh chứng hiện có}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Yêu cầu chức năng và minh chứng kiểm thử (tiếp)}\\
+\toprule \textbf{ID / ưu tiên} & \textbf{Yêu cầu và luồng chính} & \textbf{Minh chứng hiện có}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+FR01 / Cao & Đăng ký, đăng nhập, đổi/khôi phục mật khẩu; đọc role từ tài khoản. & Ảnh Hình~\ref{fig:ui-roles}; TC01, TC17 và D01--D03.\\\addlinespace[1.5pt]
+FR02 / Cao & Tìm phòng theo tầng, giờ, sức chứa, thiết bị, loại khóa; trạng thái theo lịch. & Ảnh Hình~\ref{fig:ui-booking}; TC02, TC12.\\\addlinespace[1.5pt]
+FR03 / Cao & Tạo booking một lần/lặp; chặn trùng lịch và bảo trì; hủy/sửa chuỗi theo điều kiện. & TC02, TC11--TC12, TC21; kiểm thử quy tắc và vòng đời đặt phòng.\\\addlinespace[1.5pt]
+FR04 / Cao & Admin duyệt/từ chối/đổi phòng; tự duyệt phòng thường khi bật công tắc. & TC07, TC20, TC24; kiểm thử tự duyệt, duyệt tay và đổi phòng.\\\addlinespace[1.5pt]
+FR05 / Cao & Quyền PIN theo user--phòng, PIN 7 số và thời hạn; hẹn nhận chìa/ủy quyền. & TC03, TC10, TC13--TC15, TC19; thử nghiệm app--SmartLock.\\\addlinespace[1.5pt]
+FR06 / Trung bình & Ghi nhận sự kiện khóa, check-in thủ công khóa cơ và no-show có điều kiện. & TC10, TC22; kiểm thử sự kiện, check-in và ngưỡng no-show.\\\addlinespace[1.5pt]
+FR07 / Cao & Tách ghi chú với yêu cầu bảo trì; admin xử lý lịch/yêu cầu. & Ảnh Hình~\ref{fig:ui-room-maintenance}; TC02, TC23.\\\addlinespace[1.5pt]
+FR08 / Cao & Admin quản lý tài khoản/phòng/cấu hình; user sửa hồ sơ và xem thông báo. & Ảnh Hình~\ref{fig:ui-roles}; TC06, TC08--TC09, TC16, TC18.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/04a_activity_khoa_so_pin.png}
-    \caption{Hoạt động tạo mã PIN tạm và gửi tới khóa}
-    \label{fig:design-pin}
-\end{figure}
+\section{Quy tắc nghiệp vụ và các trường hợp biên}
+Bảng~\ref{tab:br} trình bày các mã BR để đặc tả và kiểm thử tham chiếu cùng một quy tắc. Giá trị trong bảng là mặc định của model cấu hình, không phải hằng số cố định cho mọi lần sử dụng.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.12\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.66\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.22\textwidth-2\tabcolsep\relax}}
+\caption{Quy tắc nghiệp vụ đối chiếu với mã nguồn}\label{tab:br}\\
+\toprule \textbf{Mã} & \textbf{Điều kiện xử lý} & \textbf{Giá trị / phạm vi}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{Quy tắc nghiệp vụ (tiếp)}\\
+\toprule \textbf{Mã} & \textbf{Điều kiện xử lý} & \textbf{Giá trị / phạm vi}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+BR-01 & Phòng phải tồn tại và có trạng thái cho phép đặt; phương thức tiếp cận lấy từ loại khóa của phòng. & \code{AVAILABLE}.\\\addlinespace[1.5pt]
+BR-02 & Ngày/giờ hợp lệ, bắt đầu trước kết thúc; giao nhau dùng khoảng nửa mở nên hai lượt liền kề không xung đột. & Cùng ngày, start trước end.\\\addlinespace[1.5pt]
+BR-03 & Cửa sổ đặt trước áp dụng cho lượt đầu; khoảng dùng chưa kết thúc. Min bằng 0 cho phép cùng ngày đã bắt đầu nhưng còn thời gian. & Mặc định 1--3 ngày.\\\addlinespace[1.5pt]
+BR-04 & Không chồng lịch bảo trì chưa hủy của đúng phòng. & Áp dụng từng buổi.\\\addlinespace[1.5pt]
+BR-05 & Không trùng lượt còn hoạt động của cùng phòng hoặc cùng user; các trạng thái giữ chỗ là PENDING/APPROVED. & Kiểm theo khoảng giờ.\\\addlinespace[1.5pt]
+BR-06 & Mục đích không trống; hạn mức kiểm ở lượt đầu khi tạo chuỗi, không cộng lại điều kiện hạn mức cho từng tuần tiếp theo. & Mặc định 2 lượt; chuỗi UI 1--8 tuần.\\\addlinespace[1.5pt]
+BR-07 & Duyệt tay chỉ cho lượt PENDING chưa hết giờ; kiểm lại bảo trì và lịch đã duyệt. Tự duyệt chỉ sau validation, công tắc bật và phòng không đặc biệt. & Công tắc mặc định tắt.\\\addlinespace[1.5pt]
+BR-08 & Chỉ chủ lượt hủy PENDING/APPROVED trước khi bắt đầu; lượt đã duyệt còn phải thỏa hạn hủy. & Mặc định 30 phút.\\\addlinespace[1.5pt]
+BR-09 & Admin đổi lượt APPROVED trước hạn; phòng khác khả dụng, cùng loại khóa, đủ sức chứa/thiết bị, không xung đột/bảo trì; có lý do. & Mặc định 30 phút.\\\addlinespace[1.5pt]
+BR-10 & PIN chỉ cho lượt đã duyệt ở phòng khóa số đang gắn SmartLock, chưa kết thúc và chưa có PIN chưa thu hồi. & 7 số; đệm mặc định 10 phút.\\\addlinespace[1.5pt]
+BR-11 & User tạo PIN phải là chủ lượt và có quyền active đúng phòng; admin có thể cấp/thu hồi quyền cặp user--phòng. & Không đổi vai trò tài khoản.\\\addlinespace[1.5pt]
+BR-12 & Thỏa thuận/ủy quyền nhận khóa chỉ cho lượt đã duyệt dùng khóa cơ/thẻ; lịch nhận ở tương lai và trước giờ dùng. & Admin xác nhận địa điểm.\\\addlinespace[1.5pt]
+BR-13 & Check-in thủ công cho khóa cơ/thẻ trong giờ dùng; no-show chỉ khi đã qua ân hạn và chưa có bằng chứng check-in. & Ân hạn mặc định 15 phút.\\\addlinespace[1.5pt]
+BR-14 & Ghi chú hoặc yêu cầu bảo trì do chủ lượt APPROVED gửi trong giờ sử dụng; chỉ yêu cầu bảo trì có vòng đời xử lý riêng. & Ghi chú tối đa 500 ký tự.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{Hinhve/design/04b_activity_khoa_co_vang_mat_bao_tri.png}
-    \caption{Hoạt động nhận khóa cơ, vắng mặt và bảo trì}
-    \label{fig:design-noshow}
-\end{figure}
+Một số khác biệt giữa hai chế độ dữ liệu và phạm vi xử lý gồm:
+\begin{itemize}
+\item Đặt lặp là dãy cách nhau bảy ngày. UI giới hạn 1--8 tuần; khi bị gọi trực tiếp, service local chặn giá trị nhỏ hơn 1 nhưng kẹp giá trị trên 8 về 8, còn backend từ chối ngoài 1--8.
+\item Hủy, đổi phòng hoặc no-show cập nhật \code{revokedAt} để dừng sử dụng PIN của lượt đặt trong ứng dụng. Quyền room--user được quản lý riêng với PIN của từng booking.
+\item Local thực hiện read--validate--write trên Async Storage; REST kiểm quyền theo phiên và dùng transaction/khóa ở backend. Hai nhánh không có cơ chế đồng bộ hay hòa giải dữ liệu tự động.
+\end{itemize}
 
-Trạng thái lưu trữ tương ứng nằm ở Hình~\ref{fig:design-state}. Lượt đặt có thể vào thẳng \texttt{APPROVED} khi tự duyệt. Từ \texttt{APPROVED} có thể sang \texttt{CANCELLED} hoặc \texttt{NO\_SHOW}; check-in và check-out nằm bên trong trạng thái đã duyệt. Đổi phòng không đổi trạng thái.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{Hinhve/design/18a_state_booking.png}
-    \caption{Trạng thái lượt đặt phòng trên bản thiết kế hiện tại}
-    \label{fig:design-state}
-\end{figure}
-
-\section{Đặc tả chức năng}
-\label{section:2.3}
-Mục này đặc tả năm use case quan trọng nhất. Các use case còn lại gồm hủy đặt phòng, hẹn lịch nhận khóa và ủy quyền, quản lý lịch bảo trì, cấu hình nghiệp vụ và quản lý SmartLock được đặc tả tại Phụ lục~\ref{appendix:usecase}. Trước hết, Bảng~\ref{tab:br} liệt kê các quy tắc nghiệp vụ mà hệ thống đã hiện thực; các quy tắc được đánh mã để tham chiếu trong đặc tả và kiểm thử.
-
-\begin{table}[H]
-\centering\small
-\renewcommand{\arraystretch}{1.15}
-\caption{Các quy tắc nghiệp vụ đã hiện thực trong RoomHub}
-\label{tab:br}
-\begin{tabularx}{\textwidth}{|p{1.3cm}|X|p{3.4cm}|}
-\hline
-\textbf{Mã} & \textbf{Quy tắc} & \textbf{Tham số mặc định} \\ \hline
-BR-01 & Phòng phải tồn tại và ở trạng thái có thể sử dụng. & -- \\ \hline
-BR-02 & Ngày và giờ phải hợp lệ; giờ bắt đầu sớm hơn giờ kết thúc. & -- \\ \hline
-BR-03 & Chỉ được đặt trong khoảng ngày cấu hình; có thể cho phép cùng ngày nếu giờ kết thúc chưa qua. & Mặc định 1 đến 3 ngày \\ \hline
-BR-04 & Không được đặt phòng trùng với lịch bảo trì chưa bị hủy của phòng đó. & -- \\ \hline
-BR-05 & Không trùng với yêu cầu đang chờ hoặc đã duyệt khác của cùng phòng; một người không có hai yêu cầu chồng thời gian. & -- \\ \hline
-BR-06 & Tổng số yêu cầu đang chờ hoặc sắp sử dụng của một người không vượt giới hạn; mục đích sử dụng không được để trống. & 2 yêu cầu \\ \hline
-BR-07 & Chỉ duyệt yêu cầu chưa hết hiệu lực; kiểm tra lại bảo trì và trùng lịch. & -- \\ \hline
-BR-08 & Người đặt chỉ hủy yêu cầu đã duyệt trước giờ bắt đầu một khoảng tối thiểu. & 30 phút \\ \hline
-BR-09 & Quản trị viên chỉ đổi phòng trước giờ bắt đầu một khoảng tối thiểu; phòng thay thế phải cùng loại khóa, đủ sức chứa và thiết bị, không bảo trì và không trùng lịch. & 30 phút \\ \hline
-BR-10 & Mã PIN chỉ tạo cho yêu cầu đã duyệt tại phòng khóa số đang gắn khóa thông minh; hiệu lực có khoảng đệm quanh giờ sử dụng và bị thu hồi khi hủy hoặc đổi phòng. & 10 phút \\ \hline
-BR-11 & Người đặt chỉ tự tạo mã khi có quyền còn hiệu lực cho đúng phòng; quản trị viên có thể thu hồi quyền theo phòng. & -- \\ \hline
-BR-12 & Ủy quyền nhận hộ và hẹn nhận khóa chỉ áp dụng cho yêu cầu đã duyệt tại phòng dùng khóa cơ hoặc thẻ; lịch hẹn phải trước giờ sử dụng. & -- \\ \hline
-\end{tabularx}
-\end{table}
-
-\subsection{Đặc tả use case ``Đăng nhập''}
-\begin{dacta}{Đặc tả use case UC01 -- Đăng nhập}{tab:uc01}
-Mã use case & UC01 \\ \hline
-Tác nhân & Người dùng, quản trị viên \\ \hline
-Mô tả & Người dùng xác thực bằng tên đăng nhập và mật khẩu; hệ thống xác định vai trò và mở giao diện tương ứng. \\ \hline
-Tiền điều kiện & Tài khoản đã tồn tại và đang ở trạng thái hoạt động. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Người dùng mở ứng dụng, nhập tài khoản và mật khẩu, bấm ``Đăng nhập''.
-\item Hệ thống chuẩn hóa tên đăng nhập (bỏ khoảng trắng, chuyển chữ thường).
-\item Hệ thống xác thực tài khoản đang hoạt động; ở chế độ máy chủ, dịch vụ Java tạo phiên đăng nhập.
-\item Hệ thống mở ``Chế độ quản trị viên'' hoặc ``Chế độ người dùng'' theo vai trò tài khoản.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Sai thông tin hoặc tài khoản bị khóa: hiển thị lỗi và giữ nguyên màn hình. 3b. Người dùng chọn ``Đăng ký'' hoặc ``Quên mật khẩu?'' để tạo tài khoản mới hoặc đặt lại mật khẩu bằng mã khôi phục. \\ \hline
-Hậu điều kiện & Phiên đăng nhập được thiết lập; mọi yêu cầu tiếp theo tới máy chủ mang token Bearer. \\
-\end{dacta}
-
-\subsection{Đặc tả use case ``Tìm và đặt phòng''}
-\begin{dacta}{Đặc tả use case UC02 -- Tìm và đặt phòng}{tab:uc02}
-Mã use case & UC02 \\ \hline
-Tác nhân & Người dùng \\ \hline
-Tiền điều kiện & Người dùng đã đăng nhập và tài khoản còn hoạt động. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Người dùng mở ``Tìm và đặt phòng''; hệ thống sinh danh sách ngày được phép theo cấu hình (mặc định từ ngày mai đến ba ngày sau).
-\item Người dùng chọn ngày, giờ bắt đầu, giờ kết thúc và tầng từ 1 đến 8.
-\item Người dùng có thể lọc theo sức chứa tối thiểu, thiết bị cần có và loại khóa.
-\item Hệ thống hiển thị bảy phòng của tầng trên sơ đồ chữ U, mỗi ô ghi sức chứa, thiết bị và tô màu trống, đã đặt, bảo trì hoặc không khớp lọc; đồng thời báo số phòng phù hợp đang trống.
-\item Người dùng chọn một phòng trống (hoặc nhập tên phòng để tìm), nhập mục đích và gửi yêu cầu đặt phòng.
-\item Hệ thống kiểm tra BR-01 đến BR-06, lưu yêu cầu chờ duyệt, thông báo cho quản trị viên và làm mới sơ đồ.
-\end{buoc} \\ \hline
-Luồng phát sinh & 5a. Phòng được chọn không ở trạng thái trống: yêu cầu chọn phòng khác. 6a. Vi phạm quy tắc: hiển thị lý do và không lưu yêu cầu. \\ \hline
-Hậu điều kiện & Yêu cầu chờ duyệt được lưu; phòng hiển thị là đã có yêu cầu trong khung giờ đó; quản trị viên nhận thông báo. \\
-\end{dacta}
-
-\subsection{Đặc tả use case ``Duyệt yêu cầu đặt phòng''}
-\begin{dacta}{Đặc tả use case UC03 -- Duyệt yêu cầu đặt phòng}{tab:uc03}
-Mã use case & UC03 \\ \hline
-Tác nhân & Quản trị viên \\ \hline
-Tiền điều kiện & Quản trị viên đã đăng nhập; có yêu cầu đang chờ duyệt. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên mở danh sách yêu cầu đặt phòng hoặc thông báo về yêu cầu mới.
-\item Hệ thống hiển thị thông tin người đặt, phòng, ngày giờ, mục đích.
-\item Quản trị viên chọn duyệt.
-\item Hệ thống khóa bản ghi yêu cầu, kiểm tra BR-07: yêu cầu còn chờ, chưa qua giờ kết thúc, không trùng bảo trì hay yêu cầu đã duyệt khác.
-\item Hệ thống chuyển sang trạng thái đã duyệt, ghi người và thời điểm xử lý.
-\item Nếu phòng dùng khóa mã số, hệ thống cấp quyền tự tạo mã cho người đặt tại phòng đó.
-\item Hệ thống gửi thông báo ``Yêu cầu đã được duyệt'' cho người đặt.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Quản trị viên chọn từ chối: hệ thống lưu kết quả và thông báo cho người đặt. 4a. Vi phạm BR-07: hiển thị lý do, trạng thái không đổi. \\ \hline
-Hậu điều kiện & Yêu cầu được duyệt hoặc bị từ chối; người đặt nhận thông báo. Với phòng khóa số, quyền tự tạo mã theo phòng được cấp khi duyệt. \\
-\end{dacta}
-
-\subsection{Đặc tả use case ``Đổi phòng thay thế''}
-\begin{dacta}{Đặc tả use case UC04 -- Đổi phòng thay thế}{tab:uc04}
-Mã use case & UC04 \\ \hline
-Tác nhân & Quản trị viên \\ \hline
-Tiền điều kiện & Yêu cầu đã được duyệt và còn ít nhất 30 phút (theo cấu hình) trước giờ bắt đầu. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên chọn yêu cầu cần đổi, ví dụ khi phòng cũ phải phục vụ sự kiện ưu tiên.
-\item Hệ thống chỉ đề xuất phòng khác đang khả dụng, cùng loại khóa, có sức chứa và thiết bị không kém phòng cũ.
-\item Quản trị viên chọn phòng thay thế và nhập lý do.
-\item Hệ thống kiểm tra BR-09 cùng lịch bảo trì và các yêu cầu chờ/đã duyệt của phòng mới.
-\item Hệ thống cập nhật phòng, ghi lịch sử đổi phòng, thu hồi mã PIN cũ và lịch hẹn nhận khóa cũ; nếu phòng mới dùng khóa số thì cấp quyền tạo mã cho phòng mới.
-\item Hệ thống thông báo cho người đặt kèm lý do đổi phòng.
-\end{buoc} \\ \hline
-Luồng phát sinh & 4a. Phòng thay thế khác loại khóa: báo ``Phòng thay thế phải có cùng loại khóa với phòng hiện tại''. 4b. Quá hạn đổi phòng hoặc thiếu lý do: báo lỗi tương ứng. \\ \hline
-Hậu điều kiện & Yêu cầu được chuyển sang phòng mới và ghi lịch sử đổi phòng; quyền tiếp cận phòng cũ bị vô hiệu. \\
-\end{dacta}
-
-\subsection{Đặc tả use case ``Tạo mã PIN tạm thời''}
-\begin{dacta}{Đặc tả use case UC05 -- Tạo mã PIN tạm thời}{tab:uc05}
-Mã use case & UC05 \\ \hline
-Tác nhân & Người đặt hoặc quản trị viên; nền tảng OneIoT \\ \hline
-Tiền điều kiện & Yêu cầu đã duyệt tại phòng khóa số đang gắn khóa thông minh; người đặt có quyền tự tạo mã theo phòng. Có thể tạo mã trong ứng dụng khi chưa kết nối OneIoT. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Người đặt mở danh sách yêu cầu của mình, chọn yêu cầu và tạo mã.
-\item Hệ thống kiểm tra BR-10, BR-11 và bảo đảm yêu cầu chưa có mã đang hiệu lực.
-\item Hệ thống sinh mã bảy chữ số, tính thời điểm hiệu lực từ giờ bắt đầu trừ 10 phút đến giờ kết thúc cộng 10 phút theo cấu hình mặc định.
-\item Hệ thống cấp vị trí mật khẩu của khóa và lưu mã cùng khoảng hiệu lực vào yêu cầu.
-\item Nếu OneIoT đang kết nối, ứng dụng mã hóa và phát bản tin tạo mã qua MQTT; nếu chưa kết nối, mã chờ gửi trong ứng dụng.
-\item Hệ thống hiển thị mã và thông báo rõ trạng thái đã gửi hoặc chờ kết nối.
-\end{buoc} \\ \hline
-Luồng phát sinh & 2a. Quyền đã bị thu hồi: báo ``Quyền tự tạo mã tại phòng này đã bị thu hồi hoặc chưa được cấp''. 4a. Phòng chưa gắn khóa: báo ``Phòng chưa được gắn với SmartLock đang quản lý''. 5a. Chưa kết nối hoặc gửi lỗi: mã vẫn được lưu để thử gửi khi kết nối lại; mã hết hiệu lực hoặc đã thu hồi sẽ không gửi. \\ \hline
-Hậu điều kiện & Ứng dụng lưu mã và trạng thái gửi; việc khóa thật áp dụng mã chỉ được xác nhận bằng phản hồi hoặc kiểm thử thiết bị. \\
-\end{dacta}
+\section{Đặc tả các use case}\label{sec:use-case-spec}
+Các mục~\ref{tab:uc01}--\ref{tab:uc11} đặc tả các tác vụ tài khoản, đặt phòng, tiếp cận phòng và quản trị. Mục~\ref{tab:uc12}--\ref{tab:uc13} mô tả điểm danh/no-show và ghi chú phòng. Mã FR liên kết với Bảng~\ref{tab:fr}, mã BR liên kết với Bảng~\ref{tab:br}. Vị trí triển khai và kỹ thuật xử lý được tổng hợp tại Chương~\ref{chap:implementation}.
+\input{Chuong/Dac_ta_use_case}
 
 \section{Yêu cầu phi chức năng}
-\label{section:2.4}
-Về \textbf{tính đúng đắn và độ tin cậy}, hệ thống kiểm tra xung đột theo khoảng thời gian nửa mở, lịch bảo trì và quyền của người gọi. Ở chế độ máy chủ, thao tác ghi được kiểm tra trong giao dịch có khóa; tính đúng đắn khi nhiều thiết bị truy cập đồng thời cần được tiếp tục kiểm thử với máy chủ triển khai thực tế.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.18\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.43\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.39\textwidth-2\tabcolsep\relax}}
+\caption{Tiêu chí phi chức năng và giới hạn đánh giá}\label{tab:nfr}\\
+\toprule \textbf{ID / nhóm} & \textbf{Tiêu chí và điều kiện} & \textbf{Bằng chứng / giới hạn}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Tiêu chí phi chức năng và giới hạn đánh giá (tiếp)}\\
+\toprule \textbf{ID / nhóm} & \textbf{Tiêu chí và điều kiện} & \textbf{Bằng chứng / giới hạn}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+NFR01 / Khả dụng & Tìm và gửi yêu cầu cùng màn hình; nút/lỗi theo vai trò; loading khi xử lý. & Ảnh giao diện, kiểm thử component và thao tác trên Android xác nhận các bước sử dụng.\\\addlinespace[1.5pt]
+NFR02 / Phản hồi & HTTP có timeout 12 giây và thông báo mất mạng/JSON lỗi; tránh chờ vô hạn. & Kiểm thử API xác nhận timeout và phản hồi lỗi; phạm vi đánh giá định lượng trình bày ở mục 5.3.\\\addlinespace[1.5pt]
+NFR03 / Quyền và dữ liệu & User thao tác đúng lượt/phòng; token API trong RAM; token OneIoT theo phiên. & Test phân quyền và H2; mật khẩu/PIN còn dạng rõ, xác minh chứng thư native TLS là hướng gia cố bảo mật khi mở rộng.\\\addlinespace[1.5pt]
+NFR04 / Tái lập & Mã nguồn, lockfile, cấu hình và hướng dẫn chạy; hồ sơ ghi rõ điều kiện kiểm thử. & README, package-lock, test và biên bản. Server public và khóa thật phụ thuộc môi trường ngoài.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-Về \textbf{bảo mật}, các API cần phiên đăng nhập hợp lệ theo từng loại thao tác. Token OneIoT được nhập cho phiên kết nối và không nằm trong kho mã nguồn. Ứng dụng mã hóa mật khẩu trước khi phát bản tin MQTT; phần lưu trữ mã tại ứng dụng và máy chủ cần được gia cố trước triển khai thực tế.
+\Needspace{25\baselineskip}
+\section{Tiêu chí chấp nhận và mức độ ưu tiên}
+FR01--FR08 bao phủ các luồng nghiệp vụ của sản phẩm, từ đăng nhập, đặt/duyệt phòng đến tiếp cận bằng khóa, điểm danh và quản trị. Nhóm đã hoàn thành kiểm thử chức năng của ứng dụng và SmartLock trong môi trường thực tế; các ca kiểm thử và kết quả được trình bày ở Chương~\ref{chap:testing}.
 
-Về \textbf{tính khả dụng}, giao diện tiếng Việt và điều khiển chọn ngày giờ phù hợp thao tác cảm ứng trên điện thoại Android. Bản Release phải khởi động độc lập với Metro; chế độ dùng máy chủ còn phụ thuộc kết nối tới dịch vụ đang chạy.
-
-Về \textbf{tính dễ bảo trì và mở rộng}, mã nguồn được chia theo module nghiệp vụ, các tham số chính sách được lưu dưới dạng cấu hình thay vì hằng số trong giao diện, và việc chuyển giữa lưu cục bộ với đồng bộ máy chủ chỉ phụ thuộc một cờ cấu hình.
-
-Về \textbf{yêu cầu kỹ thuật của bản triển khai}, máy chủ dùng Java 17, Spring Boot, JPA/Hibernate và H2 trong môi trường thử nghiệm; ứng dụng dùng React Native, TypeScript, Async Storage và module Android viết bằng Kotlin để giao tiếp OneIoT. Đây là lựa chọn triển khai của nhóm, không phải tập công nghệ được suy diễn là bắt buộc của mọi học phần.
-
-Chương này đã xác định vai trò, các use case, quy tắc nghiệp vụ và yêu cầu phi chức năng. Các yêu cầu về giao dịch, phân quyền, dữ liệu cục bộ và bản tin khóa là cơ sở cho lựa chọn công nghệ ở Chương~\ref{chapter:Methodology}.
-
-\end{document}
+Bảng~\ref{tab:acceptance} cụ thể hóa điều kiện chấp nhận theo nhóm chức năng. Các yêu cầu mức Cao là chức năng bắt buộc; FR06 là nhóm hỗ trợ theo dõi sử dụng và xử lý vắng mặt, được triển khai cùng các luồng chính. Mở rộng nhiều tòa nhà, nhiều khóa và đồng bộ ngoại tuyến thuộc hướng phát triển.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr.15\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr.62\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr.23\textwidth-2\tabcolsep\relax}}
+\caption{Điều kiện chấp nhận chức năng}\label{tab:acceptance}\\
+\toprule \textbf{Yêu cầu} & \textbf{Điều kiện chấp nhận} & \textbf{Ca kiểm chứng}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Điều kiện chấp nhận chức năng (tiếp)}\\
+\toprule \textbf{Yêu cầu} & \textbf{Điều kiện chấp nhận} & \textbf{Ca kiểm chứng}\\\midrule
+\endhead\bottomrule\endlastfoot
+FR01 & Đăng nhập đúng vai trò; chặn sai mật khẩu/tài khoản khóa; đăng ký, đổi và khôi phục mật khẩu kiểm dữ liệu hợp lệ. & TC01, TC17; D01--D03.\\
+FR02--FR03 & Lọc đúng tiêu chí; tạo/hủy/sửa lượt hoặc chuỗi đúng quy tắc; từ chối lịch trùng, bảo trì và vượt hạn mức. & TC02, TC11--TC12, TC21.\\
+FR04 & Duyệt tay đúng quyền; tự duyệt chỉ áp dụng phòng thường khi bật cấu hình; phòng đặc biệt vẫn chờ admin. & TC07, TC20, TC24.\\
+FR05 & PIN có 7 chữ số, đúng chủ lượt/quyền phòng/thời hạn; lịch nhận chìa và ủy quyền đúng trình tự. & TC03, TC10, TC13--TC15, TC19.\\
+FR06 & Sự kiện có mặt/ra cập nhật lượt phù hợp; no-show chỉ sau ân hạn và khi chưa có check-in. & TC10, TC22.\\
+FR07 & Ghi chú chỉ tạo thông báo; yêu cầu bảo trì có trạng thái xử lý; lịch bảo trì hiệu lực chặn đặt phòng. & TC02, TC23.\\
+FR08 & Chặn user thực hiện quản trị; dữ liệu phòng/hồ sơ/cấu hình được lưu đúng; thông báo đúng người nhận. & TC06, TC08--TC09, TC16, TC18; D04--D06.\\
+\end{longtable}}

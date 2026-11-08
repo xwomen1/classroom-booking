@@ -1,0 +1,148 @@
+\section{Cấu hình và phương pháp kiểm thử}
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.2\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.48\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.32\textwidth-2\tabcolsep\relax}}
+\caption{Môi trường, dữ liệu và phạm vi kết quả}\label{tab:test-env}\\
+\toprule \textbf{Nhóm kiểm tra} & \textbf{Điều kiện và dữ liệu} & \textbf{Kết quả ghi trong hồ sơ}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Môi trường, dữ liệu và phạm vi kết quả (tiếp)}\\
+\toprule \textbf{Nhóm kiểm tra} & \textbf{Điều kiện và dữ liệu} & \textbf{Kết quả ghi trong hồ sơ}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Jest app & Nhánh main; macOS 14.8.9/arm64; Node 22.17.0, Jest 29.7.0. Có 8 suite auth/booking/UI và auto approval; storage/native được mock. & 50/50 ca đạt, gồm 11 ca tự duyệt.\\
+Quality suite & Cùng máy và Node/Jest; 17 suite unit, component, integration; mock fetch/native/Async Storage. & 398/398 ca đạt. Unit 259, component 58, integration 81.\\
+Quyền thông báo & Bộ bổ sung riêng: 1 suite, 5 ca; mock API 31/33, quyền cho phép/từ chối và native bridge. & 5/5 ca đạt, kiểm logic quyền và native bridge bằng mock.\\
+Backend/H2 & 2 ca tích hợp, H2 trong RAM, reset context giữa ca; tài khoản/booking và client cũ thiếu trường mới. & 2/2 ca tích hợp đạt với cơ sở dữ liệu H2 trong RAM.\\
+Android thật & Samsung Galaxy M21/SM-M215F; Android 12, API 31; arm64-v8a; MemTotal 3.656.308 KiB (khoảng 3,49 GiB). ADB 37.0.1 qua USB. & APK Release local, package com.bookingclassroom, versionName 1.0/versionCode 1; khởi động độc lập Metro.\\
+Kiểm tra tĩnh & TypeScript 5.9.3 và ESLint 8.57.1 theo dependency đã cài; chạy trên cùng source với Jest. & tsc --noEmit và eslint . đều kết thúc mã 0.\\
+\end{longtable}}
+
+\subsection{Dữ liệu thử và kiểm soát điều kiện}
+Máy thật dùng admin/1, user/2 và tài khoản mới \code{qa0811}, mật khẩu thử 8 ký tự, mã khôi phục 8 chữ số. Hồ sơ thử: \code{RoomHub QA Persist 0811}, \code{qa0811@example.invalid}, đơn vị \code{QA RoomHub 2026}. Không sửa dữ liệu tài khoản cũ; công tắc thông báo được chụp trước/sau và trả về bật. Tài khoản thử được giữ lại để tái lập kết quả.
+
+Bộ kiểm thử chất lượng dùng mốc 08:00 của một ngày giả lập cố định. Các ca đặt phòng dùng ngày tính từ mốc này, trạng thái booking và cấu hình được seed theo từng tình huống. Một số ca chủ động đổi mốc thời gian để kiểm ranh giới tháng, hạn hủy hoặc ân hạn vắng mặt.
+
+Trước mỗi ca liên quan, kho Async Storage giả lập được đặt lại; lượt đặt và cấu hình được khởi tạo theo tình huống. Cách tổ chức này tách các ca có cùng user/phòng, giúp xác định lỗi do điều kiện nghiệp vụ thay vì dữ liệu sót từ ca trước. Dữ liệu có cả hai vai trò, phòng mã số/cơ/thẻ, lượt chờ/đã duyệt/hủy và thời điểm nằm trong/ngoài khoảng cho phép.
+
+Hai ca Spring Boot dùng HTTP qua TestRestTemplate và H2 trong RAM. Ca thứ nhất đi qua hồ sơ, chuỗi booking, duyệt, gắn khóa, lưu metadata PIN và tách dữ liệu theo tài khoản; ca thứ hai kiểm tự duyệt và client cũ không gửi hai trường mới. Môi trường Spring được khởi tạo lại sau mỗi phương thức để tách dữ liệu giữa hai ca; mỗi ca kiểm tra một chuỗi nhiều thao tác HTTP.
+
+\Needspace{6\baselineskip}
+\subsection{Các phương pháp kiểm thử}
+Quy trình kết hợp kiểm thử logic, giao diện, API, tích hợp và vận hành thiết bị. Bảng~\ref{tab:evidence-levels} trình bày nội dung và vai trò của từng phương pháp.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.20\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.43\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.37\textwidth-2\tabcolsep\relax}}
+\caption{Phương pháp và vai trò trong kiểm thử}\label{tab:evidence-levels}\\
+\toprule \textbf{Phương pháp} & \textbf{Nội dung kiểm tra} & \textbf{Vai trò}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Phương pháp và vai trò trong kiểm thử (tiếp)}\\
+\toprule \textbf{Phương pháp} & \textbf{Nội dung kiểm tra} & \textbf{Vai trò}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Unit/component & Quy tắc dữ liệu, phân quyền, thay đổi state và phản hồi giao diện với đầu vào xác định. & Kiểm tra từng thành phần và phát hiện lỗi nghiệp vụ/giao diện.\\
+Integration local & Chuỗi thao tác giữa service, dữ liệu booking, quyền, PIN và thông báo; mô phỏng sự kiện khóa. & Kiểm tra sự phối hợp giữa các module và các nhánh ngoại lệ.\\
+Hợp đồng API & Method/path, payload, token Bearer, mã lỗi và cấu trúc phản hồi. & Giữ thống nhất giao tiếp giữa ứng dụng và backend.\\
+Spring Boot/H2 & Luồng HTTP, quyền theo token, ghi/đọc dữ liệu và tương thích cấu hình. & Kiểm tra nghiệp vụ server và giao dịch lưu trữ.\\
+Android và SmartLock & Cài/khởi động, đăng nhập, đặt/duyệt phòng, cấp PIN, kết nối khóa, sự kiện và thông báo. & Xác nhận các luồng sử dụng và tích hợp app/khóa trong vận hành thực tế.\\
+Ảnh giao diện & Màn hình, thao tác và trạng thái kết quả của các chức năng. & Minh họa trải nghiệm người dùng cùng kết quả thực nghiệm.\\
+\end{longtable}}
+
+Các bộ kiểm thử có thể cùng kiểm một quy tắc ở nhiều mức, nên tổng số ca không tương ứng với số chức năng độc lập. Chỉ tiêu độ phủ mã được tách khỏi kết quả đạt/không đạt của các ca chức năng.
+
+\section{Ca kiểm thử chức năng và kết quả thực tế}
+Bảng~\ref{tab:cases} tổng hợp ca nghiệp vụ; Bảng~\ref{tab:android-cases} ghi nhận thao tác Android \cite{qualityreport,devicereport,currenttests}. Nhóm xác nhận hoàn thành các chức năng app--SmartLock qua vận hành thực tế \cite{systemacceptance}.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.23\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.26\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.35\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.16\textwidth-2\tabcolsep\relax}}
+\caption{Ca tiêu biểu, kỳ vọng, thực tế và kết luận}\label{tab:cases}\\
+\toprule \textbf{ID / dữ liệu} & \textbf{Kỳ vọng} & \textbf{Kết quả thực tế} & \textbf{Kết luận}\\\midrule
+\endfirsthead
+\multicolumn{4}{l}{\small Ca tiêu biểu, kỳ vọng, thực tế và kết luận (tiếp)}\\
+\toprule \textbf{ID / dữ liệu} & \textbf{Kỳ vọng} & \textbf{Kết quả thực tế} & \textbf{Kết luận}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+TC01: admin/1, user/2; user/wrong & Hợp lệ mở đúng vai trò; sai không tạo phiên UI. & Sai mật khẩu báo lỗi; admin/user hợp lệ mở đúng dashboard trên Android. & Đạt: Android và mock.\\
+TC02: lịch phòng chồng giờ, bảo trì và vượt hạn mức & Từ chối tạo; khoảng liền kề không chồng. & Từ chối trùng phòng/user, bảo trì và vượt hạn mức; nhận hai khoảng chạm biên. & Đạt: quality.\\
+TC03: đã duyệt, phòng PIN, đúng user/quyền & Mã 7 số; hiệu lực theo đệm; chặn mã thứ hai khi PIN trước chưa thu hồi. & PIN đủ 7 số, hiệu lực đúng đệm; chặn mã thứ hai khi PIN cũ chưa thu hồi. & Đạt: local/mock.\\
+TC04: HTTP 401 / JSON hỏng / mất mạng & Xóa token với 401; hiển thị lỗi phù hợp; không fallback local. & 401 xóa token; JSON hỏng/mất mạng báo lỗi; vẫn giữ nguồn REST. & Đạt: HTTP mock.\\
+TC05: request vượt 12 giây giả lập & Abort request và thông báo timeout; clear timer. & Đồng hồ giả lập tới 12 giây: request bị abort, trả lỗi timeout và dọn timer. & Đạt: timer giả lập.\\
+TC06: thông báo admin khi user đang đăng nhập & Lưu đúng người nhận; không hiện nhầm banner. & Thông báo được lưu cho admin; khi user đang đăng nhập, banner dành cho admin không xuất hiện. & Đạt: quality.\\
+TC07: bật tự duyệt; phòng thường/phòng đặc biệt & Thường APPROVED, special PENDING; vẫn kiểm booking rules. & Phòng thường chuyển APPROVED; phòng đặc biệt giữ PENDING; các yêu cầu vi phạm quy tắc vẫn bị chặn. & Đạt: 11 ca app.\\
+TC08: từ chối thông báo; phân biệt API 31 và 33+ & UI vẫn dùng được; quyền bị chặn không gửi native trên API 33+. & API 33 giả lập chặn native khi bị từ chối quyền; API 31 tắt thông báo vẫn lưu hồ sơ và hiện banner. & Đạt: mock/API 31.\\
+TC09: lưu hồ sơ qa0811, force-stop và mở lại & App mở không cần Metro; đăng nhập lại đọc đúng dữ liệu đã lưu. & Sau force-stop, app mở với PID mới và yêu cầu đăng nhập; họ tên, email và đơn vị giữ nguyên. & Đạt: Android.\\
+TC10: ứng dụng kết nối và sử dụng SmartLock & App kết nối OneIoT, cấp mã và thao tác khóa đúng luồng nghiệp vụ. & Theo kết quả vận hành nhóm xác nhận, app kết nối OneIoT, cấp mã và thực hiện luồng sử dụng SmartLock. & Đạt: nhóm nghiệm thu.\\
+\end{longtable}}
+
+\subsection{Kiểm thực tế trên Android}
+D01--D06 dùng APK local mục 5.1, có ảnh PNG/XML và \code{persistence-result.json}. Hồ sơ: \code{docs/reports/final/LTUD/minh_chung/kiem_thu/} \cite{currenttests}.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.30\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.26\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.44\textwidth-2\tabcolsep\relax}}
+\caption{Bước thử, kỳ vọng và quan sát trên máy thật}\label{tab:android-cases}\\
+\toprule \textbf{ID / bước và dữ liệu} & \textbf{Kỳ vọng} & \textbf{Thực tế / minh chứng / kết luận}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Kiểm thực tế trên Android (tiếp)}\\
+\toprule \textbf{ID / bước và dữ liệu} & \textbf{Kỳ vọng} & \textbf{Thực tế / minh chứng / kết luận}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+D01 -- Đăng nhập user với mật khẩu wrong. & Báo lỗi; vẫn ở trang đăng nhập. & Hiện Sai tài khoản hoặc mật khẩu; không mở dashboard. Ảnh/XML 04-wrong-password-rejected. Đạt.\\
+D02 -- Đăng nhập user/2, đăng xuất rồi admin/1. & Phân biệt giảng viên và quản trị viên. & UI hiện GIẢNG VIÊN và QUẢN TRỊ; menu tương ứng. Minh chứng 07-user-dashboard-clean và 45-admin-dashboard. Đạt.\\
+D03 -- Đăng ký qa0811 với hai mật khẩu trùng, email thử và mã khôi phục hợp lệ; đăng nhập. & Tạo tài khoản giảng viên; đọc được hồ sơ đã nhập. & Thông báo đăng ký thành công, dashboard đúng user, hồ sơ ban đầu đúng. Minh chứng 13, 17, 19. Đạt.\\
+D04 -- Trong hồ sơ qa0811, thay họ tên bằng một dấu cách rồi lưu. & Chặn giá trị trống sau trim. & Hiện Họ và tên không được để trống; sửa lại dữ liệu hợp lệ lưu được. Minh chứng 23-profile-validation-error và 31. Đạt.\\
+D05 -- Tắt Hiện thông báo trong Android; mở app, lưu hồ sơ thử. & Thao tác và phản hồi trong app vẫn dùng được. & Cài đặt ghi Thông báo từ ứng dụng này bị chặn; app vẫn báo đã lưu và hiện banner. Minh chứng 28, 30; bật lại ở 39. Đạt trên API 31.\\*
+D06 -- Lưu ba trường hồ sơ mục 5.1; force-stop, kiểm tiến trình dừng, mở lại, đăng nhập qa0811 và đọc hồ sơ. & Mở độc lập Metro; dữ liệu đã lưu giữ nguyên. & Không còn tiến trình sau dừng, PID đổi khi mở; ba trường trước/sau bằng nhau. Minh chứng 31, 32, 37 và JSON đối chiếu. Đạt với hồ sơ local.\\
+\end{longtable}}
+
+Trên Android API 31, D05 kiểm tra công tắc thông báo hệ thống. Bộ bổ sung mô phỏng API 33 để kiểm logic xin quyền, từ chối quyền và hiển thị banner; D06 kiểm tra dữ liệu hồ sơ trước và sau khi đóng/mở ứng dụng.
+
+\subsection{Ca chi tiết theo nhóm nghiệp vụ}
+Các ca TC11--TC24 làm rõ đầu vào và ngoại lệ của các luồng còn lại. TC11--TC23 tổng hợp kết quả từ bộ quality 398 ca đạt với storage/native được mô phỏng \cite{currenttests}; TC24 dùng kết quả tích hợp H2 \cite{qualityreport}. Danh mục tệp kiểm thử và kết quả gốc được lưu trong hồ sơ minh chứng. Các ca Android được trình bày riêng ở Bảng~\ref{tab:android-cases}.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.31\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.31\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.38\textwidth-2\tabcolsep\relax}}
+\caption{Ca nghiệp vụ chi tiết và kết quả}\label{tab:cases-detail}\\
+\toprule \textbf{ID / bước và dữ liệu} & \textbf{Kỳ vọng} & \textbf{Kết quả thực tế / kết luận}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Ca nghiệp vụ chi tiết và kết quả (tiếp)}\\
+\toprule \textbf{ID / bước và dữ liệu} & \textbf{Kỳ vọng} & \textbf{Kết quả thực tế / kết luận}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+TC11 -- Tạo lượt hợp lệ với tự duyệt tắt; kiểm thông báo sau ghi. & PENDING; admin nhận thông báo yêu cầu mới, mục đích được chuẩn hóa. & Lượt được lưu PENDING với mục đích đã bỏ khoảng trắng thừa; thông báo yêu cầu mới được ghi cho admin. Đạt (quality).\\
+TC12 -- Dịch ngày đặt 0/1/2/3/4 ngày khi cấu hình 1--3; sau đó seed cửa sổ 2--5 ngày. & Chỉ 1/2/3 hợp lệ theo mặc định; với cấu hình mới, ngày 1 bị chặn và ngày 5 được nhận. & Với cửa sổ 1--3, ngày 0/4 bị từ chối và ngày 1/2/3 được nhận; đổi sang 2--5 chặn ngày 1, nhận ngày 5. Đạt (quality).\\
+TC13 -- Yêu cầu PENDING, phòng cơ/thẻ, người khác, quyền chưa cấp hoặc booking đã kết thúc thử tạo PIN. & Từ chối theo trạng thái, loại phòng, người đặt/quyền và thời hạn tương ứng. & Các trường hợp sai trạng thái, sai loại khóa, khác chủ/quyền hoặc đã hết giờ đều trả lỗi tương ứng và không tạo PIN. Đạt (quality).\\
+TC14 -- Thu hồi quyền user--phòng rồi tạo PIN; cấp lại quyền khi cần. & Sau thu hồi, user bị chặn tự tạo PIN; cấp lại tái sử dụng bản ghi quyền. Việc tạo mã còn phải thỏa điều kiện booking/PIN riêng. & Sau thu hồi, kiểm tra quyền trả false và tạo PIN bị chặn; cấp lại kích hoạt cùng định danh bản ghi quyền. Đạt (quality).\\
+TC15 -- Đổi booking sang phòng PIN khác khi khóa duy nhất vẫn gắn phòng cũ. & Ghi phòng mới, đánh dấu PIN cũ thu hồi; không tạo mã cho phòng chưa gắn SmartLock. & Lượt trỏ sang phòng mới; PIN cũ có dấu thu hồi và quyền phòng mới được cấp. Tạo PIN tại phòng chưa gắn khóa trả lỗi. Đạt (quality).\\
+TC16 -- User thử tạo phòng/tài khoản hoặc lưu cấu hình quản trị. & Service từ chối; không dựa riêng vào việc menu bị ẩn. & User nhận lỗi không đủ quyền khi ghi phòng, tạo tài khoản hoặc cập nhật cấu hình; dữ liệu quản trị không được ghi. Đạt (quality).\\
+TC17 -- Tài khoản bị khóa đăng nhập; đổi/khôi phục mật khẩu với input sai và đúng. & Không tạo phiên cho tài khoản khóa; mật khẩu cũ sai sau đổi; mã khôi phục sai bị từ chối. & Tài khoản khóa không tạo phiên; sau đổi, mật khẩu cũ không còn hợp lệ; mã khôi phục sai bị từ chối. Đạt (quality).\\
+TC18 -- Admin tạo/sửa/xóa phòng; thử xóa khi còn booking hoạt động và thử đọc lại phòng mẫu đã xóa. & Chuẩn hóa dữ liệu, giữ định danh khi sửa, chặn xóa khi còn lượt hoạt động; phòng mẫu đã xóa không tự tái xuất hiện. & Sửa phòng giữ định danh; xóa phòng có lượt hoạt động bị chặn. Phòng mẫu đã xóa không xuất hiện lại khi đọc danh mục. Đạt (quality).\\
+TC19 -- Đề xuất/đề xuất lại lịch nhận chìa; sai lượt phản hồi; thiếu địa điểm; nhập người nhận hộ. & Hai bên xác nhận đúng lượt; admin phải có địa điểm; lịch tương lai trước giờ dùng; người nhận hộ có đủ tên và mã. & Lịch chuyển AGREED khi hai bên chấp nhận đúng lượt; lịch sử đề xuất và người nhận hộ được lưu. Sai lượt/thiếu địa điểm trả lỗi. Đạt (quality).\\
+TC20 -- Đổi phòng sai loại khóa, thiếu sức chứa/thiết bị, phòng đã bị giữ hoặc quá hạn. & Chặn thay thế không phù hợp; chỉ đổi lượt đã duyệt khi đủ điều kiện và ghi lịch sử. & Phòng sai loại khóa, thiếu sức chứa/thiết bị, đã bị giữ hoặc quá hạn bị từ chối; ca hợp lệ cập nhật phòng và lịch sử. Đạt (quality).\\
+TC21 -- Đặt chuỗi tuần với một tuần sau xung đột; sửa/hủy chuỗi theo người sở hữu và hạn chót. & Không tạo dở chuỗi khi một lượt xung đột; chỉ sửa lượt tương lai PENDING; hủy kiểm toàn bộ lượt chịu cutoff. & Một tuần xung đột làm thao tác tạo/sửa bị từ chối toàn bộ; không ghi dở chuỗi. Sửa và hủy chỉ tác động các lượt đủ điều kiện. Đạt (quality).\\
+TC22 -- Đánh dấu no-show trước/tại ngưỡng 15 phút hoặc sau khi đã có check-in. & Chỉ admin, đủ ân hạn và chưa có bằng chứng có mặt; no-show giải phóng khung giờ, đánh dấu PIN thu hồi trong dữ liệu. & Trước ân hạn hoặc đã check-in bị từ chối; đúng ngưỡng được ghi NO\_SHOW, đánh dấu PIN thu hồi và cho phép đặt lại khung giờ. Đạt (quality).\\
+TC23 -- Chủ lượt APPROVED đang sử dụng gửi ghi chú hoặc báo sự cố. & Ghi chú gửi admin nhưng không tạo maintenance; yêu cầu bảo trì qua bước lên lịch mới chặn phòng. & Ghi chú tạo thông báo admin, kho bảo trì không tăng; yêu cầu bảo trì chỉ sinh lịch chặn phòng sau khi admin lên lịch. Đạt (quality).\\
+TC24 -- Client cũ PUT cấu hình/phòng thiếu autoApprovalEnabled hoặc requiresApproval. & Giữ giá trị đã có; phòng thường tự duyệt, phòng đặc biệt vẫn PENDING tới khi admin xử lý. & Cập nhật thiếu hai cờ mới giữ nguyên giá trị đã lưu; phòng thường APPROVED, phòng đặc biệt PENDING. Đạt theo hồ sơ 2/2 ca H2.\\
+\end{longtable}}
+
+Vòng đời PIN được quản lý bằng revokedAt và trạng thái booking. Quyền user--phòng là bản ghi riêng; thao tác hủy/no-show cập nhật lượt đặt và PIN tương ứng. Việc tạo PIN tiếp theo tuân theo trạng thái thu hồi của mã hiện có.
+
+\subsection{Truy vết một chuỗi kiểm thử tích hợp}
+Chuỗi tích hợp phòng PIN bắt đầu bằng đăng ký tài khoản gv.an, gắn khóa cho room-a101 và tạo booking 09:00--11:00 vào ngày kế tiếp mốc giả lập. Sau admin duyệt, test xác nhận quyền phòng; tạo PIN khi OneIoT chưa kết nối phải có mã bảy số nhưng chưa có lockDeliveredAt. Khi mock kết nối chuyển online, test kiểm gửi đúng phòng, ID mật khẩu, epoch từ 08:50 tới 11:10 và không gửi lại mã đã ghi nhận gửi.
+
+Bước tiếp theo đưa bản tin traitUnlockTempPwd lúc 08:55 và traitLocked lúc 10:58 vào parser để kiểm checkedInAt/checkedOutAt. Sau có check-in, yêu cầu đánh dấu vắng mặt phải bị từ chối. Chuỗi này kết nối các module booking, quyền phòng, PIN, MQTT adapter và thông báo; lớp mạng/native được mock để kiểm soát đầu vào và tái hiện các tình huống kết nối.
+
+Ca riêng giả lập MQTT timeout, kiểm lockDeliveryError và lần kết nối sau gửi thành công phải xóa lỗi; qua đó kiểm trạng thái chờ/lỗi và gửi lại trong dữ liệu ứng dụng.
+
+Kết quả từng bộ được lưu dưới dạng JSON và nhật ký; ảnh PNG/XML ghi nhận thao tác Android và trạng thái dữ liệu trước/sau. Các lệnh tái lập tập trung tại mục~\ref{sec:test-reproduction}; hồ sơ chi tiết được dẫn trong tài liệu \cite{currenttests}.
+
+\Needspace{18\baselineskip}
+\section{Phạm vi đánh giá chất lượng định lượng}
+Đánh giá hiện tại tập trung vào tính đúng chức năng và khả năng vận hành Android--SmartLock. Các phép đo thời gian khởi động, độ trễ đầu cuối và ổn định dài hạn không được thực hiện trong đợt đánh giá chức năng; Bảng~\ref{tab:metrics} nêu điều kiện đo và phạm vi tương ứng.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.23\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.4\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.37\textwidth-2\tabcolsep\relax}}
+\caption{Phương pháp và phạm vi đánh giá định lượng}\label{tab:metrics}\\
+\toprule \textbf{Chỉ tiêu} & \textbf{Phương pháp / điều kiện cần} & \textbf{Kết quả và lý do}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Phương pháp và phạm vi đánh giá định lượng (tiếp)}\\
+\toprule \textbf{Chỉ tiêu} & \textbf{Phương pháp / điều kiện cần} & \textbf{Kết quả và lý do}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Cold-start Android & Đo từ lệnh khởi chạy tới giao diện sẵn sàng; ghi thiết bị/OS, N lần và log. & Không thực hiện phép đo thời gian trong phạm vi đánh giá chức năng.\\
+Phản hồi đặt/duyệt & Đo end-to-end trên thiết bị với cùng server/mạng/dữ liệu và N lần. & Không thực hiện phép đo độ trễ định lượng trong phạm vi đánh giá chức năng.\\
+Ổn định dài hạn & Lặp kịch bản có quy trình và số lần chạy; theo dõi crash, listener và bộ nhớ. & Không thực hiện phép đo độ ổn định dài hạn trong phạm vi đánh giá chức năng.\\
+\end{longtable}}
+
+\section{Đối chiếu yêu cầu, hạn chế và rủi ro}
+FR01--FR08 đã được triển khai trong sản phẩm. Kết quả kiểm thử tự động và vận hành thực tế của nhóm xác nhận các luồng đăng nhập, đặt/duyệt phòng, cấp quyền, PIN/SmartLock, điểm danh, bảo trì và quản trị đáp ứng chức năng của đề tài \cite{systemacceptance}.
+
+Các hạn chế và ràng buộc bảo mật đã được tập trung tại mục 3.5 và các giải pháp ở Chương~\ref{chap:design}. Ưu tiên khi mở rộng vận hành: xác thực/chứng thư, lưu an toàn, phản hồi/thu hồi PIN và dịch vụ nhận sự kiện bền vững.
+
+Các lỗi phòng mẫu tự tái xuất hiện, từ chối đăng ký khi bỏ trống mã khôi phục tùy chọn, banner sai người nhận và cập nhật thiếu cờ tự duyệt đã được sửa và có kiểm thử hồi quy \cite{qualityreport}. Với đăng ký từ ứng dụng, mã để trống được thay bằng \code{000000}, còn mã tự nhập phải có ít nhất 4 ký tự. Khi quên mật khẩu, người dùng nhập tên đăng nhập và mã khôi phục để đặt mật khẩu mới; nhập sai mã bị từ chối. Các hạn chế kỹ thuật được tổng hợp để định hướng mở rộng và gia cố sản phẩm.

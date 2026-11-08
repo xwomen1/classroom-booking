@@ -1,0 +1,345 @@
+\Needspace{16\baselineskip}
+\subsection{UC01 -- Đăng nhập và các nhánh tài khoản}\label{tab:uc01}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC01 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR01\\*\hline
+Tác nhân & Người dùng và quản trị viên.\\*\hline
+Tiền điều kiện & Tài khoản đăng nhập đã tồn tại và đang hoạt động; nhánh đăng ký tạo tài khoản user mới.\\*\hline
+Luồng chính & 1. Nhập tên đăng nhập và mật khẩu; hệ thống kiểm các ô bắt buộc và thực hiện xác thực.\par
+2. Chuẩn hóa username, kiểm mật khẩu và active. Local đọc kho tài khoản; REST gọi API và nhận token/username/role.\par
+3. Lưu phiên trong bộ nhớ ứng dụng và mở dashboard tương ứng vai trò; những request cần xác thực mang token của phiên.\par
+4. Khi đăng xuất, xóa phiên/token và ngắt kết nối OneIoT theo vòng đời app.\\\hline
+Ngoại lệ / nhánh khác & Sai thông tin/tài khoản khóa: không tạo phiên. REST lỗi mạng/timeout: giữ form và báo lỗi, không tự chuyển local. Đăng ký kiểm username 3--30 ký tự theo tập cho phép, mật khẩu ít nhất 4 ký tự, hai mật khẩu khớp; họ tên và email là thông tin tùy chọn. Mã khôi phục là mã tĩnh của tài khoản, khác PIN mở khóa. Khi đăng ký từ app, bỏ trống dùng \code{000000} ở cả local/REST; mã tự nhập có ít nhất 4 ký tự. Đổi mật khẩu kiểm mật khẩu hiện tại; khôi phục kiểm username/mã khôi phục.\\\hline
+Hậu điều kiện & Đăng nhập thành công xác định đúng role; lỗi không cấp quyền vào dashboard. Khi khởi động lại ứng dụng, người dùng đăng nhập để tạo phiên mới.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC02 -- Tìm và đặt phòng một lần hoặc lặp tuần}\label{tab:uc02}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC02 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR02, FR03; BR-01--BR-07\\*\hline
+Tác nhân & User đã được xác thực.\\*\hline
+Tiền điều kiện & Tài khoản còn hoạt động; có phòng và cấu hình nghiệp vụ; nguồn dữ liệu local hoặc REST được chọn trước.\\*\hline
+Luồng chính & 1. Mở Tìm và đặt phòng, chọn ngày/khung giờ và tầng; có thể lọc sức chứa, thiết bị và loại khóa.\par
+2. Xem các phòng của tầng cùng trạng thái tính từ phòng, khoảng giờ và lịch bảo trì/booking; chọn phòng đang khả dụng.\par
+3. Nhập mục đích; nếu đặt lặp, chọn số tuần. Hệ thống tạo từng ngày cách nhau bảy ngày và gán cùng mã chuỗi.\par
+4. Kiểm phòng, ngày/giờ, xung đột phòng/user, bảo trì, mục đích và hạn mức; kiểm đủ mọi buổi trước khi chốt ghi chuỗi.\par
+5. Nếu chính sách tự duyệt áp dụng cho phòng thường, lưu APPROVED, cấp quyền PIN khi phù hợp và gửi thông báo; trường hợp còn lại lưu PENDING và báo admin.\par
+6. Làm mới sơ đồ và hiển thị kết quả tạo yêu cầu.\\\hline
+Ngoại lệ / nhánh khác & Phòng không còn khả dụng hoặc vi phạm một quy tắc: báo lý do, không tạo yêu cầu/chuỗi dở dang. Min đặt trước bằng 0 cho phép cùng ngày nếu chưa hết giờ. Số tuần UI là 1--8; khác biệt validation local/server được ghi sau Bảng~\ref{tab:br}. Cửa sổ và hạn mức chỉ kiểm như lượt đầu; xung đột/bảo trì vẫn kiểm mọi tuần.\\\hline
+Hậu điều kiện & Một hoặc nhiều booking được lưu theo kết quả tự duyệt/PENDING; các khoảng PENDING/APPROVED giữ chỗ. Cách duyệt được quyết định bởi cấu hình tự duyệt và loại phòng.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC03 -- Duyệt hoặc từ chối yêu cầu}\label{tab:uc03}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC03 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR04; BR-07, BR-11\\*\hline
+Tác nhân & Admin; hệ thống thực hiện nhánh tự duyệt theo cấu hình.\\*\hline
+Tiền điều kiện & Duyệt tay yêu cầu admin còn quyền và booking PENDING; duyệt chuỗi chỉ xét các lượt còn chờ trong cùng chuỗi.\\*\hline
+Luồng chính & 1. Mở yêu cầu chờ, đọc người đặt, phòng, thời gian, mục đích và thông tin chuỗi nếu có.\par
+2. Chọn duyệt hoặc từ chối. Khi duyệt, kiểm lại chưa hết giờ, không trùng bảo trì hoặc booking đã duyệt khác.\par
+3. Ghi trạng thái, người và thời điểm xử lý; với phòng PIN, cấp quyền tạo mã đúng cặp user--phòng.\par
+4. Gửi thông báo cho người đặt và cập nhật danh sách. Với duyệt chuỗi, kiểm các ứng viên trước khi chốt cả nhóm.\\\hline
+Ngoại lệ / nhánh khác & Yêu cầu đã xử lý: từ chối thao tác lặp. Vi phạm điều kiện duyệt: giữ trạng thái, nêu nguyên nhân. Từ chối không cấp quyền PIN. Tự duyệt xảy ra khi tạo sau validation, chỉ nếu công tắc bật và phòng không yêu cầu duyệt riêng.\\\hline
+Hậu điều kiện & Booking hoặc chuỗi được xử lý nhất quán trong phạm vi nguồn dữ liệu. Quyền PIN theo phòng không phải quyền quản trị tài khoản; mã PIN chưa được tạo chỉ bởi thao tác duyệt.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC04 -- Đổi phòng thay thế}\label{tab:uc04}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC04 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR04; BR-09\\*\hline
+Tác nhân & Admin.\\*\hline
+Tiền điều kiện & Booking APPROVED; còn đủ thời gian trước giờ bắt đầu theo cấu hình; có phòng thay thế phù hợp.\\*\hline
+Luồng chính & 1. Chọn booking cần đổi; xem các phòng khác khả dụng cùng loại khóa, sức chứa không thấp hơn và có đủ thiết bị của phòng cũ.\par
+2. Chọn phòng thay thế và nhập lý do.\par
+3. Kiểm hạn đổi, tình trạng phòng, lịch bảo trì và các booking PENDING/APPROVED chồng giờ của phòng mới.\par
+4. Cập nhật roomId và lịch sử đổi; bỏ lịch hẹn/thỏa thuận nhận khóa cũ, đánh dấu PIN cũ thu hồi trong dữ liệu.\par
+5. Nếu phòng mới là PIN, cấp quyền cho phòng mới; thông báo cho chủ booking.\\\hline
+Ngoại lệ / nhánh khác & Không cho chọn lại phòng cũ, phòng khác loại khóa, thiếu sức chứa/thiết bị, phòng bận/bảo trì, thiếu lý do hoặc quá hạn. Mặc định phải còn ít nhất 30 phút; nếu admin đổi tham số, dùng giá trị mới.\\\hline
+Hậu điều kiện & Lượt giữ trạng thái APPROVED, trỏ phòng mới và có lịch sử đổi. PIN cũ được đánh dấu thu hồi; quyền theo phòng được quản lý riêng.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC05 -- Tạo và gửi PIN tạm thời}\label{tab:uc05}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC05 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR05; BR-10, BR-11\\*\hline
+Tác nhân & Chủ booking hoặc admin; OneIoT/khóa tham gia đường gửi và phản hồi sự kiện.\\*\hline
+Tiền điều kiện & Booking APPROVED ở phòng PIN đang gắn SmartLock, chưa kết thúc. User phải là chủ lượt và có quyền active tại đúng phòng; admin có thể tạo hộ.\\*\hline
+Luồng chính & 1. Mở booking và yêu cầu tạo PIN; kiểm role, sở hữu, trạng thái, loại khóa và quyền phòng.\par
+2. Từ chối nếu booking đã có một PIN chưa được đánh dấu thu hồi; sinh mã bảy chữ số cho lượt hợp lệ.\par
+3. Tính validFrom/validUntil theo giờ booking và khoảng đệm; lấy passwordId của khóa đang gắn phòng rồi lưu PIN.\par
+4. Nếu có phiên OneIoT, phát lệnh qua native MQTT; nếu chưa có, hiển thị mã ở trạng thái chờ gửi.\par
+5. Khi nối lại OneIoT, xét các mã chờ đúng khóa/phòng và chưa hết hạn; lưu kết quả publish hoặc lỗi gửi.\\\hline
+Ngoại lệ / nhánh khác & Khác chủ lượt, quyền bị thu hồi, phòng không gắn khóa, đã hết giờ hoặc có PIN chưa thu hồi: báo lỗi. Lỗi gửi không làm mất PIN đã lưu; mã hết hiệu lực/đã thu hồi không được gửi lại. passwordId được cấp theo dải 1--255 và quay vòng.\\\hline
+Hậu điều kiện & PIN và metadata giao lệnh được lưu trong booking; lockDeliveredAt ghi thời điểm broker nhận publish. Hủy/đổi/no-show cập nhật trạng thái PIN của lượt đặt.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC06 -- Hủy lượt đặt hoặc các lượt tương lai}\label{tab:uc06}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC06 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR03; BR-08, BR-10\\*\hline
+Tác nhân & Chủ booking.\\*\hline
+Tiền điều kiện & Tài khoản user hoạt động; booking thuộc người gọi, PENDING hoặc APPROVED và chưa bắt đầu.\\*\hline
+Luồng chính & 1. Mở Đặt phòng của tôi, chọn hủy một lượt hoặc các lượt tương lai trong chuỗi.\par
+2. Kiểm sở hữu và trạng thái; lượt đã duyệt phải còn đủ hạn hủy theo cấu hình.\par
+3. Chuyển các lượt đủ điều kiện sang CANCELLED và đánh dấu revokedAt cho PIN đã có.\par
+4. Lưu dữ liệu, gửi thông báo cho admin và làm mới danh sách/lịch phòng.\\\hline
+Ngoại lệ / nhánh khác & Lượt đã bắt đầu, không thuộc người gọi, đã từ chối/hủy/no-show hoặc lượt APPROVED quá hạn: báo lỗi. Hủy chuỗi chỉ tác động các buổi tương lai đủ điều kiện; lịch sử và các buổi đã sử dụng được giữ nguyên.\\\hline
+Hậu điều kiện & Các khoảng đã hủy không còn giữ chỗ; lịch sử vẫn được giữ. PIN của lượt đặt được đánh dấu thu hồi; quyền theo phòng được quản lý riêng.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC07 -- Thỏa thuận nhận khóa và ủy quyền nhận hộ}\label{tab:uc07}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC07 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR05; BR-12\\*\hline
+Tác nhân & Chủ booking và admin.\\*\hline
+Tiền điều kiện & Booking APPROVED cho phòng \code{PHYSICAL_KEY}; thời điểm nhận khóa phải ở tương lai và trước giờ dùng.\\*\hline
+Luồng chính & 1. User đề xuất ngày/giờ nhận; trạng thái thỏa thuận chuyển \code{WAITING_ADMIN}.\par
+2. Admin chấp nhận kèm địa điểm hoặc gửi đề xuất khác; đề xuất khác chuyển \code{WAITING_USER}.\par
+3. Bên còn lại chấp nhận hoặc đề xuất lại; hệ thống kiểm thời gian và người có quyền trước mỗi lần phản hồi.\par
+4. Khi thống nhất, lưu lịch hẹn và lịch sử đề xuất ở trạng thái AGREED; gửi thông báo cho bên còn lại.\par
+5. Nếu cần nhận hộ, chủ lượt khai báo họ tên và mã định danh người được ủy quyền trước khi giờ sử dụng bắt đầu.\\\hline
+Ngoại lệ / nhánh khác & Phòng PIN, khác chủ lượt, thiếu họ tên/mã nhận hộ, thiếu địa điểm khi xác nhận, đề xuất đã quá giờ hoặc đã thống nhất: chặn theo điều kiện tương ứng. User đang chờ admin không gửi chồng đề xuất; bên đề xuất không tự xác nhận thay bên kia. Admin còn có đường đặt lịch trực tiếp qua scheduleKeyPickup.\\\hline
+Hậu điều kiện & Ứng dụng có lịch hẹn/người nhận hộ và lịch sử trao đổi. Nhân viên quản lý đối chiếu giấy tờ và thực hiện giao, nhận chìa theo lịch đã thống nhất.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC08 -- Yêu cầu và quản lý lịch bảo trì}\label{tab:uc08}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC08 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR07; BR-04, BR-14\\*\hline
+Tác nhân & User đang sử dụng phòng; admin xử lý yêu cầu và lịch.\\*\hline
+Tiền điều kiện & User gửi yêu cầu cho booking của mình đã duyệt, đang trong giờ dùng; admin có quyền quản lý phòng/bảo trì.\\*\hline
+Luồng chính & 1. User nhập lý do; hệ thống kiểm chủ lượt, thời gian và không có yêu cầu bảo trì PENDING khác của cùng booking.\par
+2. Lưu yêu cầu PENDING và thông báo admin; yêu cầu này tự nó chưa là lịch bảo trì.\par
+3. Admin tiếp nhận bằng cách chọn đúng phòng, ngày/giờ, lý do, hoặc từ chối kèm ghi chú.\par
+4. Khi lập lịch, kiểm phòng tồn tại, khoảng giờ, trùng bảo trì và booking APPROVED; lưu lịch và liên kết yêu cầu đã xử lý.\par
+5. Các lần đặt/duyệt sau kiểm lịch bảo trì; admin có thể hủy lịch, giữ lại dấu thời điểm hủy.\\\hline
+Ngoại lệ / nhánh khác & Sai chủ lượt/ngoài giờ dùng, lý do rỗng, yêu cầu trùng hoặc đã xử lý: báo lỗi. Lịch trùng booking đã duyệt phải được giải quyết trước khi lập bảo trì. Tiếp nhận không được đổi lịch sang phòng khác với phòng bị báo. Admin có thể lập lịch trực tiếp không qua yêu cầu user.\\\hline
+Hậu điều kiện & Yêu cầu có kết quả SCHEDULED/REJECTED; lịch bảo trì chưa hủy chặn khung giờ theo BR-04. Ghi chú phòng tại UC13 không tạo yêu cầu hay lịch bảo trì.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC09 -- Cấu hình quy tắc nghiệp vụ}\label{tab:uc09}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC09 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR04, FR08; BR-03, BR-06--BR-10, BR-13\\*\hline
+Tác nhân & Admin.\\*\hline
+Tiền điều kiện & Phiên/tài khoản có quyền admin; đã đọc cấu hình hiện có.\\*\hline
+Luồng chính & 1. Mở màn hình quy định, xem cửa sổ đặt trước, hạn mức, hạn hủy/đổi, đệm PIN, ân hạn no-show, thông báo và tự duyệt.\par
+2. Thay đổi các tham số cần thiết; hệ thống kiểm số nguyên không âm, min không lớn hơn max và hạn mức ít nhất một.\par
+3. Lưu cấu hình; các service lấy giá trị mới cho những lần xử lý tiếp theo.\par
+4. Khi bật tự duyệt, phòng thường có thể được duyệt ngay lúc tạo; phòng requiresApproval vẫn chờ admin.\\\hline
+Ngoại lệ / nhánh khác & User không được lưu cấu hình; số âm/không nguyên, min lớn hơn max hoặc hạn mức bằng 0 bị từ chối. Backend giữ trường mới đang có khi client cũ cập nhật mà bỏ qua trường đó, tránh vô tình tắt tự duyệt.\\\hline
+Hậu điều kiện & Cấu hình được lưu tại nguồn local hoặc REST đang chọn. Thay đổi cấu hình không tự hòa giải hai kho dữ liệu, không sửa ngược mọi PIN hoặc lịch hẹn đã được tạo.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC10 -- Quản lý liên kết SmartLock và phiên OneIoT}\label{tab:uc10}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC10 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR05, FR06, FR08; BR-10, BR-11\\*\hline
+Tác nhân & Admin quản lý liên kết; user có quyền sử dụng chức năng kết nối/gửi mã của lượt mình.\\*\hline
+Tiền điều kiện & Có model khóa đang quản lý; gắn khóa yêu cầu phòng PIN. Kết nối thật cần Internet, token và thông tin thiết bị phù hợp.\\*\hline
+Luồng chính & 1. Admin chọn một phòng khóa số và lưu liên kết với SmartLock đang quản lý; muốn đổi phòng thì cập nhật liên kết.\par
+2. Người dùng chức năng được phép nhập token cho phiên và kiểm tra kết nối OneIoT.\par
+3. Khi kết nối thành công, app đăng ký nhận bản tin và xét gửi các PIN chờ của đúng phòng/khóa.\par
+4. UI hiển thị kết nối/lỗi; token ở RAM và kết nối được dọn khi logout hoặc app xuống nền.\par
+5. Admin có thể tháo liên kết; các PIN/phòng không còn khớp liên kết không được gửi như mã của khóa hiện tại.\\\hline
+Ngoại lệ / nhánh khác & Phòng không tồn tại hoặc khóa cơ/thẻ: không cho gắn. Token/mạng sai: hiển thị lỗi kết nối và giữ mã ở trạng thái chờ gửi. Một khóa được quản lý và gắn với tối đa một phòng tại một thời điểm.\\\hline
+Hậu điều kiện & Lưu quan hệ phòng--khóa và metadata gửi/nhận theo phiên. Ứng dụng gửi mã, nhận sự kiện và cập nhật trạng thái khi phiên OneIoT hoạt động.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC11 -- Quản lý tài khoản và quyền PIN theo phòng}\label{tab:uc11}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC11 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR01, FR05, FR08; BR-11\\*\hline
+Tác nhân & Admin.\\*\hline
+Tiền điều kiện & Phiên/tài khoản có quyền admin; dữ liệu tài khoản và quyền được đọc từ nguồn đang chọn.\\*\hline
+Luồng chính & 1. Tạo tài khoản quản lý bằng username, mật khẩu, mã khôi phục và role; kiểm tên hợp lệ/chưa tồn tại, mật khẩu/mã khôi phục ít nhất bốn ký tự.\par
+2. Tìm tài khoản; thay đổi role, trạng thái active, mật khẩu hoặc mã khôi phục theo chức năng được cung cấp.\par
+3. Khi xóa, kiểm không phải tài khoản đang đăng nhập và không còn booking trạng thái PENDING/APPROVED cần xử lý.\par
+4. Chọn user và phòng PIN để cấp/thu hồi quyền tạo mã; lưu người/thời điểm xử lý và thông báo.\par
+5. Mỗi lần user tạo PIN, kiểm lại chủ booking, trạng thái và quyền phòng; việc cấp quyền không thay role.\\\hline
+Ngoại lệ / nhánh khác & Chặn trùng/tên sai, mật khẩu/mã quản lý quá ngắn; chặn tự khóa, tự hạ quyền hoặc tự xóa tài khoản admin đang dùng. Thu hồi quyền yêu cầu bản ghi active. Thu hồi quyền phòng ngăn việc tạo PIN tiếp theo; vòng đời PIN đã cấp được quản lý riêng theo lượt đặt.\\\hline
+Hậu điều kiện & Tài khoản bị khóa không đăng nhập được; quyền PIN phản ánh đúng cặp user--phòng. Điều kiện xóa tài khoản được xác định theo trạng thái booking liên quan.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC12 -- Ghi nhận có mặt, sự kiện khóa và vắng mặt}\label{tab:uc12}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC12 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR06; BR-13\\*\hline
+Tác nhân & Admin đối với check-in thủ công/no-show; SmartLock/OneIoT đối với bản tin sự kiện.\\*\hline
+Tiền điều kiện & Booking APPROVED; check-in thủ công chỉ cho phòng khóa cơ/thẻ trong giờ dùng. No-show cần hết ân hạn và chưa có bằng chứng check-in.\\*\hline
+Luồng chính & 1. Với khóa cơ/thẻ, admin chọn xác nhận có mặt; service kiểm đúng loại phòng, khoảng dùng và chưa có bằng chứng check-in.\par
+2. Với khóa số, app phân tích sự kiện MQTT, đối chiếu khóa/phòng/thời gian và cập nhật trường/sự kiện của booking phù hợp.\par
+3. Nếu qua ân hạn và chưa có checkedInAt, checkedOutAt hoặc sự kiện \code{CHECK_IN}, admin có thể chọn ghi nhận vắng mặt.\par
+4. Lưu người/thời điểm xác nhận; no-show chuyển \code{NO_SHOW} và đánh dấu PIN thu hồi trong dữ liệu; thông báo người đặt.\\\hline
+Ngoại lệ / nhánh khác & Không cho check-in thủ công sai loại khóa, ngoài giờ dùng hoặc đã có bằng chứng. Không ghi no-show trước ân hạn hoặc sau khi có bằng chứng có mặt. Quá ân hạn không tự động chạy tác vụ no-show. Việc ghi nhận vắng mặt căn cứ vào dữ liệu booking và thao tác admin; nhận sự kiện khóa yêu cầu phiên MQTT đang hoạt động.\\\hline
+Hậu điều kiện & Dấu có mặt/ra được lưu riêng với trạng thái APPROVED; \code{NO_SHOW} đóng lượt và giải phóng giữ chỗ. Sự kiện SmartLock được xử lý để cập nhật trạng thái có mặt/ra của lượt sử dụng.\\\hline
+\end{longtable}}
+
+\Needspace{16\baselineskip}
+\subsection{UC13 -- Ghi chú tình trạng phòng đang sử dụng}\label{tab:uc13}
+{\small\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{6pt}\setlength{\extrarowheight}{2pt}
+\arrayrulecolor{black!35}
+\renewcommand{\theHtable}{uc.\arabic{subsection}}\addtocounter{table}{-1}
+\begin{longtable}{|>{\bfseries\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{\dimexpr\textwidth-3cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endfirsthead
+\multicolumn{2}{r}{\small\itshape UC13 (tiếp)}\\
+\hline
+\textbf{Trường} & \textbf{Nội dung đặc tả}\\\hline
+\endhead
+\endlastfoot
+Yêu cầu / quy tắc & FR07; BR-14\\*\hline
+Tác nhân & Chủ booking đang sử dụng; admin nhận thông tin.\\*\hline
+Tiền điều kiện & Booking của user, APPROVED và thời điểm hiện tại trong khoảng dùng.\\*\hline
+Luồng chính & 1. User nhập ghi chú về đồ dùng hoặc điều cần lưu ý trong lượt đang dùng.\par
+2. Kiểm nội dung sau trim không rỗng, không quá 500 ký tự; kiểm chủ lượt và thời gian.\par
+3. Gửi thông báo chú ý cho admin kèm phòng, lịch và nội dung; UI báo kết quả/lỗi.\par
+4. Admin đọc thông báo và quyết định xử lý nghiệp vụ tiếp theo nếu cần.\\\hline
+Ngoại lệ / nhánh khác & Ngoài giờ dùng, khác chủ lượt, trạng thái không hợp lệ hoặc nội dung quá dài/rỗng: từ chối. Lỗi REST không được hiển thị như gửi thành công. Banner chỉ hiện tức thời nếu người nhận là tài khoản đang đăng nhập; thông báo của admin không hiện cho user.\\\hline
+Hậu điều kiện & Ghi chú được đưa vào thông báo cho admin; không tạo MaintenanceRequest hay lịch chặn phòng. Nếu cần luồng bảo trì có theo dõi trạng thái, dùng UC08.\\\hline
+\end{longtable}}

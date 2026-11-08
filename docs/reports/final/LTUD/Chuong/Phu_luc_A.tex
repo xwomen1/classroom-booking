@@ -1,95 +1,83 @@
-\documentclass[../DoAn.tex]{subfiles}
-\begin{document}
-Phụ lục này đặc tả các use case không được trình bày trong mục~\ref{section:2.3}. Mã quy tắc BR tham chiếu tới Bảng~\ref{tab:br}.
+\section{Danh mục minh chứng}
+Kho bàn giao sử dụng nhánh main. Đường dẫn ứng dụng tính từ \code{code/booking_classroom/}, backend từ \code{code/booking-server/}, báo cáo từ \code{docs/reports/final/LTUD/}; các đường dẫn khác tính từ gốc repository.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.19\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.45\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.36\textwidth-2\tabcolsep\relax}}
+\caption{Hồ sơ bàn giao và vị trí}\label{tab:artifacts}\\
+\toprule \textbf{Hạng mục} & \textbf{Vị trí / liên kết} & \textbf{Ghi chú}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Hồ sơ bàn giao và vị trí (tiếp)}\\
+\toprule \textbf{Hạng mục} & \textbf{Vị trí / liên kết} & \textbf{Ghi chú}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Kho mã nguồn & \href{https://github.com/xwomen1/classroom-booking/tree/main}{GitHub: xwomen1/classroom-booking, nhánh main}. & Ứng dụng, backend, kiểm thử và tài liệu.\\\addlinespace[1.5pt]
+README & Gốc repository: \code{README.md}; ứng dụng và backend: \code{README.md} tại từng thư mục. & Phụ thuộc, cấu hình, build và cài Android; Java/Maven, H2.\\\addlinespace[1.5pt]
+Mã kiểm thử & Ứng dụng: \code{__tests__/}, \code{quality-tests/}, \code{src/modules/auto_approval/__tests__/}. & Bộ kiểm thử và cấu hình chạy riêng.\\\addlinespace[1.5pt]
+Báo cáo kiểm thử & Ứng dụng: \code{quality-tests/BAO_CAO_KIEM_THU.md}; \code{evidence/device-verification.txt}. & Kết quả tự động, tích hợp H2 và kiểm tra Android.\\\addlinespace[1.5pt]
+Hồ sơ thực nghiệm & Báo cáo: \code{minh_chung/kiem_thu/README.md}. & Môi trường, 50 ca app/398 quality/5 quyền thông báo; 6 ca Android, ảnh/XML và log.\\\addlinespace[1.5pt]
+Nghiệm thu hệ thống & Báo cáo: \code{minh_chung/kiem_thu/nghiem_thu_he_thong.md}. & Kết quả vận hành ứng dụng và SmartLock do nhóm xác nhận.\\\addlinespace[1.5pt]
+Ảnh giao diện & Báo cáo: \code{Hinhve/*hien_tai.png}; ảnh Android trong hồ sơ thực nghiệm. & Minh họa các chức năng tại Chương~\ref{chap:implementation}.\\\addlinespace[1.5pt]
+Sơ đồ thiết kế & Gốc: \code{design/RoomHub_design.drawio}; báo cáo: \code{Hinhve/design/roomhub_bao_cao.drawio}. & Nghiệp vụ, kiến trúc, dữ liệu và trình tự xử lý.\\\addlinespace[1.5pt]
+Bản chạy thử & Ứng dụng: \code{android/app/build/outputs/apk/release/app-release.apk} sau build. & Cài Android theo mục 4.7; chọn local/REST theo môi trường.\\\addlinespace[1.5pt]
+Thống kê đóng góp & Báo cáo: \code{minh_chung/thong_ke_git.json}; \code{minh_chung/thong_ke_git.py}. & Số liệu quy thuộc dòng mã và script tái lập.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\section{Đặc tả use case ``Hủy đặt phòng''}
-\begin{dacta}{Đặc tả use case UC06 -- Hủy đặt phòng}{tab:uc06}
-Tác nhân & Người đặt phòng \\ \hline
-Tiền điều kiện & Yêu cầu đang chờ hoặc đã duyệt, chưa đến giờ bắt đầu. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Người đặt mở danh sách yêu cầu của mình, chọn yêu cầu và bấm hủy.
-\item Hệ thống kiểm tra quyền sở hữu và tình trạng của yêu cầu.
-\item Với yêu cầu đã duyệt, hệ thống kiểm tra còn ít nhất 30 phút (BR-08).
-\item Hệ thống chuyển sang trạng thái đã hủy và ghi thời điểm thu hồi mã PIN nếu có.
-\item Hệ thống thông báo kết quả cho quản trị viên.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Quá hạn hủy: báo ``Yêu cầu đã duyệt chỉ được hủy trước ít nhất 30 phút''. 2a. Phiên đã bắt đầu: báo không thể hủy. \\ \hline
-Hậu điều kiện & Yêu cầu đã hủy; phòng trở lại trạng thái trống trong khung giờ đó và mã PIN bị thu hồi. \\
-\end{dacta}
+\Needspace{24\baselineskip}
+\section{Kịch bản trình diễn 3--7 phút}
+Kịch bản sử dụng bản Android đã cấu hình local hoặc REST, tài khoản user/admin, phòng khả dụng và hạn mức còn đủ. Luồng SmartLock sử dụng token hợp lệ và khóa đã gắn đúng phòng. Bảng~\ref{tab:demo} tổng hợp thao tác và trạng thái đầu ra dự kiến trong 3--7 phút.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.18\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.44\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.38\textwidth-2\tabcolsep\relax}}
+\caption{Kịch bản demo và kết quả mong đợi}\label{tab:demo}\\
+\toprule \textbf{Bước / thời lượng} & \textbf{Nội dung} & \textbf{Kết quả mong đợi}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Kịch bản demo và kết quả mong đợi (tiếp)}\\
+\toprule \textbf{Bước / thời lượng} & \textbf{Nội dung} & \textbf{Kết quả mong đợi}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+1 / 30 giây & Giới thiệu bài toán và chế độ dữ liệu của bản chạy; đăng nhập user. & Hiển thị bảng điều khiển User và các chức năng đặt phòng.\\\addlinespace[1.5pt]
+2 / 60--90 giây & Chọn phòng/giờ ngày mai trong cửa sổ cho phép, nhập mục đích, gửi yêu cầu. & Tạo PENDING khi tự duyệt tắt; lịch phòng phản ánh khung giờ đã giữ.\\\addlinespace[1.5pt]
+3 / 60--90 giây & Đăng nhập admin, duyệt yêu cầu; quay lại user. & APPROVED và quyền tiếp cận đúng phòng. Với PIN, tạo mã 7 số; chờ OneIoT khi chưa kết nối.\\\addlinespace[1.5pt]
+4 / 30--60 giây & Thử yêu cầu trùng giờ hoặc ngày ngoài cửa sổ; nhập sai mật khẩu/thiếu mục đích. & Thông báo rõ lý do; không tạo thêm dữ liệu vi phạm.\\\addlinespace[1.5pt]
+5 / 30--60 giây & Bật tự duyệt phòng thường và đánh dấu một phòng special; tạo lượt hợp lệ. & Thường được duyệt tự động, special chờ admin. Kết quả tự duyệt được kiểm tra tại TC07 và TC24.\\\addlinespace[1.5pt]
+6 / 30 giây & Trình bày mã đã cấp, trạng thái gửi và sử dụng SmartLock trong phiên kết nối. & Ứng dụng thể hiện trạng thái PIN và nhận sự kiện sử dụng khóa.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\section{Đặc tả use case ``Hẹn lịch nhận khóa và ủy quyền nhận hộ''}
-\begin{dacta}{Đặc tả use case UC07 -- Hẹn lịch nhận khóa và ủy quyền nhận hộ}{tab:uc07}
-Tác nhân & Quản trị viên, người đặt phòng \\ \hline
-Tiền điều kiện & Yêu cầu đã duyệt tại phòng dùng khóa cơ hoặc thẻ, chưa đến giờ sử dụng. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Người đặt đề xuất thời điểm nhận khóa trước giờ sử dụng.
-\item Quản trị viên chấp nhận hoặc đề xuất thời điểm, địa điểm khác; hai bên tiếp tục phản hồi tới khi thống nhất.
-\item Nếu không tự đến nhận, người đặt ghi họ tên và mã định danh của người nhận hộ.
-\item Hệ thống lưu lịch hẹn đã thống nhất và thông báo cho các bên; người nhận hộ xuất trình giấy tờ khi nhận.
-\end{buoc} \\ \hline
-Luồng phát sinh & 2a. Phòng dùng khóa số: báo ``Phòng này không dùng khóa cơ/thẻ''. 3a. Thiếu họ tên hoặc mã: báo lỗi. \\ \hline
-Hậu điều kiện & Lịch hẹn nhận khóa được lưu cùng thông tin người nhận hộ, nếu có. \\
-\end{dacta}
+Khi mất mạng, chế độ REST hiển thị lỗi kết nối và giữ nguồn dữ liệu server đã cấu hình. Các lượt thử được hủy/từ chối và cấu hình được khôi phục trong phạm vi dữ liệu trình diễn.
 
-\section{Đặc tả use case ``Quản lý lịch sử dụng và bảo trì''}
-\begin{dacta}{Đặc tả use case UC08 -- Quản lý lịch sử dụng và bảo trì}{tab:uc08}
-Tác nhân & Quản trị viên \\ \hline
-Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên mở lịch phòng và bảo trì để xem các phiên sử dụng đã được duyệt.
-\item Quản trị viên chọn tầng, phòng, ngày giờ và nhập lý do bảo trì.
-\item Hệ thống kiểm tra phòng tồn tại, khoảng giờ hợp lệ, có lý do và không trùng bảo trì hoặc phiên sử dụng đã duyệt.
-\item Hệ thống lưu lịch bảo trì; phòng hiển thị màu bảo trì trên sơ đồ trong khung giờ đó.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Trùng phiên đã duyệt: yêu cầu đổi phòng trước khi lập lịch bảo trì. 4a. Quản trị viên hủy lịch bảo trì: ghi thời điểm hủy và cập nhật trạng thái phòng. \\ \hline
-Hậu điều kiện & Các yêu cầu mới trùng khung giờ bị chặn theo BR-04. \\
-\end{dacta}
+\section{Mô hình dữ liệu và nguồn sơ đồ chi tiết}
+Hình~\ref{fig:erd} bổ sung các thuộc tính/quan hệ đã tóm tắt ở Chương~\ref{chap:design}. PK biểu thị định danh, REF biểu thị các quan hệ tham chiếu logic theo ID.
 
-\section{Đặc tả use case ``Cấu hình nghiệp vụ''}
-\begin{dacta}{Đặc tả use case UC09 -- Cấu hình nghiệp vụ}{tab:uc09}
-Tác nhân & Quản trị viên \\ \hline
-Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên mở phần quy định đặt phòng; hệ thống hiển thị giá trị hiện tại.
-\item Quản trị viên sửa cửa sổ đặt trước, số yêu cầu tối đa của mỗi người, hạn hủy, hạn đổi phòng, khoảng đệm mã số và tùy chọn thông báo.
-\item Hệ thống kiểm tra các giá trị là số nguyên không âm, thời hạn tối thiểu không lớn hơn tối đa và giới hạn yêu cầu ít nhất bằng một.
-\item Hệ thống lưu cấu hình; các module đọc giá trị mới ở lần kiểm tra tiếp theo.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Giá trị không hợp lệ: hiển thị thông điệp tương ứng, không lưu. \\ \hline
-Hậu điều kiện & Quy tắc BR-03, BR-06, BR-08, BR-09, BR-10 dùng tham số mới. \\
-\end{dacta}
+Nguồn chỉnh sửa sơ đồ được lưu trong \code{Hinhve/design/roomhub_bao_cao.drawio}. Phân rã chức năng và tổ chức module được tổng hợp tại Bảng~\ref{tab:design-modules} và Bảng~\ref{tab:fr-code}.
 
-\section{Đặc tả use case ``Quản lý SmartLock''}
-\begin{dacta}{Đặc tả use case UC10 -- Quản lý SmartLock}{tab:uc10}
-Tác nhân & Quản trị viên; nền tảng OneIoT \\ \hline
-Tiền điều kiện & Quản trị viên đã đăng nhập; ứng dụng có thông tin khóa số đang quản lý. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên mở phần quản lý khóa, chọn phòng khóa số để gắn với khóa đang quản lý.
-\item Hệ thống kiểm tra loại khóa của phòng và lưu liên kết phòng -- khóa.
-\item Khi cần kết nối, người dùng nhập token OneIoT cho phiên hiện tại và bấm kiểm tra kết nối.
-\item Ứng dụng hiển thị trạng thái kết nối; khi có phiên kết nối, các mã đang chờ và còn hiệu lực có thể được gửi.
-\end{buoc} \\ \hline
-Luồng phát sinh & 1a. Chọn phòng khóa cơ hoặc thẻ: báo không phù hợp. 3a. Thông tin xác thực không hợp lệ hoặc mạng lỗi: chưa kết nối, mã vẫn chờ gửi. Quản trị viên có thể tháo liên kết khóa khỏi phòng. \\ \hline
-Hậu điều kiện & Chỉ yêu cầu tại phòng đang gắn khóa mới được gửi lệnh tạo mật khẩu. \\
-\end{dacta}
+\begin{landscape}
+\begin{figure}[p]\centering
+\includegraphics[width=.98\linewidth,height=.85\textheight,keepaspectratio]{Hinhve/design/17_er_diagram.pdf}
+\caption{Mô hình thực thể và quan hệ logic của RoomHub}\label{fig:erd}
+\end{figure}
+\clearpage
+\end{landscape}
 
-\section{Đặc tả use case ``Quản lý tài khoản và quyền theo phòng''}
-\begin{dacta}{Đặc tả use case UC11 -- Quản lý tài khoản và quyền theo phòng}{tab:uc11}
-Tác nhân & Quản trị viên \\ \hline
-Tiền điều kiện & Quản trị viên đã đăng nhập. \\ \hline
-Luồng chính &
-\begin{buoc}
-\item Quản trị viên nhập tên đăng nhập, mật khẩu ban đầu và mã khôi phục để thêm tài khoản.
-\item Hệ thống kiểm tra tên 3--30 ký tự thường, số, dấu chấm, gạch ngang; mật khẩu và mã khôi phục ít nhất 4 ký tự; tên chưa tồn tại.
-\item Quản trị viên tìm tài khoản, khóa, mở, đặt lại mật khẩu hoặc xóa.
-\item Quản trị viên xem quyền tự tạo mã của người dùng và có thể thu hồi theo từng phòng.
-\end{buoc} \\ \hline
-Luồng phát sinh & 3a. Tự khóa hoặc tự xóa tài khoản đang đăng nhập: bị chặn. 3b. Tài khoản còn yêu cầu đang hoạt động: không cho xóa. \\ \hline
-Hậu điều kiện & Tài khoản bị khóa không đăng nhập được; quyền bị thu hồi chặn tạo mã theo BR-11. \\
-\end{dacta}
-\end{document}
+\section{Quy trình tái lập kỹ thuật}\label{sec:technical-reproduction}
+\subsection{Đóng gói Release trên macOS/Linux}
+Các lệnh sau thực hiện tại \code{code/booking_classroom/}, sau khi cấu hình JDK/SDK, chọn nguồn dữ liệu và chạy \cmd{npm ci}. Bước bundle đưa JavaScript và tài nguyên vào APK trước khi Gradle đóng gói:
+\begin{Verbatim}[fontsize=\small,frame=single,breaklines=true]
+mkdir -p android/app/src/main/assets
+node node_modules/react-native/cli.js bundle \
+  --platform android --dev false --entry-file index.js \
+  --bundle-output android/app/src/main/assets/index.android.bundle \
+  --assets-dest android/app/src/main/res
+cd android
+sh ./gradlew assembleRelease
+cd ..
+\end{Verbatim}
+
+Cài APK và mở ứng dụng theo mục 4.7. Trên Windows, script \cmd{npm run build:android:release} thực hiện các bước bundle và Gradle tương ứng.
+
+\subsection{Tái lập kiểm thử}\label{sec:test-reproduction}
+Các bộ ứng dụng, quality, quyền thông báo và kiểm tra tĩnh chạy từ thư mục ứng dụng; dữ liệu kết quả được lưu riêng cho từng bộ:
+\begin{Verbatim}[fontsize=\small,frame=single,breaklines=true]
+npm test -- --runInBand
+npx jest --config quality-tests/jest.config.js --runInBand
+npx jest --config ../../docs/reports/final/LTUD/minh_chung/kiem_thu/jest.permission.config.cjs --runInBand
+npx tsc --noEmit
+npm run lint
+\end{Verbatim}
+
+Kiểm thử backend dùng \cmd{mvn test} tại \code{code/booking-server/}. Môi trường, dữ liệu và kết quả thực nghiệm Android được lưu trong hồ sơ kiểm thử \cite{currenttests}; lệnh ADB và vị trí ảnh/XML đi kèm hồ sơ.

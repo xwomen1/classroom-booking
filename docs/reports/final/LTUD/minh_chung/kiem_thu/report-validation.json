@@ -1,0 +1,27 @@
+{
+  "physical_pages": 61,
+  "main_content_pages": 49,
+  "outline_entries": 99,
+  "layout_overflow": false,
+  "missing_references": false,
+  "template_unchanged": true,
+  "git_statistics_json_and_script_unchanged": true,
+  "original_ui_screenshots_unchanged": true,
+  "diagram_geometry_unchanged": true,
+  "contributions_unchanged": true,
+  "fonts": [
+    "TimesNewRomanPS-BoldMT",
+    "TimesNewRomanPS-ItalicMT",
+    "TimesNewRomanPSMT"
+  ],
+  "internal_pdf_links_verified": 195,
+  "landscape_diagram_pages": [
+    60
+  ],
+  "app_tests_passed": 50,
+  "quality_tests_passed": 398,
+  "supplemental_permission_tests_passed": 5,
+  "device_cases_passed": 6,
+  "notification_switch_restored": true,
+  "logged_out_at_end": true
+}

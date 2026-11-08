@@ -1,0 +1,13 @@
+{
+  "pass": true,
+  "before": "31-profile-before-force-stop",
+  "after": "37-profile-after-force-stop",
+  "fields": {
+    "profile-full-name": "RoomHub QA Persist 0811",
+    "profile-email": "qa0811@example.invalid",
+    "profile-department": "QA RoomHub 2026"
+  },
+  "session_after_restart": "Login required; authenticated again with same test account",
+  "process_before": "20457",
+  "process_after": "28866"
+}

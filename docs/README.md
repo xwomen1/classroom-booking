@@ -6,6 +6,8 @@
 - `project/deployment/`: hiện trạng mã nguồn và phần đã kiểm chứng sau các mốc phát triển.
 - `project/test-plan/`: kịch bản kiểm thử.
 - `project/references/`: tài liệu nguồn nghiệp vụ.
+- [Poster ET4710](poster/images/): ba phương án poster, mỗi phương án có bản PNG và JPG.
+- [Báo cáo cuối kỳ ET4710](reports/final/LTUD/DoAn.pdf): PDF, nguồn LaTeX và minh chứng thực nghiệm trong thư mục LTUD.
 - `reports/final/LTNC/`: source và PDF báo cáo cuối kỳ.
 - `reports/midterm/mid_LTUD/`: source và PDF báo cáo giữa kỳ.
 - `reports/exports/`: bản PDF xuất thêm.

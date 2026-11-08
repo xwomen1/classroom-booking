@@ -1,0 +1,375 @@
+{
+  "started_at": "2026-11-08T09:24:19.162000+07:00",
+  "success": true,
+  "passed_suites": 8,
+  "failed_suites": 0,
+  "passed_tests": 50,
+  "failed_tests": 0,
+  "pending_tests": 0,
+  "tests": [
+    {
+      "file": "__tests__/booking.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104659394,
+      "ended_at_ms": 1794104660880,
+      "assertions": [
+        {
+          "name": "local booking and temporary PIN flow keeps an unreviewed same-day request active until its session ends",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow allows creating and approving an ongoing booking when Admin allows same-day booking",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow creates, approves and issues a seven-digit PIN for the requester",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow queues a temporary PIN offline and sends it after OneIoT connects",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow approving a booking grants room-scoped PIN permission that admin can revoke",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow only sends a PIN for the room currently attached to the single SmartLock",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow creates weekly recurring bookings when repeatWeekly is enabled",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow updates all future pending occurrences in a recurring series",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow does not partially update a series when one future occurrence conflicts",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow cancels future occurrences together and revokes an issued PIN",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow admin can approve every pending occurrence in a series at once",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow admin can reject every pending occurrence in a series at once",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow does not approve any occurrence when one series date conflicts with an approved booking",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow requires the configured grace period before marking no-show and releases the slot",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow manual Admin check-in prevents no-show confirmation",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "local booking and temporary PIN flow rejects a room collision and dates outside the one-to-three-day window",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/App.test.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104660883,
+      "ended_at_ms": 1794104663308,
+      "assertions": [
+        {
+          "name": "renders correctly",
+          "status": "passed",
+          "duration_ms": 118,
+          "failure_messages": []
+        },
+        {
+          "name": "renders approved notifications with green styling",
+          "status": "passed",
+          "duration_ms": 1549,
+          "failure_messages": []
+        },
+        {
+          "name": "classifies positive, negative and attention notifications by meaning",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "renders a check-in notification in green instead of unread red",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "shows 9+ on the Admin booking card when more than nine requests are pending",
+          "status": "passed",
+          "duration_ms": 610,
+          "failure_messages": []
+        },
+        {
+          "name": "does not count expired pending requests in the Admin dashboard badge",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        },
+        {
+          "name": "collapses Admin booking details until the summary is pressed",
+          "status": "passed",
+          "duration_ms": 10,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "src/modules/auto_approval/__tests__/autoApproval.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104663310,
+      "ended_at_ms": 1794104663384,
+      "assertions": [
+        {
+          "name": "getApprovalMode the global switch off keeps every room on manual review",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getApprovalMode with the switch on, only special rooms need manual review",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cấu hình và dữ liệu phòng auto approval is off by default and can be saved",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cấu hình và dữ liệu phòng rooms are normal unless marked special",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt switch off: the old flow is unchanged",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt normal PIN room is approved by the system immediately",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt normal key room is approved without granting a PIN permission",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt special room stays pending and the admin reviews it as before",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt every week of a recurring series is approved together",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt booking rules still apply: an auto-approved slot blocks other requests",
+          "status": "passed",
+          "duration_ms": 17,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking với module tự động duyệt admins still need their role to grant PIN permissions by hand",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/phase2Workflows.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104663388,
+      "ended_at_ms": 1794104663430,
+      "assertions": [
+        {
+          "name": "phase 2 local workflows lets the current room user report maintenance and lets admin schedule it",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "phase 2 local workflows negotiates physical-key pickup until both sides agree",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "phase 2 local workflows parses Tools-style SmartLock check-in and future checkout traits",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/businessRules.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104663433,
+      "ended_at_ms": 1794104663488,
+      "assertions": [
+        {
+          "name": "complete local business rules enforces admin account management and local recovery",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "complete local business rules supports room CRUD and rejects non-admin mutations",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "complete local business rules blocks booking during maintenance and uses configurable limits",
+          "status": "passed",
+          "duration_ms": 10,
+          "failure_messages": []
+        },
+        {
+          "name": "complete local business rules handles physical-key appointment, delegation and emergency room change",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/roomMaintenanceScreen.test.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104663490,
+      "ended_at_ms": 1794104663617,
+      "assertions": [
+        {
+          "name": "admin manages rooms and maintenance from one floor list",
+          "status": "passed",
+          "duration_ms": 92,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/auth.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104663619,
+      "ended_at_ms": 1794104663655,
+      "assertions": [
+        {
+          "name": "local account authentication routes the two demo accounts to their correct modes",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "local account authentication registers a new user and persists its credential",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "local account authentication changes a password and invalidates the previous password",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "local account authentication rejects invalid credentials and duplicate usernames",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "local account authentication adds recovery codes to demo accounts created by an older app version",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "__tests__/roomFilters.test.ts",
+      "status": "passed",
+      "started_at_ms": 1794104663658,
+      "ended_at_ms": 1794104663677,
+      "assertions": [
+        {
+          "name": "room filters capacity keeps the exact threshold and every larger room",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "room filters equipment matches the whole device name",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "room filters map slot follows the room number",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    }
+  ]
+}

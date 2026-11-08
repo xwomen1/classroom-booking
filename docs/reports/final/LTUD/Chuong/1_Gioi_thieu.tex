@@ -1,22 +1,27 @@
-\documentclass[../DoAn.tex]{subfiles}
-\begin{document}
-\section{Đặt vấn đề}
-\label{section:1.1}
-Đề tài tập trung vào nhu cầu tìm và đăng ký phòng học, phòng họp phục vụ giảng dạy và công việc chuyên môn. Trong kịch bản quản lý lịch bằng bảng tính mà nhóm lựa chọn, người phụ trách phải đối chiếu thủ công thời gian sử dụng, sức chứa và trang thiết bị trước khi xác nhận yêu cầu. Điều này làm chậm quá trình tìm phòng phù hợp và tăng nguy cơ trùng lịch.
+\section{Bối cảnh và bài toán thực tế}
+RoomHub liên kết đặt phòng, phê duyệt và tiếp cận phòng theo vai trò user/admin, thay cho đối chiếu lịch và bàn giao khóa rời rạc qua bảng tính hoặc trao đổi trực tiếp \cite{quytrinh2026}. Khóa cơ/thẻ có hẹn nhận, ủy quyền và điểm danh; khóa số có quyền PIN theo thời hạn; người đang dùng phòng được báo tình trạng/bảo trì.
 
-Từ nhu cầu đó, nhóm phát triển RoomHub nhằm số hóa quy trình tìm phòng, đặt phòng, phê duyệt, thông báo và cấp quyền truy cập. Hệ thống hướng đến hai nhóm người dùng chính là giảng viên và cán bộ quản trị; hỗ trợ quản lý sức chứa, trang thiết bị, lịch sử dụng và hình thức khóa của từng phòng.
+C7, Đại học Bách khoa Hà Nội là ví dụ tham chiếu của đề xuất. Dữ liệu minh họa do nhóm xây dựng gồm tám tầng, bảy phòng mỗi tầng, cùng thông tin sức chứa và thiết bị.
 
-\section{Mục tiêu và phạm vi đề tài}
-\label{section:1.2}
-Phiên bản thử nghiệm ban đầu mô hình hóa một tòa nhà tám tầng và lấy tòa C7 của Đại học Bách khoa Hà Nội làm bối cảnh tham chiếu. Sơ đồ tầng và dữ liệu phòng do nhóm xây dựng, không mô tả mặt bằng thực tế hay việc triển khai trên toàn trường. Ứng dụng Android phục vụ giảng viên và cán bộ quản trị, bao gồm tìm và đặt phòng, phê duyệt yêu cầu, thông báo, quản lý phòng và lịch sử dụng, cùng cấp quyền tiếp cận theo hình thức khóa. Các thành phần máy chủ và lưu trữ được trình bày ở phần kiến trúc và giải pháp.
+\section{Mục tiêu và tiêu chí nghiệm thu}
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.27\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.34\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.39\textwidth-2\tabcolsep\relax}}
+\caption{Mục tiêu, cách xác minh và mức kết quả}\label{tab:goals}\\
+\toprule \textbf{Mã / mục tiêu} & \textbf{Cách kiểm chứng} & \textbf{Kết quả có căn cứ}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Mục tiêu, cách xác minh và mức kết quả (tiếp)}\\
+\toprule \textbf{Mã / mục tiêu} & \textbf{Cách kiểm chứng} & \textbf{Kết quả có căn cứ}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+G01 -- Đặt phòng hợp lệ & Đăng nhập, lọc phòng, gửi yêu cầu; test trùng lịch, bảo trì và hạn mức. & Luồng tìm, đặt phòng và các quy tắc xung đột, bảo trì, hạn mức hoạt động đúng trong ứng dụng.\\\addlinespace[1.5pt]
+G02 -- Duyệt và tiếp cận & Duyệt tay/tự động, quyền PIN theo phòng, nhận chìa, no-show. & Hoàn thành luồng duyệt, cấp quyền và sử dụng PIN với SmartLock trong chạy thử thực tế.\\\addlinespace[1.5pt]
+G03 -- Trải nghiệm Android & Bản Release chạy không cần Metro; màn hình theo vai trò và thông báo đúng người nhận. & Ứng dụng Android chạy độc lập Metro, hiển thị chức năng đúng vai trò và xử lý thông báo.\\\addlinespace[1.5pt]
+G04 -- Tái lập và phối hợp & README, lockfile, test, lịch sử Git và minh chứng từng thành viên. & README mô tả cài đặt và cấu hình; lockfile cố định phụ thuộc; bộ kiểm thử và hồ sơ bàn giao hỗ trợ tái lập bản chạy Android.\\\addlinespace[1.5pt]
+\end{longtable}}
 
-\section{Định hướng giải pháp}
-\label{section:1.3}
-Giải pháp gồm ứng dụng Android viết bằng React Native và TypeScript, cùng dịch vụ Java 17/Spring Boot. Dịch vụ cung cấp REST API và dùng Jakarta Persistence để lưu dữ liệu vào H2 ở chế độ tệp trong môi trường thử nghiệm. Cấu hình hiện tại chọn chế độ dùng máy chủ; chế độ lưu cục bộ được duy trì riêng và không tự hợp nhất dữ liệu phát sinh khi mất mạng. Đường truy cập công khai hiện chỉ phục vụ thử nghiệm, chưa bảo đảm tính sẵn sàng của một hệ thống vận hành thực tế. Các thao tác tạo và duyệt yêu cầu được kiểm tra trong giao dịch có khóa bi quan trên bản ghi cấu hình và phòng. Kiến trúc được trình bày tại Chương~\ref{chapter:Experiment}.
+\section{Đối tượng, phạm vi và giả định}
+Người dùng mục tiêu là giảng viên, cán bộ hoặc người học; vai trò user đại diện cho nhóm đặt và sử dụng phòng, còn admin quản lý tài nguyên. Giao diện dùng nhãn GIẢNG VIÊN cho vai trò user theo bối cảnh phòng học của dữ liệu thử. Phạm vi gồm tài khoản/hồ sơ, phòng, booking một lần/lặp tuần, duyệt, PIN/hẹn chìa, điểm danh, bảo trì, ghi chú, thông báo và cấu hình.
 
-Đối với phòng gắn khóa số, việc duyệt yêu cầu cấp quyền tạo mã cho đúng người dùng và đúng phòng, không chuyển người dùng thành quản trị viên hệ thống. Mã tạm thời gồm bảy chữ số, có khoảng hiệu lực dựa trên lịch đặt phòng. Ứng dụng lưu mã trước và gửi bản tin MQTT trực tiếp qua OneIoT khi người dùng đã kết nối trong phiên. Việc khóa thật nhận và áp dụng mã là bước kiểm chứng riêng, không suy ra chỉ từ kết quả gửi bản tin.
+Giả định đồng hồ đúng, phòng đã khai báo và có một loại khóa. Mặc định đặt trước 1--3 ngày, tối đa 2 lượt hoạt động; admin đổi được. REST cần server/URL khả dụng; local không hòa giải dữ liệu với server. Mở rộng nhiều tòa nhà/khóa, server push và tự động hóa quản lý PIN là các hướng phát triển tiếp theo.
 
-\section{Bố cục báo cáo}
-\label{section:1.4}
-Chương~\ref{chapter:Related_works} phân tích bối cảnh, kịch bản nghiệp vụ, tác nhân, use case và quy tắc vận hành. Chương~\ref{chapter:Methodology} giải thích công nghệ và cơ sở lý thuyết được dùng. Chương~\ref{chapter:Experiment} trình bày thiết kế, kết quả triển khai, giao diện và kiểm thử. Chương~\ref{chapter:SolutionAndContribution} phân tích các giải pháp kỹ thuật nổi bật. Chương~\ref{chapter:Assignment} gắn từng thành viên với phần mã đã merge để phân tích, debug và tùy biến trong buổi pre-final. Chương~\ref{chapter:conclusion} tổng kết kết quả và hướng phát triển.
-\end{document}
+\section{Sản phẩm bàn giao}
+Sản phẩm bàn giao gồm ứng dụng Android để đặt và quản lý phòng; mã nguồn ứng dụng và backend Java để cài đặt, vận hành và phát triển tiếp; README hướng dẫn cấu hình, build và chạy thử; dữ liệu mẫu, bộ kiểm thử, ảnh giao diện, sơ đồ và báo cáo. Mã nguồn được lưu tại nhánh main của repository nhóm \cite{roomhubrepo}. Danh mục minh chứng và kịch bản demo nằm ở Phụ lục~\ref{app:evidence}; phần việc thành viên ở Phụ lục~\ref{app:contributions}.

@@ -1,0 +1,1120 @@
+{
+  "commit": "2631689113451dc705970ab3e4b1b9da5afa6677",
+  "method": "git blame -w; tracked nonblank source/test lines; comments included; commits exclude merges; shares rounded by largest remainder to 0.1 percent",
+  "total_files": 115,
+  "total_lines": 15213,
+  "members": {
+    "Hoàng Văn Tùng": {
+      "source": 8147,
+      "tests": 787,
+      "commits": 33,
+      "files": [
+        "code/booking-server/src/main/java/com/bookingclassroom/server/ApiExceptionHandler.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingServerApplication.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingService.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/DataSeeder.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/Domain.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/SessionAuthFilter.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/bookings/BookingsController.java",
+        "code/booking-server/src/test/java/com/bookingclassroom/server/RemoteSyncIntegrationTest.java",
+        "code/booking_classroom/App.tsx",
+        "code/booking_classroom/__tests__/App.test.tsx",
+        "code/booking_classroom/__tests__/auth.test.ts",
+        "code/booking_classroom/__tests__/booking.test.ts",
+        "code/booking_classroom/__tests__/businessRules.test.ts",
+        "code/booking_classroom/__tests__/phase2Workflows.test.ts",
+        "code/booking_classroom/__tests__/roomMaintenanceScreen.test.tsx",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainActivity.kt",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainApplication.kt",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/OneIoTMqttPackage.kt",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/PriorityNotificationPackage.kt",
+        "code/booking_classroom/quality-tests/component/authScreens.quality.tsx",
+        "code/booking_classroom/quality-tests/component/bookingComponents.quality.tsx",
+        "code/booking_classroom/quality-tests/integration/remoteApiContract.quality.ts",
+        "code/booking_classroom/quality-tests/unit/bookingLifecycle.quality.ts",
+        "code/booking_classroom/quality-tests/unit/notifications.quality.ts",
+        "code/booking_classroom/quality-tests/unit/roomRepository.quality.ts",
+        "code/booking_classroom/src/app/index.ts",
+        "code/booking_classroom/src/app/screens/RoleDashboardScreen.tsx",
+        "code/booking_classroom/src/core/api/client.ts",
+        "code/booking_classroom/src/core/config/runtimeFlags.ts",
+        "code/booking_classroom/src/core/storage/jsonStorage.ts",
+        "code/booking_classroom/src/core/types/authenticatedUser.ts",
+        "code/booking_classroom/src/core/types/userRole.ts",
+        "code/booking_classroom/src/modules/access_control/index.ts",
+        "code/booking_classroom/src/modules/access_control/model/roomPinPermission.ts",
+        "code/booking_classroom/src/modules/access_control/services/roomPinPermissionRepository.ts",
+        "code/booking_classroom/src/modules/access_control/services/temporaryPinService.ts",
+        "code/booking_classroom/src/modules/account_management/index.ts",
+        "code/booking_classroom/src/modules/account_management/screens/AccountManagementScreen.tsx",
+        "code/booking_classroom/src/modules/auth/index.ts",
+        "code/booking_classroom/src/modules/auth/model/demoAccounts.ts",
+        "code/booking_classroom/src/modules/auth/screens/ChangePasswordScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/ForgotPasswordScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/LoginScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/RegistrationScreen.tsx",
+        "code/booking_classroom/src/modules/auth/services/accountRepository.ts",
+        "code/booking_classroom/src/modules/auto_approval/__tests__/autoApproval.test.ts",
+        "code/booking_classroom/src/modules/booking/components/BookingInfo.tsx",
+        "code/booking_classroom/src/modules/booking/components/BookingTimePicker.tsx",
+        "code/booking_classroom/src/modules/booking/index.ts",
+        "code/booking_classroom/src/modules/booking/model/booking.ts",
+        "code/booking_classroom/src/modules/booking/screens/AdminBookingScreen.tsx",
+        "code/booking_classroom/src/modules/booking/screens/BookingScheduleScreen.tsx",
+        "code/booking_classroom/src/modules/booking/screens/MyBookingsScreen.tsx",
+        "code/booking_classroom/src/modules/booking/services/bookingRepository.ts",
+        "code/booking_classroom/src/modules/configuration/index.ts",
+        "code/booking_classroom/src/modules/configuration/model/appConfiguration.ts",
+        "code/booking_classroom/src/modules/configuration/screens/ConfigurationScreen.tsx",
+        "code/booking_classroom/src/modules/configuration/services/configurationRepository.ts",
+        "code/booking_classroom/src/modules/notifications/components/PriorityBannerHost.tsx",
+        "code/booking_classroom/src/modules/notifications/index.ts",
+        "code/booking_classroom/src/modules/notifications/model/notificationItem.ts",
+        "code/booking_classroom/src/modules/notifications/screens/NotificationScreen.tsx",
+        "code/booking_classroom/src/modules/notifications/services/notificationRepository.ts",
+        "code/booking_classroom/src/modules/notifications/services/notificationTone.ts",
+        "code/booking_classroom/src/modules/notifications/services/priorityBanner.ts",
+        "code/booking_classroom/src/modules/profile/index.ts",
+        "code/booking_classroom/src/modules/profile/model/userProfile.ts",
+        "code/booking_classroom/src/modules/profile/screens/ProfileScreen.tsx",
+        "code/booking_classroom/src/modules/profile/services/profileRepository.ts",
+        "code/booking_classroom/src/modules/room_management/index.ts",
+        "code/booking_classroom/src/modules/room_management/model/demoRooms.ts",
+        "code/booking_classroom/src/modules/room_management/model/room.ts",
+        "code/booking_classroom/src/modules/room_management/screens/RoomManagementScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/screens/RoomSearchScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/services/roomRepository.ts",
+        "code/booking_classroom/src/modules/schedule_maintenance/index.ts",
+        "code/booking_classroom/src/modules/schedule_maintenance/model/maintenance.ts",
+        "code/booking_classroom/src/modules/schedule_maintenance/services/maintenanceRepository.ts",
+        "code/booking_classroom/src/modules/smart_lock/index.ts",
+        "code/booking_classroom/src/modules/smart_lock/model/managedSmartLock.ts",
+        "code/booking_classroom/src/modules/smart_lock/screens/SmartLockManagementScreen.tsx",
+        "code/booking_classroom/src/modules/smart_lock/services/oneIoTClient.ts",
+        "code/booking_classroom/src/modules/smart_lock/services/smartLockAccessEventService.ts",
+        "code/booking_classroom/src/modules/smart_lock/services/smartLockRepository.ts",
+        "code/booking_classroom/src/shared/components/FeaturePlaceholderScreen.tsx",
+        "code/booking_classroom/src/shared/components/ScreenHeader.tsx",
+        "code/booking_classroom/src/shared/index.ts"
+      ],
+      "total": 8934,
+      "percent": 58.7
+    },
+    "Đỗ Thùy Linh": {
+      "source": 1988,
+      "tests": 37,
+      "commits": 18,
+      "files": [
+        "code/booking-server/src/main/java/com/bookingclassroom/server/ApiExceptionHandler.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingServerApplication.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingService.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/DataSeeder.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/Domain.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/SessionAuthFilter.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/access/AccessController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/auth/AccountsController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/bookings/BookingsController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/maintenance/MaintenanceController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/notifications/NotificationsController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/api/rooms/RoomsController.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/security/RequestActor.java",
+        "code/booking_classroom/App.tsx",
+        "code/booking_classroom/__tests__/roomFilters.test.ts",
+        "code/booking_classroom/__tests__/roomMaintenanceScreen.test.tsx",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainActivity.kt",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainApplication.kt",
+        "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/PriorityNotificationPackage.kt",
+        "code/booking_classroom/quality-tests/integration/remoteApiContract.quality.ts",
+        "code/booking_classroom/src/app/screens/RoleDashboardScreen.tsx",
+        "code/booking_classroom/src/core/api/client.ts",
+        "code/booking_classroom/src/core/config/runtimeFlags.ts",
+        "code/booking_classroom/src/core/time/intervals.ts",
+        "code/booking_classroom/src/modules/access_control/services/roomPinPermissionRepository.ts",
+        "code/booking_classroom/src/modules/account_management/screens/AccountManagementScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/ChangePasswordScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/ForgotPasswordScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/LoginScreen.tsx",
+        "code/booking_classroom/src/modules/auth/screens/RegistrationScreen.tsx",
+        "code/booking_classroom/src/modules/auth/services/accountRepository.ts",
+        "code/booking_classroom/src/modules/booking/services/bookingRepository.ts",
+        "code/booking_classroom/src/modules/configuration/services/configurationRepository.ts",
+        "code/booking_classroom/src/modules/notifications/components/PriorityBannerHost.tsx",
+        "code/booking_classroom/src/modules/notifications/index.ts",
+        "code/booking_classroom/src/modules/notifications/screens/NotificationScreen.tsx",
+        "code/booking_classroom/src/modules/notifications/services/notificationRepository.ts",
+        "code/booking_classroom/src/modules/notifications/services/priorityBanner.ts",
+        "code/booking_classroom/src/modules/room_management/model/demoRooms.ts",
+        "code/booking_classroom/src/modules/room_management/model/roomFilters.ts",
+        "code/booking_classroom/src/modules/room_management/screens/RoomManagementScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/screens/RoomSearchScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/services/roomRepository.ts",
+        "code/booking_classroom/src/modules/schedule_maintenance/services/maintenanceRepository.ts",
+        "code/booking_classroom/src/shared/components/PasswordInput.tsx",
+        "code/booking_classroom/src/shared/index.ts"
+      ],
+      "total": 2025,
+      "percent": 13.3
+    },
+    "Nguyễn Việt Dũng": {
+      "source": 196,
+      "tests": 3033,
+      "commits": 11,
+      "files": [
+        "code/booking-server/src/main/java/com/bookingclassroom/server/AutoApprovalPolicy.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingService.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/DataSeeder.java",
+        "code/booking-server/src/main/java/com/bookingclassroom/server/Domain.java",
+        "code/booking-server/src/test/java/com/bookingclassroom/server/RemoteSyncIntegrationTest.java",
+        "code/booking_classroom/__tests__/booking.test.ts",
+        "code/booking_classroom/__tests__/businessRules.test.ts",
+        "code/booking_classroom/quality-tests/component/accountManagementScreen.quality.tsx",
+        "code/booking_classroom/quality-tests/component/authScreens.quality.tsx",
+        "code/booking_classroom/quality-tests/component/bookingComponents.quality.tsx",
+        "code/booking_classroom/quality-tests/component/profileAndConfigurationScreens.quality.tsx",
+        "code/booking_classroom/quality-tests/integration/endToEndWorkflows.quality.ts",
+        "code/booking_classroom/quality-tests/integration/oneIoTNativeBridge.quality.ts",
+        "code/booking_classroom/quality-tests/integration/remoteApiContract.quality.ts",
+        "code/booking_classroom/quality-tests/jest.config.js",
+        "code/booking_classroom/quality-tests/setup/asyncStorageMock.js",
+        "code/booking_classroom/quality-tests/support/testUtils.ts",
+        "code/booking_classroom/quality-tests/unit/accessControl.quality.ts",
+        "code/booking_classroom/quality-tests/unit/accountRepository.quality.ts",
+        "code/booking_classroom/quality-tests/unit/apiClient.quality.ts",
+        "code/booking_classroom/quality-tests/unit/bookingLifecycle.quality.ts",
+        "code/booking_classroom/quality-tests/unit/bookingRules.quality.ts",
+        "code/booking_classroom/quality-tests/unit/configurationAndProfile.quality.ts",
+        "code/booking_classroom/quality-tests/unit/maintenanceRepository.quality.ts",
+        "code/booking_classroom/quality-tests/unit/notifications.quality.ts",
+        "code/booking_classroom/quality-tests/unit/roomRepository.quality.ts",
+        "code/booking_classroom/quality-tests/unit/smartLock.quality.ts",
+        "code/booking_classroom/src/modules/access_control/services/roomPinPermissionRepository.ts",
+        "code/booking_classroom/src/modules/auto_approval/__tests__/autoApproval.test.ts",
+        "code/booking_classroom/src/modules/auto_approval/index.ts",
+        "code/booking_classroom/src/modules/auto_approval/model/approvalPolicy.ts",
+        "code/booking_classroom/src/modules/auto_approval/services/autoApprovalService.ts",
+        "code/booking_classroom/src/modules/booking/components/BookingInfo.tsx",
+        "code/booking_classroom/src/modules/booking/model/booking.ts",
+        "code/booking_classroom/src/modules/booking/services/bookingRepository.ts",
+        "code/booking_classroom/src/modules/configuration/model/appConfiguration.ts",
+        "code/booking_classroom/src/modules/configuration/screens/ConfigurationScreen.tsx",
+        "code/booking_classroom/src/modules/configuration/services/configurationRepository.ts",
+        "code/booking_classroom/src/modules/room_management/model/room.ts",
+        "code/booking_classroom/src/modules/room_management/screens/RoomManagementScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/screens/RoomSearchScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/services/roomRepository.ts"
+      ],
+      "total": 3229,
+      "percent": 21.2
+    },
+    "Nguyễn Đình Phúc": {
+      "source": 726,
+      "tests": 299,
+      "commits": 6,
+      "files": [
+        "code/booking-server/src/main/java/com/bookingclassroom/server/BookingService.java",
+        "code/booking_classroom/__tests__/App.test.tsx",
+        "code/booking_classroom/__tests__/booking.test.ts",
+        "code/booking_classroom/src/app/screens/RoleDashboardScreen.tsx",
+        "code/booking_classroom/src/modules/access_control/services/temporaryPinService.ts",
+        "code/booking_classroom/src/modules/booking/components/BookingInfo.tsx",
+        "code/booking_classroom/src/modules/booking/index.ts",
+        "code/booking_classroom/src/modules/booking/model/booking.ts",
+        "code/booking_classroom/src/modules/booking/screens/AdminBookingScreen.tsx",
+        "code/booking_classroom/src/modules/booking/screens/BookingScheduleScreen.tsx",
+        "code/booking_classroom/src/modules/booking/screens/MyBookingsScreen.tsx",
+        "code/booking_classroom/src/modules/booking/services/bookingRepository.ts",
+        "code/booking_classroom/src/modules/configuration/model/appConfiguration.ts",
+        "code/booking_classroom/src/modules/configuration/screens/ConfigurationScreen.tsx",
+        "code/booking_classroom/src/modules/configuration/services/configurationRepository.ts",
+        "code/booking_classroom/src/modules/notifications/screens/NotificationScreen.tsx",
+        "code/booking_classroom/src/modules/room_management/screens/RoomSearchScreen.tsx"
+      ],
+      "total": 1025,
+      "percent": 6.8
+    }
+  },
+  "files": [
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/ApiExceptionHandler.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 21,
+        "Hoàng Văn Tùng": 12
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/AutoApprovalPolicy.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 24
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/BookingServerApplication.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 20,
+        "Hoàng Văn Tùng": 36
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/BookingService.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 309,
+        "Hoàng Văn Tùng": 1203,
+        "Nguyễn Đình Phúc": 41,
+        "Nguyễn Việt Dũng": 37
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/DataSeeder.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 126,
+        "Hoàng Văn Tùng": 44,
+        "Nguyễn Việt Dũng": 1
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/Domain.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 132,
+        "Hoàng Văn Tùng": 225,
+        "Nguyễn Việt Dũng": 5
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/SessionAuthFilter.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 34,
+        "Hoàng Văn Tùng": 4
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/access/AccessController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 58
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/auth/AccountsController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 84
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/bookings/BookingsController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 138,
+        "Hoàng Văn Tùng": 8
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/maintenance/MaintenanceController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 63
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/notifications/NotificationsController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 38
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/api/rooms/RoomsController.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 54
+      }
+    },
+    {
+      "path": "code/booking-server/src/main/java/com/bookingclassroom/server/security/RequestActor.java",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 10
+      }
+    },
+    {
+      "path": "code/booking-server/src/test/java/com/bookingclassroom/server/RemoteSyncIntegrationTest.java",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 112,
+        "Nguyễn Việt Dũng": 56
+      }
+    },
+    {
+      "path": "code/booking_classroom/App.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 14,
+        "Hoàng Văn Tùng": 48
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/App.test.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 64,
+        "Nguyễn Đình Phúc": 85
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/auth.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 57
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/booking.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 198,
+        "Nguyễn Đình Phúc": 214,
+        "Nguyễn Việt Dũng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/businessRules.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 67,
+        "Nguyễn Việt Dũng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/phase2Workflows.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 155
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/roomFilters.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 20
+      }
+    },
+    {
+      "path": "code/booking_classroom/__tests__/roomMaintenanceScreen.test.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 54,
+        "Đỗ Thùy Linh": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainActivity.kt",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 18,
+        "Đỗ Thùy Linh": 5
+      }
+    },
+    {
+      "path": "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/MainApplication.kt",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 22,
+        "Đỗ Thùy Linh": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/OneIoTMqttPackage.kt",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 604
+      }
+    },
+    {
+      "path": "code/booking_classroom/android/app/src/main/java/com/bookingclassroom/PriorityNotificationPackage.kt",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 130,
+        "Hoàng Văn Tùng": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/component/accountManagementScreen.quality.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 92
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/component/authScreens.quality.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 173,
+        "Hoàng Văn Tùng": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/component/bookingComponents.quality.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 194,
+        "Hoàng Văn Tùng": 17
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/component/profileAndConfigurationScreens.quality.tsx",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 99
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/integration/endToEndWorkflows.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 217
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/integration/oneIoTNativeBridge.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 144
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/integration/remoteApiContract.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 217,
+        "Đỗ Thùy Linh": 16,
+        "Hoàng Văn Tùng": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/jest.config.js",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 20
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/setup/asyncStorageMock.js",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 30
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/support/testUtils.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 113
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/accessControl.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 133
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/accountRepository.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 131
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/apiClient.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 123
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/bookingLifecycle.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 327,
+        "Hoàng Văn Tùng": 24
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/bookingRules.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 261
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/configurationAndProfile.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 59
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/maintenanceRepository.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 112
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/notifications.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 101,
+        "Hoàng Văn Tùng": 18
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/roomRepository.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 163,
+        "Hoàng Văn Tùng": 3
+      }
+    },
+    {
+      "path": "code/booking_classroom/quality-tests/unit/smartLock.quality.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 144
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/app/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/app/screens/RoleDashboardScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 430,
+        "Đỗ Thùy Linh": 67,
+        "Nguyễn Đình Phúc": 31
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/api/client.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 39,
+        "Đỗ Thùy Linh": 32
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/config/runtimeFlags.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 9,
+        "Đỗ Thùy Linh": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/storage/jsonStorage.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/time/intervals.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 11
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/types/authenticatedUser.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 5
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/core/types/userRole.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/access_control/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 14
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/access_control/model/roomPinPermission.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/access_control/services/roomPinPermissionRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 81,
+        "Đỗ Thùy Linh": 2,
+        "Nguyễn Việt Dũng": 12
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/access_control/services/temporaryPinService.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 186,
+        "Nguyễn Đình Phúc": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/account_management/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/account_management/screens/AccountManagementScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 153,
+        "Đỗ Thùy Linh": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 16
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/model/demoAccounts.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 11
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/screens/ChangePasswordScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 152,
+        "Đỗ Thùy Linh": 2
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/screens/ForgotPasswordScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 9,
+        "Đỗ Thùy Linh": 2
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/screens/LoginScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 29,
+        "Hoàng Văn Tùng": 172
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/screens/RegistrationScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 211,
+        "Đỗ Thùy Linh": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auth/services/accountRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 219,
+        "Đỗ Thùy Linh": 15
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auto_approval/__tests__/autoApproval.test.ts",
+      "category": "tests",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 122,
+        "Hoàng Văn Tùng": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auto_approval/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 3
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auto_approval/model/approvalPolicy.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 22
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/auto_approval/services/autoApprovalService.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Nguyễn Việt Dũng": 43
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/components/BookingInfo.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 50,
+        "Nguyễn Đình Phúc": 4,
+        "Nguyễn Việt Dũng": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/components/BookingTimePicker.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 82
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 35,
+        "Nguyễn Đình Phúc": 5
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/model/booking.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Nguyễn Đình Phúc": 12,
+        "Hoàng Văn Tùng": 82,
+        "Nguyễn Việt Dũng": 2
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/screens/AdminBookingScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 273,
+        "Nguyễn Đình Phúc": 138
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/screens/BookingScheduleScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 15,
+        "Nguyễn Đình Phúc": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/screens/MyBookingsScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 180,
+        "Nguyễn Đình Phúc": 126
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/booking/services/bookingRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 518,
+        "Đỗ Thùy Linh": 51,
+        "Nguyễn Việt Dũng": 14,
+        "Nguyễn Đình Phúc": 271
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/configuration/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/configuration/model/appConfiguration.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 18,
+        "Nguyễn Đình Phúc": 2,
+        "Nguyễn Việt Dũng": 3
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/configuration/screens/ConfigurationScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 23,
+        "Nguyễn Việt Dũng": 2,
+        "Nguyễn Đình Phúc": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/configuration/services/configurationRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 31,
+        "Nguyễn Việt Dũng": 2,
+        "Đỗ Thùy Linh": 1,
+        "Nguyễn Đình Phúc": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/components/PriorityBannerHost.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 156,
+        "Hoàng Văn Tùng": 7
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 2,
+        "Hoàng Văn Tùng": 8
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/model/notificationItem.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 10
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/screens/NotificationScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 110,
+        "Đỗ Thùy Linh": 4,
+        "Nguyễn Đình Phúc": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/services/notificationRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 72,
+        "Đỗ Thùy Linh": 16
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/services/notificationTone.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 93
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/notifications/services/priorityBanner.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 83,
+        "Hoàng Văn Tùng": 15
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/profile/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 3
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/profile/model/userProfile.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 7
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/profile/screens/ProfileScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 184
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/profile/services/profileRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 37
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 13
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/model/demoRooms.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 37,
+        "Đỗ Thùy Linh": 1
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/model/room.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 13,
+        "Nguyễn Việt Dũng": 2
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/model/roomFilters.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 68
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/screens/RoomManagementScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 761,
+        "Đỗ Thùy Linh": 19,
+        "Nguyễn Việt Dũng": 15
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/screens/RoomSearchScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 227,
+        "Đỗ Thùy Linh": 96,
+        "Nguyễn Đình Phúc": 91,
+        "Nguyễn Việt Dũng": 6
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/room_management/services/roomRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 131,
+        "Đỗ Thùy Linh": 7,
+        "Nguyễn Việt Dũng": 2
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/schedule_maintenance/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 12
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/schedule_maintenance/model/maintenance.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 25
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/schedule_maintenance/services/maintenanceRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 191,
+        "Đỗ Thùy Linh": 4
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 27
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/model/managedSmartLock.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 36
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/screens/SmartLockManagementScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 314
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/services/oneIoTClient.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 128
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/services/smartLockAccessEventService.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 132
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/modules/smart_lock/services/smartLockRepository.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 153
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/shared/components/FeaturePlaceholderScreen.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 59
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/shared/components/PasswordInput.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Đỗ Thùy Linh": 64
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/shared/components/ScreenHeader.tsx",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 65
+      }
+    },
+    {
+      "path": "code/booking_classroom/src/shared/index.ts",
+      "category": "source",
+      "nonblank_lines_by_member": {
+        "Hoàng Văn Tùng": 2,
+        "Đỗ Thùy Linh": 1
+      }
+    }
+  ]
+}

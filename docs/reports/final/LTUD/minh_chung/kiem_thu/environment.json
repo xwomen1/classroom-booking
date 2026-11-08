@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-08",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "device": {
+    "ro.product.model": "SM-M215F",
+    "ro.product.manufacturer": "samsung",
+    "ro.build.version.release": "12",
+    "ro.build.version.sdk": "31",
+    "ro.build.version.security_patch": "2023-12-01",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.build.fingerprint": "samsung/m21nnxx/m21:12/SP1A.210812.016/M215FXXS3CWK1:user/release-keys"
+  },
+  "mem_total_kib": 3656308,
+  "package": "com.bookingclassroom",
+  "versionName": "1.0",
+  "versionCode": 1,
+  "apk_sha256": "819c9700975a079037f9ac62160576585b0598d94c481fac0a8cf20e8f57b9bb",
+  "bundle_sha256": "f74e48e7226942eefe4369cd44c468f0d807583fc6953fe7e0acd65645689268",
+  "apk_source_commit": null,
+  "installed_runtime_flags": {
+    "ENABLE_REMOTE_SYNC": false
+  },
+  "source_commit_under_test": "2631689113451dc705970ab3e4b1b9da5afa6677",
+  "adb": "Android Debug Bridge version 1.0.41\nVersion 37.0.1-15733141\nInstalled as /tmp/roomhub-android-tools/platform-tools/adb\nRunning on Darwin 23.6.0 (arm64)\n",
+  "host": "macOS-14.8.9-arm64-arm-64bit",
+  "cleared_app_data": false,
+  "installed_new_apk": false,
+  "node_version": "22.17.0",
+  "jest_version": "29.7.0",
+  "typescript_version": "5.9.3",
+  "eslint_version": "8.57.1",
+  "installed_apk_size_bytes": 20392913,
+  "notification_switch_restored": true,
+  "new_device_test_accounts": [
+    "qa0811"
+  ],
+  "preexisting_accounts_modified": false,
+  "device_test_case_count": 6,
+  "source_runtime_flags": {
+    "ENABLE_REMOTE_SYNC": true
+  },
+  "installed_apk_git_commit_identifiable": false,
+  "backend_rerun": false,
+  "backend_rerun_reason": "No Java runtime or Maven installed",
+  "static_check_exit_codes": {
+    "typescript": 0,
+    "eslint": 0
+  },
+  "apk_source_provenance": "APK built from the official RoomHub project source and transferred to the test device for installation",
+  "apk_source_provenance_basis": "Confirmed by the project owner on 2026-11-08",
+  "apk_build_metadata_vcs": "NO_SUPPORTED_VCS_FOUND",
+  "project_owner_confirmed_app_and_smartlock_complete": true,
+  "acceptance_source": "nghiem_thu_he_thong.md",
+  "acceptance_source_type": "Project owner statement; not a newly generated instrumented test log"
+}

@@ -1,35 +1,32 @@
-% Danh mục thuật ngữ và từ viết tắt (bảng tĩnh, không cần gói glossaries)
-\chapter*{DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
-\begin{center}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{longtable}{|p{2.4cm}|p{11.6cm}|}
-\hline
-\textbf{Thuật ngữ} & \textbf{Ý nghĩa} \\ \hline
+\phantomsection
+\section*{THUẬT NGỮ VÀ TỪ VIẾT TẮT}
+\addcontentsline{toc}{chapter}{THUẬT NGỮ VÀ TỪ VIẾT TẮT}
+{\tabletext\setstretch{1.0}\renewcommand{\arraystretch}{1.04}
+\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr.17\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr.83\textwidth-2\tabcolsep\relax}}
+\caption{Thuật ngữ sử dụng trong báo cáo}\\
+\toprule\textbf{Thuật ngữ} & \textbf{Ý nghĩa trong ngữ cảnh dự án}\\\midrule
+\endfirsthead
+\toprule\textbf{Thuật ngữ} & \textbf{Ý nghĩa trong ngữ cảnh dự án}\\\midrule
 \endhead
-AES & Chuẩn mã hóa nâng cao (Advanced Encryption Standard) \\ \hline
-API & Giao diện lập trình ứng dụng (Application Programming Interface) \\ \hline
-APK & Gói cài đặt ứng dụng Android (Android Package Kit) \\ \hline
-BR & Quy tắc nghiệp vụ (Business Rule) \\ \hline
-CRUD & Tạo, đọc, cập nhật, xóa (Create, Read, Update, Delete) \\ \hline
-CSVC & Cơ sở vật chất \\ \hline
-CTR & Chế độ mã hóa bộ đếm (Counter mode) \\ \hline
-DI & Tiêm phụ thuộc (Dependency Injection) \\ \hline
-DTO & Đối tượng truyền dữ liệu (Data Transfer Object) \\ \hline
-HTTP & Giao thức truyền siêu văn bản (HyperText Transfer Protocol) \\ \hline
-IoC & Đảo ngược điều khiển (Inversion of Control) \\ \hline
-IoT & Internet vạn vật (Internet of Things) \\ \hline
-JPA & Đặc tả lưu trữ Jakarta (Jakarta Persistence API) \\ \hline
-JSON & Định dạng dữ liệu JavaScript Object Notation \\ \hline
-JVM & Máy ảo Java (Java Virtual Machine) \\ \hline
-MQTT & Giao thức nhắn tin xuất bản -- đăng ký cho thiết bị IoT (Message Queuing Telemetry Transport) \\ \hline
-MVP & Sản phẩm khả dụng tối thiểu (Minimum Viable Product) \\ \hline
-ORM & Ánh xạ đối tượng -- quan hệ (Object-Relational Mapping) \\ \hline
-PIN & Mã số cá nhân dùng để mở khóa (Personal Identification Number) \\ \hline
-QoS & Chất lượng dịch vụ (Quality of Service) \\ \hline
-REST & Kiểu kiến trúc chuyển trạng thái đại diện (Representational State Transfer) \\ \hline
-TLS & Giao thức bảo mật tầng giao vận (Transport Layer Security) \\ \hline
-UML & Ngôn ngữ mô hình hóa thống nhất (Unified Modeling Language) \\ \hline
-UUID & Định danh duy nhất toàn cục (Universally Unique Identifier) \\ \hline
-\end{longtable}
-\end{center}
+\bottomrule\endlastfoot
+AES / CTR & Mã hóa payload PIN trong module MQTT native.\\\addlinespace[1.5pt]
+API & Hợp đồng gọi dịch vụ; dự án dùng HTTP API của booking-server.\\\addlinespace[1.5pt]
+APK & Gói cài Android; bản Release chứa JavaScript bundle.\\\addlinespace[1.5pt]
+BR / FR / NFR & Quy tắc nghiệp vụ / yêu cầu chức năng / yêu cầu phi chức năng.\\\addlinespace[1.5pt]
+CRUD & Tạo, đọc, sửa và xóa dữ liệu theo quyền.\\\addlinespace[1.5pt]
+DI / IoC & Spring quản lý thành phần và truyền phụ thuộc cho filter/controller/service.\\\addlinespace[1.5pt]
+DTO & Dữ liệu vào/ra dịch vụ; khác entity lưu trong H2.\\\addlinespace[1.5pt]
+HTTP / REST & Giao tiếp API theo tài nguyên/phương thức, dùng JSON và Bearer token.\\\addlinespace[1.5pt]
+IoT / oneM2M & Internet vạn vật / quy ước bản tin và chủ đề dùng với OneIoT.\\\addlinespace[1.5pt]
+JPA / ORM & Ánh xạ entity Java tới dữ liệu quan hệ.\\\addlinespace[1.5pt]
+JSON & Định dạng dữ liệu API, kho local và các trường lồng của booking.\\\addlinespace[1.5pt]
+JVM & Máy ảo chạy backend Java 17.\\\addlinespace[1.5pt]
+MQTT & Giao thức publish/subscribe qua broker; kết nối khóa từ native Android.\\\addlinespace[1.5pt]
+PIN & Mã tạm bảy chữ số theo quyền phòng, booking và khoảng hiệu lực.\\\addlinespace[1.5pt]
+PUBACK / QoS & Phản hồi broker khi nhận publish / mức chất lượng giao nhận MQTT.\\\addlinespace[1.5pt]
+RN / TS & React Native / TypeScript; nền tảng giao diện và ngôn ngữ app.\\\addlinespace[1.5pt]
+TLS & Bảo vệ kênh truyền; native hiện còn hạn chế xác minh chứng thư.\\\addlinespace[1.5pt]
+UC / UML & Ca sử dụng / ký pháp mô hình hóa phân tích và thiết kế.\\\addlinespace[1.5pt]
+UUID & Định danh duy nhất dạng chuỗi.\\\addlinespace[1.5pt]
+Local / REST & Async Storage trên máy / API tới backend; hai kho không tự đồng bộ.\\\addlinespace[1.5pt]
+\end{longtable}}

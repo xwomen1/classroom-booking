@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-08",
+  "device": "Samsung SM-M215F, Android 12/API 31",
+  "cases": [
+    {
+      "id": "D01",
+      "passed": true
+    },
+    {
+      "id": "D02",
+      "passed": true
+    },
+    {
+      "id": "D03",
+      "passed": true
+    },
+    {
+      "id": "D04",
+      "passed": true
+    },
+    {
+      "id": "D05",
+      "passed": true
+    },
+    {
+      "id": "D06",
+      "passed": true
+    }
+  ],
+  "notification_switch_restored": true,
+  "logged_out_at_end": true
+}

@@ -1,0 +1,45 @@
+\section{Quá trình thực hiện và các mốc chính}
+Quá trình thực hiện được chia thành các giai đoạn xây dựng nền tảng, hoàn thiện nghiệp vụ, kết nối dữ liệu, kiểm thử và hoàn thiện tài liệu.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.2\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.55\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.25\textwidth-2\tabcolsep\relax}}
+\caption{Giai đoạn thực hiện và sản phẩm}\label{tab:timeline}\\
+\toprule \textbf{Giai đoạn} & \textbf{Sản phẩm / kết quả} & \textbf{Thành viên liên quan}\\\midrule
+\endfirsthead
+\multicolumn{3}{l}{\small Giai đoạn thực hiện và sản phẩm (tiếp)}\\
+\toprule \textbf{Giai đoạn} & \textbf{Sản phẩm / kết quả} & \textbf{Thành viên liên quan}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Xây dựng nền tảng & Khung ứng dụng, xác thực, danh mục phòng, PIN và điều hướng theo vai trò. & Hoàng Văn Tùng.\\\addlinespace[1.5pt]
+Hoàn thiện nghiệp vụ & Đặt lặp, duyệt yêu cầu, thông báo và xử lý vắng mặt; tích hợp với quy tắc đặt phòng. & Nguyễn Đình Phúc; phối hợp với nhóm.\\\addlinespace[1.5pt]
+Kết nối dữ liệu & API và trao đổi dữ liệu app/server, lọc phòng và kiểm tra mức chiếm chỗ. & Đỗ Thùy Linh; phối hợp tích hợp app/server.\\\addlinespace[1.5pt]
+Kiểm thử và tích hợp & Bộ kiểm thử chất lượng, tự động duyệt và kiểm tra hồi quy các luồng nghiệp vụ. & Nguyễn Việt Dũng, Hoàng Văn Tùng; phối hợp với nhóm.\\\addlinespace[1.5pt]
+Hoàn thiện tài liệu & Tổ chức controller và tiện ích dùng chung; sơ đồ thiết kế, hướng dẫn sử dụng và báo cáo. & Đỗ Thùy Linh, Nguyễn Đình Phúc và các thành viên.\\\addlinespace[1.5pt]
+\end{longtable}}
+
+\section{Phân công và đóng góp}
+Bảng~\ref{tab:git} tổng hợp phần mã nguồn và kiểm thử theo thành viên, cùng tỷ lệ đóng góp nhóm đã thống nhất. Tập thống kê gồm App.tsx, src TypeScript/TSX, native Kotlin, backend Java và các test JS/TS/Java; không tính lockfile, hình ảnh, binary, build và tài liệu. Tổng cộng có 115 tệp và 15.213 dòng không rỗng, kể cả comment.
+{\tabletext\renewcommand{\arraystretch}{1.04}\begin{longtable}{>{\raggedright\arraybackslash}p{\dimexpr0.29\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.25\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.23\textwidth-2\tabcolsep\relax}>{\raggedright\arraybackslash}p{\dimexpr0.23\textwidth-2\tabcolsep\relax}}
+\caption{Mã nguồn, kiểm thử và tỷ lệ đóng góp}\label{tab:git}\\
+\toprule \textbf{Thành viên} & \textbf{Code / test} & \textbf{Tổng dòng} & \textbf{Đóng góp}\\\midrule
+\endfirsthead
+\multicolumn{4}{l}{\small Mã nguồn, kiểm thử và tỷ lệ đóng góp (tiếp)}\\
+\toprule \textbf{Thành viên} & \textbf{Code / test} & \textbf{Tổng dòng} & \textbf{Đóng góp}\\\midrule
+\endhead
+\bottomrule\endlastfoot
+Đỗ Thùy Linh & 1.988 / 37 & 2.025 & 26\%\\\addlinespace[1.5pt]
+Hoàng Văn Tùng & 8.147 / 787 & 8.934 & 28\%\\\addlinespace[1.5pt]
+Nguyễn Việt Dũng & 196 / 3.033 & 3.229 & 26\%\\\addlinespace[1.5pt]
+Nguyễn Đình Phúc & 726 / 299 & 1.025 & 20\%\\\addlinespace[1.5pt]
+Tổng & 11.057 / 4.156 & 15.213 & 100\%\\\addlinespace[1.5pt]
+\end{longtable}}
+
+Số dòng hỗ trợ minh chứng phần triển khai, còn tỷ lệ đóng góp phản ánh cả thiết kế, tích hợp, kiểm thử, tài liệu và phối hợp. Sản phẩm của từng thành viên được nêu ở Phụ lục~\ref{app:contributions}. Phương pháp thống kê dùng quy thuộc dòng theo tác giả trong Git \cite{git}; dữ liệu chi tiết và script tái lập được lưu tại \code{minh_chung/}.
+
+\section{Kết quả so với mục tiêu}
+G01 hoàn thành luồng đặt phòng và kiểm các quy tắc thời gian, xung đột, bảo trì, hạn mức. G02 hoàn thành duyệt, cấp quyền, PIN và hẹn nhận chìa; ứng dụng đã vận hành thực tế cùng SmartLock. G03 có bản Android hoạt động theo vai trò, giao diện và thông báo phục vụ các tác vụ chính. G04 có mã nguồn, README, bộ kiểm thử và hồ sơ bàn giao để cài đặt, sử dụng và phát triển tiếp.
+
+Quy trình tiếp cận phòng được liên kết từ yêu cầu hợp lệ, phê duyệt và cấp quyền đến tạo/gửi mã, sử dụng SmartLock và cập nhật sự kiện. Giao diện phản ánh trạng thái của từng bước để người dùng theo dõi thao tác.
+
+\section{Bài học kỹ thuật và hướng phát triển}
+Trong quá trình triển khai, nhóm nhận thấy việc giữ phiên ở thành phần gốc và trạng thái biểu mẫu ở từng màn giúp hạn chế dữ liệu lặp, thuận tiện xử lý đăng nhập/đăng xuất. Giải phóng listener, quản lý loading/error và dọn tác vụ bất đồng bộ giúp ổn định luồng chuyển màn. Kiểm tra nghiệp vụ tại service/server bổ sung bảo vệ cho validation giao diện. Kiểm thử tách storage, HTTP và native giúp tái hiện các tình huống biên; thử nghiệm trên Android và SmartLock bổ sung đánh giá tích hợp. Việc thống nhất model và hợp đồng API giữa các thành viên hỗ trợ tích hợp hai chế độ dữ liệu.
+
+Ba hướng tiếp theo là: (1) gia cố xác thực, mã hóa lưu trữ và kiểm chứng chứng thư; (2) hoàn thiện quản lý vòng đời PIN và tiếp nhận sự kiện khóa bền vững; (3) thử nhiều điện thoại trên server cố định, đo hiệu năng có quy trình và mở rộng dữ liệu nhiều tòa/khóa. Các tiêu chí đánh giá tương ứng là mức bảo vệ dữ liệu, tính đầy đủ của phản hồi khóa và độ trễ/độ ổn định khi tăng số thiết bị, dữ liệu.

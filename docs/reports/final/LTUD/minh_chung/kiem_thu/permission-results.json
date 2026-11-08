@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-11-08T09:28:13.126000+07:00",
+  "success": true,
+  "passed_suites": 1,
+  "failed_suites": 0,
+  "passed_tests": 5,
+  "failed_tests": 0,
+  "pending_tests": 0,
+  "tests": [
+    {
+      "file": "notification-permission.test.js",
+      "status": "passed",
+      "started_at_ms": 1794104893298,
+      "ended_at_ms": 1794104893500,
+      "assertions": [
+        {
+          "name": "Android 12 does not request the Android 13 runtime permission",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "denying Android 13 permission resolves without throwing",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "denied permission suppresses native notification while preserving in-app banner",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "granted permission avoids a second prompt and allows native delivery",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "iOS keeps in-app banner without calling Android permission or native bridge",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "physical_pages": 59,
+  "main_content_pages": 46,
+  "outline_entries": 101,
+  "fonts": [
+    "TimesNewRomanPS-BoldMT",
+    "TimesNewRomanPS-ItalicMT",
+    "TimesNewRomanPSMT"
+  ],
+  "internal_pdf_links_verified": 211,
+  "no_layout_overflow_or_missing_references": true,
+  "no_text_outside_pages": true,
+  "new_execution_dates_or_commit_ids_in_pdf": false,
+  "existing_local_apk_reused": true,
+  "apk_rebuilt_or_reinstalled": false,
+  "configuration_screenshot_pending_recapture": false,
+  "configuration_screenshots_captured": 2,
+  "configuration_switch_visible": true,
+  "switch_ui_toggle_verified_and_restored": true,
+  "persistent_configuration_or_bookings_modified": false,
+  "logged_out_at_end": true,
+  "original_test_artifacts_unchanged": true,
+  "original_body_except_implementation_unchanged": true,
+  "existing_automated_test_suites_rerun": false,
+  "configuration_figure_pdf_page": 45,
+  "unique_ui_screenshots": 9
+}

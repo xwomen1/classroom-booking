@@ -1,0 +1,27 @@
+{
+  "sha256": "819c9700975a079037f9ac62160576585b0598d94c481fac0a8cf20e8f57b9bb",
+  "same_as_previous_local_apk": true,
+  "device": "Samsung SM-M215F",
+  "mode": "local",
+  "rebuild_needed": false,
+  "reinstalled": false,
+  "configuration_values": {
+    "minAdvanceDays": 0,
+    "maxAdvanceDays": 3,
+    "maxActiveBookingsPerUser": 2,
+    "cancellationCutoffMinutes": 30,
+    "roomChangeCutoffMinutes": 30,
+    "pinGraceMinutes": 10,
+    "noShowGraceMinutes": 15
+  },
+  "notifications_enabled": true,
+  "auto_approval_originally_enabled": false,
+  "auto_approval_control_present_and_visible": true,
+  "auto_approval_switch_ui_toggle_checked": true,
+  "auto_approval_switch_restored": true,
+  "save_pressed": false,
+  "persistent_configuration_modified": false,
+  "bookings_created_or_modified": false,
+  "scope": "Existing local APK and actual configuration UI; no new backend/network/SmartLock test",
+  "logged_out_at_end": true
+}

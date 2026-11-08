@@ -1,0 +1,2535 @@
+{
+  "started_at": "2026-11-08T09:24:36.787000+07:00",
+  "success": true,
+  "passed_suites": 17,
+  "failed_suites": 0,
+  "passed_tests": 398,
+  "failed_tests": 0,
+  "pending_tests": 0,
+  "tests": [
+    {
+      "file": "quality-tests/unit/bookingLifecycle.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104676966,
+      "ended_at_ms": 1794104678444,
+      "assertions": [
+        {
+          "name": "room observations sends a minor room note to admin without creating maintenance",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "room observations requires content, owner and an approved booking in its usage window",
+          "status": "passed",
+          "duration_ms": 26,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking only an admin can review",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking rejects unknown and already reviewed bookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking cannot approve a session that already ended, but can still reject it",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking cannot approve over maintenance or an approved overlap",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking approving a PIN room grants room permission; a key room does not",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewBooking rejection notifies the requester",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewRecurringSeries errors when no pending occurrence remains",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewRecurringSeries refuses the whole series if one occurrence has already ended",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "reviewRecurringSeries refuses the whole series on a maintenance conflict",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cancelBooking only the owner can cancel and only active bookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cancelBooking cannot cancel after the session started",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cancelBooking approved bookings respect the cancellation cutoff, pending ones do not",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cancelBooking exactly at the cutoff the approved booking can be cancelled",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "cancelBooking cancelling revokes an issued PIN",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "chuỗi đặt lặp – sửa và hủy cannot edit someone else's series or a missing series",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "chuỗi đặt lặp – sửa và hủy only future pending occurrences are edited",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "chuỗi đặt lặp – sửa và hủy cancelling a series is all-or-nothing on the approved cutoff",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking pending → room-floor-2-1 is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking b1 → room-a101 is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking b1 → room-floor-2-1 is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking b1 → missing-room is rejected",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking b1 → room-floor-1-3 is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking big → room-a101 is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom booking b1 → room-floor-1-5 is rejected",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom respects the room change cutoff",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom refuses a replacement that already has an active request at that time",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "changeBookingRoom moves the booking, revokes the old PIN and grants permission for the new PIN room",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "khóa cơ – ủy quyền và lịch nhận khóa setPickupDelegate validations",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "khóa cơ – ủy quyền và lịch nhận khóa scheduleKeyPickup must be in the future and before the session",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "khóa cơ – ủy quyền và lịch nhận khóa negotiation turn order is enforced",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "check-in thủ công và vắng mặt manual check-in only for key rooms and only during the session",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "check-in thủ công và vắng mặt no-show is allowed exactly at the grace boundary and revokes the PIN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "check-in thủ công và vắng mặt a SmartLock check-in event prevents no-show",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "check-in thủ công và vắng mặt non-admins cannot confirm attendance",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "recordSmartLockAccessEvent ignores invalid timestamps and events outside the grace window",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "recordSmartLockAccessEvent accepts a check-in within the grace window before the start",
+          "status": "passed",
+          "duration_ms": 12,
+          "failure_messages": []
+        },
+        {
+          "name": "recordSmartLockAccessEvent check-out requires a prior check-in and duplicates are not appended",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "recordSmartLockAccessEvent pending bookings are never matched",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/integration/remoteApiContract.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104678447,
+      "ended_at_ms": 1794104678521,
+      "assertions": [
+        {
+          "name": "every client request maps to a server endpoint the controller declares the expected API surface",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint authenticate",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint registerAccount",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getAccounts",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint createManagedAccount",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint updateManagedAccount",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint deleteManagedAccount",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint resetPassword",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint changePassword",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getProfile",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint saveProfile",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getRooms",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint createRoom",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint updateRoom",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint deleteRoom",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getConfiguration",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint saveConfiguration",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getMaintenanceRecords",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getMaintenanceRequests",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint createMaintenance",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint cancelMaintenance",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint requestRoomMaintenance",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint scheduleMaintenanceFromRequest",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint rejectMaintenanceRequest",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getBookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getRoomOccupancy",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint createBooking",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint reportRoomObservation",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint reviewBooking",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint reviewRecurringSeries",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint updatePendingRecurringBookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint cancelFutureRecurringBookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint saveTemporaryPin",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint cancelBooking",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint changeBookingRoom",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint setPickupDelegate",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint proposeKeyPickup",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint scheduleKeyPickup",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint acceptKeyPickupProposal",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint recordSmartLockAccessEvent",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint confirmBookingCheckIn",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint confirmBookingNoShow",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getRoomPinPermissions",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint grantRoomPinPermission",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint revokeRoomPinPermission",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getNotifications",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint addNotification",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint markAllNotificationsRead",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint getManagedSmartLock",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint assignSmartLockToRoom",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint unassignSmartLock",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint reserveSmartLockPasswordId",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "every client request maps to a server endpoint every server endpoint is used by the app",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour login stores the bearer token for later requests",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour wrong credentials return null instead of throwing",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour registration also starts a session",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour series ids are URL-encoded",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour createRoom normalizes before sending",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour createRoom validates locally before any request",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour a room observation is sent separately from maintenance",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour updateBooking refuses to write locally while remote sync is on",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "session and payload behaviour a server error message surfaces to the caller",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/bookingRules.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104678524,
+      "ended_at_ms": 1794104678612,
+      "assertions": [
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030/01/11 start=09:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 15,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=11-01-2030 start=09:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-01-11 start=9:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-01-11 start=09:00 end=24:00",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-01-11 start=09:60 end=10:00",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-02-30 start=09:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-01-11 start=10:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects date=2030-01-11 start=11:00 end=10:00",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – định dạng ngày giờ rejects a blank purpose and trims a valid one",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước day offset 0 accepted=false with the default 1–3 day window",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước day offset 1 accepted=true with the default 1–3 day window",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước day offset 2 accepted=true with the default 1–3 day window",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước day offset 3 accepted=true with the default 1–3 day window",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước day offset 4 accepted=false with the default 1–3 day window",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước follows a custom window from configuration",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước same-day booking: rejects a slot that already ended",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – cửa sổ đặt trước calendar-day difference survives a month boundary",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột back-to-back bookings in the same room do not overlap",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột another user cannot take 08:30–09:30 when 09:00–10:00 is held",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột another user cannot take 09:30–10:30 when 09:00–10:00 is held",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột another user cannot take 09:15–09:45 when 09:00–10:00 is held",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột another user cannot take 08:00–11:00 when 09:00–10:00 is held",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột a user cannot hold two rooms at overlapping times",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột cancelled, rejected and finished bookings do not block the slot",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột enforces the per-user active booking limit",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột expired bookings no longer count toward the limit",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột rejects a room under maintenance status and an unknown room",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – xung đột rejects a slot that overlaps scheduled maintenance",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần admin and unknown accounts cannot create bookings",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần rejects repeatWeeks=0",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần rejects repeatWeeks=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần rejects repeatWeeks=1.5",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần caps a weekly series at 8 occurrences",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần weekly dates cross the year boundary correctly",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần a series is rejected atomically if one later week conflicts",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần a non-recurring booking has no series id",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createBooking – quyền và đặt lặp tuần notifies the admin about a new request",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "truy vấn và phân loại booking getBookingsForUser filters by owner and sorts newest slot first",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "truy vấn và phân loại booking getRoomOccupancy only exposes active bookings and hides personal data",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "truy vấn và phân loại booking getBookingTimeCategory",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "truy vấn và phân loại booking isBookingStillActive ignores inactive statuses",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "truy vấn và phân loại booking toLocalDateTime builds a local Date",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements accepts an equal or better room with the same lock and equipment",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements rejects same room",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements rejects maintenance",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements rejects different lock",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements rejects smaller capacity",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "meetsReplacementRoomRequirements rejects missing equipment",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/integration/endToEndWorkflows.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104678613,
+      "ended_at_ms": 1794104678748,
+      "assertions": [
+        {
+          "name": "phòng khóa số: đặt → duyệt → tạo PIN offline → kết nối → gửi khóa → check-in → check-out",
+          "status": "passed",
+          "duration_ms": 15,
+          "failure_messages": []
+        },
+        {
+          "name": "gửi PIN thất bại được ghi lại và gửi lại thành công ở lần kết nối sau",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "không gửi PIN đã thu hồi, đã hết hạn hoặc khi chưa kết nối",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "thu hồi quyền phòng chặn giảng viên tự tạo mã",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "đổi phòng khẩn cấp: PIN cũ bị thu hồi, SmartLock không mở cho phòng mới",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "phòng khóa cơ: thương lượng nhận khóa → admin xác nhận có mặt",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "vắng mặt giải phóng khung giờ cho người khác",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "báo sự cố khi đang dùng phòng → admin lên lịch bảo trì → phòng bị chặn đặt",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/component/bookingComponents.quality.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104678751,
+      "ended_at_ms": 1794104680535,
+      "assertions": [
+        {
+          "name": "BookingTimePicker time options run every 30 minutes from 07:00 to 21:00",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker buildDateOptions covers the min..max window inclusively",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker renders dates as dd/mm and a summary line",
+          "status": "passed",
+          "duration_ms": 1598,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker end-time column only offers times after the start",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker choosing a start at or after the end pushes the end 30 minutes later",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker choosing an earlier start leaves the end untouched",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "BookingTimePicker pressing a date reports it",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput iOS uses the native secure entry",
+          "status": "passed",
+          "duration_ms": 42,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask shows bullets instead of the real value",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask current=ab displayed=••c → abc",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask current=abc displayed=•• → ab",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask current=abc displayed= → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask current=ab displayed=••xy → abxy",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "PasswordInput Android custom mask current=abc displayed=•z• → azb",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "MyBookingsScreen sends a minor room observation without requesting maintenance",
+          "status": "passed",
+          "duration_ms": 11,
+          "failure_messages": []
+        },
+        {
+          "name": "MyBookingsScreen lists the user's active bookings with the right action labels",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "MyBookingsScreen withdrawing a pending request cancels it",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "MyBookingsScreen a user with room permission can create a PIN that starts hidden",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "MyBookingsScreen cancelling a series asks for confirmation first",
+          "status": "passed",
+          "duration_ms": 37,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/component/authScreens.quality.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104680537,
+      "ended_at_ms": 1794104680874,
+      "assertions": [
+        {
+          "name": "LoginScreen asks for both fields before calling the repository",
+          "status": "passed",
+          "duration_ms": 147,
+          "failure_messages": []
+        },
+        {
+          "name": "LoginScreen shows an error for wrong credentials",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "LoginScreen logs in admin and reports role 1",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "LoginScreen logs in   USER  and reports role 2",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "LoginScreen opens registration and forgot-password, and comes back",
+          "status": "passed",
+          "duration_ms": 16,
+          "failure_messages": []
+        },
+        {
+          "name": "LoginScreen does not expose demo credentials on the login screen",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for { 'register-username': 'abc' }",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for {\n  'register-username': 'abc',\n  'register-password': 'abcd',\n  'register-confirm-password': 'abcd',\n  'register-email': 'no-at'\n}",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for {\n  'register-username': 'abc',\n  'register-password': 'abc',\n  'register-confirm-password': 'abc'\n}",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for {\n  'register-username': 'abc',\n  'register-password': 'abcd',\n  'register-confirm-password': 'abcd',\n  'register-recovery-code': '12'\n}",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for {\n  'register-username': 'abc',\n  'register-password': 'abcd',\n  'register-confirm-password': 'abce'\n}",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen shows a validation error for {\n  'register-username': 'admin',\n  'register-password': 'abcd',\n  'register-confirm-password': 'abcd',\n  'register-recovery-code': '9999'\n}",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen registers without the optional recovery code",
+          "status": "passed",
+          "duration_ms": 12,
+          "failure_messages": []
+        },
+        {
+          "name": "RegistrationScreen creates the account, profile and welcome notification",
+          "status": "passed",
+          "duration_ms": 12,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen current= new= confirm= → Vui lòng nhập đầy đủ thông tin.",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen current=2 new=abc confirm=abc → Mật khẩu mới cần có ít nhất 4 ký tự.",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen current=2 new=abcd confirm=abce → Hai mật khẩu mới chưa trùng nhau.",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen current=wrong new=abcd confirm=abcd → Mật khẩu hiện tại không đúng.",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen changes the password and clears the form",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "ChangePasswordScreen back button calls onBack",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "ForgotPasswordScreen mismatched passwords",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "ForgotPasswordScreen wrong recovery code",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "ForgotPasswordScreen resets the password",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/roomRepository.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104680876,
+      "ended_at_ms": 1794104680934,
+      "assertions": [
+        {
+          "name": "roomRepository – dữ liệu khởi tạo seeds 8 floors × 7 rooms with unique ids and names",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – dữ liệu khởi tạo infers a missing floor from the location and merges new demo rooms",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD only admins can mutate rooms",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom normalizes name, location and equipment",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { name: '  ' }",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { floor: 0 }",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { floor: 9 }",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { floor: 2.5 }",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { capacity: 0 }",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { capacity: 10.5 }",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD createRoom rejects { name: '101' }",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD updateRoom rejects a duplicate name and an unknown id",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD updateRoom keeps the id and allows keeping the same name",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD deleteRoom is blocked while the room has active bookings",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD deleteRoom removes a custom room for good",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomRepository – CRUD a deleted demo room stays deleted",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "searchRooms filters by floor, keyword, capacity, equipment and lock type together",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "searchRooms ALL lock type and empty filters return everything",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "searchRooms keyword matches name or location",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers roomMeetsMinCapacity handles strings, blanks and null",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers equipment helpers ignore case and spacing",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers equipmentChoices appends only unknown custom devices",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers floorMapSlot supports generated ids, legacy ids and names",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers matchesRoomQuery: numeric queries match the room number prefix only",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "roomFilters helpers demo rooms keep the documented lock layout",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/smartLock.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104680936,
+      "ended_at_ms": 1794104680987,
+      "assertions": [
+        {
+          "name": "smartLockRepository creates the default lock on first read",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "smartLockRepository migrates legacy field names and ids",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "smartLockRepository can only be assigned by an admin to an existing PIN room",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "smartLockRepository unassign removes every assignment field",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "smartLockRepository reserveSmartLockPasswordId increments and wraps",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockMCU is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockApp is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockPassword is a check-in",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockTempPwd is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockFinger is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockCard is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitUnlockInside is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitCheckIn is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitLockMCU is a check-out",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitLockApp is a check-out",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitResponseLockStatus is a check-out",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitDoorClosed is a check-out",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitLocked is a check-out",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitCheckOut is a check-out",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent traitResponseUnlockStatus counts only when value is 0",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent unwraps oneM2M notification envelopes",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent unwraps data that is double-encoded as JSON strings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent direct event \"checkin\" is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent direct event \"CHECK_IN\" is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent direct event \"check-in\" is a check-in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent normalizes second and millisecond timestamps and ISO strings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent returns undefined for not json",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent returns undefined for array",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent returns undefined for unknown trait",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent returns undefined for no trait",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "parseSmartLockAccessEvent returns undefined for null",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "handleOneIoTSmartLockMessage does nothing while the lock is not assigned",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "handleOneIoTSmartLockMessage ignores telemetry from another device",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "handleOneIoTSmartLockMessage records a check-in from the managed device with its topic",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/accountRepository.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104680989,
+      "ended_at_ms": 1794104681038,
+      "assertions": [
+        {
+          "name": "getAccounts seeds the two demo accounts on first use and persists them",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "getAccounts fills missing active flags and recovery codes from older data",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "authenticate normalizes the username but not the password",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "authenticate a locked account cannot sign in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=ab",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=has space",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=tên",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=valid.user",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=valid.user",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount rejects username=ADMIN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "registerAccount creates a lowercase user account with a default recovery code",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "assertAccountRole passes for the right role and fails otherwise",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "assertAccountRole a locked account loses its role",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "quản lý tài khoản bởi admin only admins can create accounts",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "quản lý tài khoản bởi admin createManagedAccount validates input and can create another admin",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "quản lý tài khoản bởi admin an admin cannot lock or demote themselves",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "quản lý tài khoản bởi admin updateManagedAccount validates and persists changes",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "quản lý tài khoản bởi admin deleteManagedAccount guards self-deletion and active bookings",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "mật khẩu resetPasswordWithRecoveryCode",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "mật khẩu changePassword",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/maintenanceRepository.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681041,
+      "ended_at_ms": 1794104681084,
+      "assertions": [
+        {
+          "name": "periodsOverlap 09:00–10:00 vs 10:00–11:00 → false",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "periodsOverlap 09:00–10:00 vs 08:00–09:00 → false",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "periodsOverlap 09:00–10:00 vs 09:59–11:00 → true",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "periodsOverlap 09:00–12:00 vs 10:00–11:00 → true",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "periodsOverlap different days never overlap",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createMaintenance validates permission, room and time range",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "createMaintenance blocks overlapping maintenance but ignores cancelled maintenance",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createMaintenance blocks maintenance over an approved booking, but not over a pending one",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createMaintenance trims the reason, stores newest first and reports conflicts",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createMaintenance cancelMaintenance requires admin and an existing record",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "yêu cầu bảo trì từ người dùng only the owner of an approved booking, during the session, can report",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "yêu cầu bảo trì từ người dùng a booking can only have one pending request and the admin is notified",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "yêu cầu bảo trì từ người dùng admin rejects with a note; a processed request cannot be rejected again",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "yêu cầu bảo trì từ người dùng scheduling must target the reported room and links the record",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/accessControl.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681087,
+      "ended_at_ms": 1794104681139,
+      "assertions": [
+        {
+          "name": "roomPinPermissionRepository only PIN rooms can be granted",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "roomPinPermissionRepository re-granting reuses the permission record",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomPinPermissionRepository permissions are scoped to user and room",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomPinPermissionRepository revoking a non-active permission fails",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "roomPinPermissionRepository grantUserPinPermission marks the booking",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking missing by admin (admin) is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking pending by admin (admin) is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking key by admin (admin) is rejected",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking approved by other (user) is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking approved by user (user) is rejected",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking ended by admin (admin) is rejected",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin booking other-room by admin (admin) is rejected",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin creates a 7-digit PIN valid from start−grace to end+grace",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin a booking cannot hold two live PINs",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin a user with room permission can create their own PIN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "createTemporaryPin password ids increase per PIN and wrap from 255 back to 1",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "getPinDisplayStatus maps time and revocation to a status",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/integration/oneIoTNativeBridge.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681141,
+      "ended_at_ms": 1794104681184,
+      "assertions": [
+        {
+          "name": "connectOneIoT passes broker settings and the trimmed token to the native module",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "connectOneIoT rejects an empty token without touching the native module",
+          "status": "passed",
+          "duration_ms": 4,
+          "failure_messages": []
+        },
+        {
+          "name": "connectOneIoT wraps native failures with a helpful message",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "connectOneIoT is unsupported outside Android",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "connectOneIoT is unsupported when the native module is missing",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "status, disconnect and password commands in the Jest environment the client is offline and simulates commands",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "status, disconnect and password commands getStatus and disconnect go through the native module",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "status, disconnect and password commands sends traitCreateTmpPasswordLock arguments in native order",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "status, disconnect and password commands wraps native publish errors",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "MQTT event subscription forwards native SmartLock events until unsubscribed",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "MQTT event subscription is a no-op in the test environment",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/apiClient.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681186,
+      "ended_at_ms": 1794104681215,
+      "assertions": [
+        {
+          "name": "core/api/client – apiRequest remote sync is always disabled while running under Jest",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest joins the base URL and path without duplicating slashes",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest sends JSON headers, method and serialized body",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest defaults to GET without a body",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest attaches the bearer token after setApiToken and removes it after clearApiSession",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest returns undefined for HTTP 204",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest returns an empty object when a 200 response has no body",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest uses the server message for an error response",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest falls back to a generic message when the error body has no message",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest HTTP 401 clears the stored token",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest reports malformed JSON differently for success and error responses",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest translates network failures into a connection message",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "core/api/client – apiRequest aborts the request after 12 seconds",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/notifications.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681216,
+      "ended_at_ms": 1794104681252,
+      "assertions": [
+        {
+          "name": "notificationRepository creates a single welcome notification on first read",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository addNotification prepends with a resolved tone",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository explicit tone wins over keyword detection",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository notifications are isolated per user",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository shows a banner only for the account currently signed in",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository nothing is stored while notifications are disabled",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository markAllNotificationsRead clears the unread count",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "notificationRepository a failing banner listener does not roll back the stored notification",
+          "status": "passed",
+          "duration_ms": 2,
+          "failure_messages": []
+        },
+        {
+          "name": "priorityBanner listeners receive banners until they unsubscribe",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "priorityBanner openPriorityBanner notifies open listeners",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Đã thu hồi quyền tự tạo mã → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Đã ghi nhận vắng mặt → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Yêu cầu bảo trì chưa được tiếp nhận → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Đã thống nhất lịch nhận khóa → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Hồ sơ đã được cập nhật → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Đặt phòng đã được đổi phòng → ",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Yêu cầu đã được hủy → user đã hủy yêu cầu phòng 101.",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone Chào mừng đến ứng dụng đặt phòng → Tài khoản của bạn đã sẵn sàng.",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "getNotificationTone matching is case-insensitive and negative wins over positive",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/component/profileAndConfigurationScreens.quality.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104681253,
+      "ended_at_ms": 1794104681408,
+      "assertions": [
+        {
+          "name": "ProfileScreen loads the stored profile",
+          "status": "passed",
+          "duration_ms": 19,
+          "failure_messages": []
+        },
+        {
+          "name": "ProfileScreen requires a full name and a valid email",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "ProfileScreen trims and saves the profile",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "ProfileScreen avatar shows the first letter of the name",
+          "status": "passed",
+          "duration_ms": 3,
+          "failure_messages": []
+        },
+        {
+          "name": "ConfigurationScreen shows the stored configuration values",
+          "status": "passed",
+          "duration_ms": 55,
+          "failure_messages": []
+        },
+        {
+          "name": "ConfigurationScreen strips non-digits from numeric input",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "ConfigurationScreen shows repository validation errors without saving",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "ConfigurationScreen non-admins see a permission error",
+          "status": "passed",
+          "duration_ms": 8,
+          "failure_messages": []
+        },
+        {
+          "name": "ConfigurationScreen saves numeric changes and the notification switch",
+          "status": "passed",
+          "duration_ms": 9,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/component/accountManagementScreen.quality.tsx",
+      "status": "passed",
+      "started_at_ms": 1794104681410,
+      "ended_at_ms": 1794104681547,
+      "assertions": [
+        {
+          "name": "lists only user accounts, never admins",
+          "status": "passed",
+          "duration_ms": 21,
+          "failure_messages": []
+        },
+        {
+          "name": "creates a lecturer account and shows errors from validation",
+          "status": "passed",
+          "duration_ms": 16,
+          "failure_messages": []
+        },
+        {
+          "name": "search filters accounts by username",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "locks and unlocks an account",
+          "status": "passed",
+          "duration_ms": 10,
+          "failure_messages": []
+        },
+        {
+          "name": "resets a password to 1234",
+          "status": "passed",
+          "duration_ms": 7,
+          "failure_messages": []
+        },
+        {
+          "name": "deletes an account",
+          "status": "passed",
+          "duration_ms": 5,
+          "failure_messages": []
+        },
+        {
+          "name": "shows and revokes a room PIN permission",
+          "status": "passed",
+          "duration_ms": 11,
+          "failure_messages": []
+        }
+      ]
+    },
+    {
+      "file": "quality-tests/unit/configurationAndProfile.quality.ts",
+      "status": "passed",
+      "started_at_ms": 1794104681549,
+      "ended_at_ms": 1794104681589,
+      "assertions": [
+        {
+          "name": "configurationRepository returns the defaults when nothing is stored",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository merges partially stored values with the defaults",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository only an admin can save",
+          "status": "passed",
+          "duration_ms": 6,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects minAdvanceDays=-1",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects minAdvanceDays=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects minAdvanceDays=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxAdvanceDays=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxAdvanceDays=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxAdvanceDays=NaN",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxActiveBookingsPerUser=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxActiveBookingsPerUser=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects maxActiveBookingsPerUser=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects cancellationCutoffMinutes=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects cancellationCutoffMinutes=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects cancellationCutoffMinutes=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects roomChangeCutoffMinutes=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects roomChangeCutoffMinutes=1.5",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects roomChangeCutoffMinutes=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects pinGraceMinutes=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects pinGraceMinutes=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects pinGraceMinutes=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects noShowGraceMinutes=-1",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects noShowGraceMinutes=1.5",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects noShowGraceMinutes=NaN",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository rejects min > max and a zero active-booking limit",
+          "status": "passed",
+          "duration_ms": 1,
+          "failure_messages": []
+        },
+        {
+          "name": "configurationRepository accepts zero grace periods and persists the result",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "profileRepository provides role-aware defaults",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        },
+        {
+          "name": "profileRepository saves profiles per user",
+          "status": "passed",
+          "duration_ms": 0,
+          "failure_messages": []
+        }
+      ]
+    }
+  ]
+}
